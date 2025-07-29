@@ -23,11 +23,11 @@ export default function Navigation() {
             </a>
           </div>
           
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#" className="hover:text-primary transition-colors duration-300">Home</a>
+          <div className="hidden md:flex items-center text-white space-x-8">
+            <a href="/" className="hover:text-primary transition-colors duration-300">Home</a>
             <a href="#" className="hover:text-primary transition-colors duration-300">Events</a>
-            <a href="#" className="hover:text-primary transition-colors duration-300">Artists</a>
-            <a href="#" className="hover:text-primary transition-colors duration-300">Venues</a>
+            <a href="/artists" className="hover:text-primary transition-colors duration-300">Artists</a>
+            <a href="/venues" className="hover:text-primary transition-colors duration-300">Venues</a>
             <a href="#" className="hover:text-primary transition-colors duration-300">Contact</a>
           </div>
 
