@@ -91,7 +91,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
           <h2 className="text-2xl font-semibold text-white mb-4">Upcoming Events At This Venue:</h2>
           {venue.events && venue.events.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {venue.events.map(event => (
+              {venue.events.map((event: Event) => (
                 <div key={event.id} className="bg-slate-800 p-6 rounded-2xl">
                   <h3 className="text-xl font-bold text-white">{event.title}</h3>
                   <p className="text-slate-400 mt-1">{event.date}</p>

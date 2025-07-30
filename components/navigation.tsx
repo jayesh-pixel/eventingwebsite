@@ -7,6 +7,7 @@ import { Search, Menu, X } from "lucide-react";
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = require('next/navigation').useRouter();
 
   return (
     <nav className="fixed top-0 w-full z-50 glass-card">
@@ -28,6 +29,8 @@ export default function Navigation() {
             <a href="#" className="hover:text-primary transition-colors duration-300">Events</a>
             <a href="/artists" className="hover:text-primary transition-colors duration-300">Artists</a>
             <a href="/venues" className="hover:text-primary transition-colors duration-300">Venues</a>
+            <a href="/about" className="hover:text-primary transition-colors duration-300">About Us</a>
+            <a href="/listwithus" className="hover:text-primary transition-colors duration-300">List With Us</a>
             <a href="#" className="hover:text-primary transition-colors duration-300">Contact</a>
           </div>
 
@@ -42,7 +45,10 @@ export default function Navigation() {
               />
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             </div>
-            <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105">
+            <Button
+              className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105"
+              onClick={() => router.push('/signup')}
+            >
               Sign Up
             </Button>
           </div>
@@ -62,10 +68,12 @@ export default function Navigation() {
       {isMenuOpen && (
         <div className="md:hidden bg-slate-950/95 backdrop-blur-lg border-t border-slate-800">
           <div className="px-4 pt-2 pb-3 space-y-1">
-            <a href="#" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Home</a>
+            <a href="/" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Home</a>
             <a href="#" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Events</a>
-            <a href="#" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Artists</a>
-            <a href="#" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Venues</a>
+            <a href="/artists" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Artists</a>
+            <a href="/venues" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Venues</a>
+            <a href="/about" className="block px-3 py-2 hover:text-primary transition-colors duration-300">About Us</a>
+            <a href="/listwithus" className="block px-3 py-2 hover:text-primary transition-colors duration-300">List With Us</a>
             <a href="#" className="block px-3 py-2 hover:text-primary transition-colors duration-300">Contact</a>
           </div>
         </div>
