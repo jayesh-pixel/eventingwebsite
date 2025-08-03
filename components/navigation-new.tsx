@@ -51,14 +51,6 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
   const cust_id = auth?.xA1 ? decryptData(auth.xA1, passphrase) : null;
   const isLoggedIn = !!(getToken && isLoggedInState === "true");
 
-  // Debug logging
-  console.log("Navigation auth debug:", { 
-    hasToken: !!getToken, 
-    isLoggedInState, 
-    cust_id, 
-    finalIsLoggedIn: isLoggedIn 
-  });
-
   // Add/Remove class to block scrolling when mobile menu is open
   useEffect(() => {
     if (open) {
@@ -160,9 +152,8 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
                 <Image
                   src="/EC Logo.png"
                   alt="Eventing Club Logo"
-                  layout="fill"
-                  className="absolute"
-                  objectFit="contain"
+                  fill
+                  className="absolute object-contain"
                 />
               </div>
             </Link>
