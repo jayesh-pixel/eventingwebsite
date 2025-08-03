@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState } from "react";
 import Navigation from "@/components/navigation";
@@ -7,6 +6,12 @@ import { services } from "@/utils/constants";
 import Modal from "../../components/common/custom modal/Modal";
 import { benefits } from "@/utils/constants";
 import { BsQuestionCircleFill } from "react-icons/bs";
+
+type ModalProps = {
+  serviceId: number | null;
+  setIsServiceModalOpen: (open: boolean) => void;
+  setServiceId: (id: number | null) => void;
+};
 
 const AboutUs = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);

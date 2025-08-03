@@ -1,94 +1,336 @@
 "use client";
 
-import React, { useState } from "react";
+import {
+  setMobileNumber,
+  setAuthDetails,
+  setIsNewCustomer,
+  setToken,
+  loggedInSucces,
+} from "@/store/slices/authSlice";
+import {
+  generateOPT,
+  registerUser,
+  validateOtp,
+  customer,
+} from "@/utils/config";
+import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import Loading from "../../components/common/loading/Loading";
+import { decryptData, encryptData } from "@/utils/constants";
 
 const Signup = () => {
-  const router = useRouter();
-  const [step, setStep] = useState(1); // 1: mobile, 2: otp, 3: details
+  const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
+  const auth = useSelector((store: any) => store.uSess);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+  const router = useRouter();
+
+  const number = auth?.vY4 ? decryptData(auth.vY4, passphrase) : "";
+  const cust_id = auth?.xA1 ? decryptData(auth.xA1, passphrase) : "";
+  const customer_exists = auth?.zX9 ? decryptData(auth.zX9, passphrase) : "";
+  const token = auth?.pT5 ? decryptData(auth.pT5, passphrase) : "";
+  const isNewCustomer = auth?.nQ2 ? decryptData(auth.nQ2, passphrase) : "";
+  const isLoggedIn = auth?.jL3 ? decryptData(auth.jL3, passphrase) : "";
+
+  console.log("Auth state debug:", { 
+    raw_auth: auth,
+    decrypted: { number, cust_id, customer_exists, token, isNewCustomer, isLoggedIn }
+  });
+
+  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [mobileNumber, setMobileNumberLocal] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
-    confirmPassword: "",
   });
-  const inputs = React.useRef<(HTMLInputElement | null)[]>([]);
+  const [numberModal, setNumberModal] = useState(false);
+  const [details, setDetails] = useState<any>();
 
-  // Step 1: Mobile number submit
-  const handleMobileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    toast.dismiss();
-    if (!mobile || mobile.length !== 10) {
-      return toast.error("Please enter a valid 10-digit mobile number");
+  console.log("Signup flow state:", {
+    step: !isLoggedIn && !token && !cust_id ? "mobile_input" :
+          cust_id && !token && !numberModal ? "otp_input" :
+          cust_id && token && (!customer_exists || isNewCustomer) ? "user_details" :
+          "unknown",
+    cust_id: !!cust_id,
+    token: !!token,
+    isLoggedIn: !!isLoggedIn
+  });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isLoggedIn && token && cust_id) {
+      router.push("/");
     }
-    setLoading(true);
-    // Simulate OTP send
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("OTP sent to your mobile number");
-      setStep(2);
-    }, 1000);
-  };
+  }, [isLoggedIn, token, cust_id, router]);
 
-  // Step 2: OTP verify
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
-    const val = e.target.value;
-    if (/^[0-9]?$/.test(val)) {
-      const newOtp = [...otp];
-      newOtp[idx] = val;
-      setOtp(newOtp);
-      if (val && idx < otp.length - 1) {
-        inputs.current[idx + 1]?.focus();
-      } else if (!val && idx > 0) {
-        inputs.current[idx - 1]?.focus();
+  //otp generation
+  const otpGeneration = async () => {
+    toast.dismiss();
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return toast.error("Please enter a valid 10-digit number");
+    }
+
+    const payload = { MobileNumber: String(mobileNumber) };
+
+    try {
+      const response = await axios.post(generateOPT, payload);
+      const data = response.data as {
+        data: { customer_id: string; customerExists: boolean };
+        message: string;
+      };
+      dispatch(
+        setAuthDetails({
+          cust_id: encryptData(data.data.customer_id, passphrase),
+          customer_exists: encryptData(String(data.data.customerExists), passphrase),
+        })
+      );
+
+      toast.success(data.message);
+      setNumberModal(false);
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
       }
     }
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const changeNumberOtpGeneration = async () => {
     toast.dismiss();
-    const stringOtp = otp.join("");
-    if (stringOtp.length !== 6) {
-      return toast.error("Please enter a valid 6-digit OTP");
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return toast.error("Please enter a valid 10-digit number");
     }
-    setLoading(true);
-    // Simulate OTP verification
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("OTP verified!");
-      setStep(3);
-    }, 1000);
+
+    const payload = { MobileNumber: String(mobileNumber) };
+
+    try {
+      const response = await axios.post(generateOPT, payload);
+      dispatch(
+        setAuthDetails({
+          cust_id: encryptData((response.data as { data: { customer_id: string; customerExists: boolean } }).data.customer_id, passphrase),
+          customer_exists: encryptData(String((response.data as { data: { customer_id: string; customerExists: boolean } }).data.customerExists), passphrase),
+        })
+      );
+
+      toast.success((response.data as { message: string }).message);
+      setNumberModal(false);
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
+      }
+    }
   };
 
-  // Step 3: Details submit
+  const handleUserDetails = async () => {
+    toast.dismiss();
+    const payload = {
+      customer_id: cust_id,
+      CustomerName: formData.name,
+      Email: formData.email,
+    };
+
+    try {
+      const response = await axios.post(registerUser, payload);
+      toast.success((response.data as { message: string }).message);
+      dispatch(setIsNewCustomer(null));
+      fetchCustomerData();
+      dispatch(loggedInSucces(encryptData("true", passphrase)));
+      router.push("/");
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
+      }
+    }
+  };
+
   const handleForm = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    toast.dismiss();
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      return toast.error("Please fill all fields");
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const { value } = e.target;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < otp.length - 1) {
+      inputs.current[index + 1]?.focus();
+    } else if (!value && index > 0) {
+      inputs.current[index - 1]?.focus();
     }
-    if (formData.password !== formData.confirmPassword) {
-      return toast.error("Passwords do not match");
-    }
-    setLoading(true);
-    // Simulate signup API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Signup successful!");
-      router.push("/");
-    }, 1500);
   };
+
+  useEffect(() => {
+    if (cust_id) {
+      fetchCustomerData();
+    }
+  }, [cust_id]);
+
+  const fetchCustomerData = async () => {
+    toast.dismiss();
+    const payload = { customer_id: cust_id };
+    try {
+      const response = await axios.post(`${customer.GET_BY_ID}`, payload);
+      setDetails((response.data as { data: any }).data);
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
+      }
+    }
+  };
+
+  // otp verification
+  const handleOtpVerification = async () => {
+    toast.dismiss();
+    const stringOtp = otp.join("");
+
+    if (!stringOtp || stringOtp.length !== 6) {
+      return toast.error("Please enter a valid OTP");
+    }
+
+    const payload = {
+      Otp: stringOtp,
+      customer_id: cust_id,
+    };
+
+    try {
+      const response = await axios.post(validateOtp, payload);
+      const data = response.data as { data: { token: string }; message: string };
+      dispatch(setToken(encryptData(data.data.token, passphrase)));
+      toast.success((response.data as { message: string }).message);
+
+      // Fetch customer data to check if user details exist
+      const customerPayload = { customer_id: cust_id };
+      try {
+        const customerResponse = await axios.post(`${customer.GET_BY_ID}`, customerPayload);
+        const customerData = (customerResponse.data as { data: any }).data;
+        
+        if (!customerData?.CustomerName) {
+          // New user - needs to fill details
+          dispatch(setIsNewCustomer(encryptData(true, passphrase)));
+        } else {
+          // Existing user - already has details
+          dispatch(setIsNewCustomer(encryptData(false, passphrase)));
+          dispatch(loggedInSucces(encryptData("true", passphrase)));
+          toast.success("Login successful!");
+          router.push("/");
+        }
+      } catch (customerError) {
+        // If customer fetch fails, assume new user
+        dispatch(setIsNewCustomer(encryptData(true, passphrase)));
+      }
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
+      }
+    }
+  };
+
+  const resendOtp = async () => {
+    toast.dismiss();
+    setOtp(Array(6).fill(""));
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return toast.error("Please enter a valid 10-digit number");
+    }
+
+    const payload = { MobileNumber: String(mobileNumber) };
+
+    try {
+      const response = await axios.post(generateOPT, payload);
+      dispatch(
+        setAuthDetails({
+          cust_id: encryptData((response.data as { data: { customer_id: string; customerExists: boolean } }).data.customer_id, passphrase),
+          customer_exists: encryptData(String((response.data as { data: { customer_id: string; customerExists: boolean } }).data.customerExists), passphrase),
+        })
+      );
+
+      toast.success((response.data as { message: string }).message);
+      setNumberModal(false);
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          toast.error(data.message);
+        }
+      }
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-blue-900 to-black">
@@ -98,100 +340,147 @@ const Signup = () => {
         <h2 className="text-3xl font-bold text-white mb-2 tracking-wide">Create Account</h2>
         <p className="text-blue-200 mb-6 text-center">Join the Eventing Club and never miss an event!</p>
 
-        {/* Step 1: Mobile number */}
-        {step === 1 && (
-          <form className="w-full flex flex-col gap-4" onSubmit={handleMobileSubmit}>
+        {/* initial mobile number section  */}
+        {!isLoggedIn && !token && !cust_id && (
+          <div className="w-full flex justify-center flex-col">
+            <h1 className="text-xl font-bold mb-4 text-white">
+              Welcome to eventing club
+            </h1>
+
+            <p className="text-base mb-3 text-white">
+              Phone number*
+            </p>
             <input
               type="text"
-              name="mobile"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              placeholder="Mobile Number"
-              className="px-4 py-2 rounded-md bg-white/20 text-white placeholder:text-blue-200 border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="+91"
+              value={mobileNumber}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                setMobileNumberLocal(value);
+                dispatch(setMobileNumber(encryptData(value, passphrase)));
+              }}
+              className="placeholder:text-slate-400 border w-full border-gray-500 rounded-md py-2 pl-2 outline-none focus:outline-none focus:ring focus:border-gray-50"
             />
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-2 mt-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg shadow-md transition duration-200"
+              onClick={otpGeneration}
+              className="whitespace-nowrap capitalize inline-flex items-center mt-3 justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 w-full"
             >
-              {loading ? "Sending OTP..." : "Send OTP"}
+              continue
             </button>
-          </form>
+          </div>
         )}
 
-        {/* Step 2: OTP */}
-        {step === 2 && (
-          <form className="w-full flex flex-col gap-4" onSubmit={handleOtpSubmit}>
-            <div className="flex gap-2 justify-center mb-2">
-              {otp.map((digit, idx) => (
+        {cust_id && !token && !numberModal && (
+          <div className="w-full">
+            <h1 className="text-base mb-2 text-white">
+              We had sent you a
+            </h1>
+            <h2 className="text-base text-white">
+              OTP to verify your number
+            </h2>
+            <div className="mt-4 flex gap-2 justify-center">
+              {otp.map((_, index) => (
                 <input
-                  key={idx}
+                  key={index}
+                  value={otp[index]}
                   type="text"
-                  value={digit}
-                  onChange={(e) => handleOtpChange(e, idx)}
-                  maxLength={1}
-                  ref={(el) => (inputs.current[idx] = el)}
-                  className="w-10 h-12 text-center text-lg rounded-md border border-blue-400 bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-12 h-12 rounded-md border border-gray-400 text-center outline-none focus:outline-gray-300"
                   placeholder="0"
+                  ref={(el) => { inputs.current[index] = el; }}
+                  onChange={(e) => handleChange(e, index)}
+                  maxLength={1}
                 />
               ))}
             </div>
+            <div className="flex gap-4 mt-6 mb-2 text-white">
+              <span className="cursor-pointer underline" onClick={resendOtp}>
+                Resend
+              </span>
+              <span
+                className="cursor-pointer underline text-white"
+                onClick={() => {
+                  setOtp(Array(6).fill(""));
+                  setNumberModal(true);
+                }}
+              >
+                Change Number
+              </span>
+            </div>
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-2 mt-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg shadow-md transition duration-200"
+              onClick={handleOtpVerification}
+              className="whitespace-nowrap capitalize inline-flex items-center mt-3 justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 w-full"
             >
-              {loading ? "Verifying..." : "Verify OTP"}
+              continue
             </button>
-            <p className="mt-2 text-blue-200 text-sm text-center">
-              Didn't receive OTP? <span className="underline cursor-pointer text-blue-400" onClick={() => { setOtp(["", "", "", "", "", ""]); setStep(1); }}>Resend</span>
-            </p>
-          </form>
+          </div>
         )}
 
-        {/* Step 3: Details */}
-        {step === 3 && (
-          <form className="w-full flex flex-col gap-4" onSubmit={handleSignup}>
+        {/* form for new user */}
+        {cust_id && token && (!customer_exists || isNewCustomer) && (
+          <div className="w-full">
+            <p className="text-sm mb-3 text-white">Name*</p>
             <input
               type="text"
-              name="name"
               value={formData.name}
+              name="name"
               onChange={handleForm}
-              placeholder="Full Name"
-              className="px-4 py-2 rounded-md bg-white/20 text-white placeholder:text-blue-200 border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter here"
+              className="placeholder:text-slate-400 border w-full border-gray-500 rounded-md py-2 pl-2 outline-none focus:outline-none focus:ring focus:border-gray-50"
             />
+
+            <p className="text-sm mb-3 mt-4 text-white">
+              Email*
+            </p>
             <input
-              type="email"
-              name="email"
+              type="text"
               value={formData.email}
+              name="email"
               onChange={handleForm}
-              placeholder="Email Address"
-              className="px-4 py-2 rounded-md bg-white/20 text-white placeholder:text-blue-200 border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter here"
+              className="placeholder:text-slate-400 border w-full border-gray-500 rounded-md py-2 pl-2 outline-none focus:outline-none focus:ring focus:border-gray-50"
             />
+
+            <button
+              type="submit"
+              onClick={handleUserDetails}
+              className="whitespace-nowrap capitalize inline-flex items-center mt-3 justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 w-full"
+            >
+              Continue
+            </button>
+          </div>
+        )}
+
+        {/* change number section */}
+        {numberModal && (
+          <div className="w-full flex justify-center flex-col">
+            <h1 className="text-base font-bold mb-4 text-white">
+              Welcome to eventing club
+            </h1>
+
+            <p className="text-base mb-3 text-white">
+              Phone number*
+            </p>
             <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleForm}
-              placeholder="Password"
-              className="px-4 py-2 rounded-md bg-white/20 text-white placeholder:text-blue-200 border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleForm}
-              placeholder="Confirm Password"
-              className="px-4 py-2 rounded-md bg-white/20 text-white placeholder:text-blue-200 border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              type="text"
+              placeholder="+91"
+              value={mobileNumber}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                setMobileNumberLocal(value);
+                dispatch(setMobileNumber(encryptData(value, passphrase)));
+              }}
+              className="placeholder:text-slate-400 border w-full border-gray-500 rounded-md py-2 pl-2 outline-none focus:outline-none focus:ring focus:border-gray-50"
             />
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-2 mt-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg shadow-md transition duration-200"
+              onClick={changeNumberOtpGeneration}
+              className="whitespace-nowrap capitalize inline-flex items-center mt-3 justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 w-full"
             >
-              {loading ? "Signing up..." : "Sign Up"}
+              continue
             </button>
-          </form>
+          </div>
         )}
 
         <p className="mt-6 text-blue-200 text-sm">

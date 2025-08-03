@@ -1,4 +1,4 @@
-import Navigation from "@/components/navigation";
+import Navigation from "@/components/navigation-new";
 import HeroSection from "@/components/hero-section";
 import EventCategories from "@/components/event-categories";
 import UpcomingEvents from "@/components/upcoming-events";

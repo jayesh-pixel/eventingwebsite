@@ -2,9 +2,37 @@
 
 import Navigation from "@/components/navigation";
 import { Users, MapPin } from "lucide-react";
-import { mockVenues } from "../page";
 
 // Ensure mockVenues contains the 'events' property in its objects for proper typing.
+export const mockVenues = [
+  {
+    id: "1",
+    name: "Grand Hall",
+    location: "123 Main St, Cityville",
+    capacity: 500,
+    description: "A spacious venue for large events.",
+    imageUrl: "/images/venue1.jpg",
+    type: "Conference Center",
+    events: [
+      {
+        id: "e1",
+        title: "Tech Conference 2024",
+        date: "2024-07-15",
+        details: "A conference for tech enthusiasts."
+      }
+    ]
+  },
+  {
+    id: "2",
+    name: "Skyline Rooftop",
+    location: "456 High St, Cityville",
+    capacity: 200,
+    description: "An open-air rooftop with stunning city views.",
+    imageUrl: "/images/venue2.jpg",
+    type: "Rooftop",
+    events: []
+  }
+];
 
 interface VenueDetailsParams {
   id: string;
@@ -27,7 +55,6 @@ interface Venue {
   type: string;
   events?: Event[];
 }
-
 
 export default function VenueDetails({ params }: { params: VenueDetailsParams }) {
   const venue = mockVenues.find(v => v.id === params.id);

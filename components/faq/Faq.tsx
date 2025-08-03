@@ -36,11 +36,12 @@ const Faq = () => {
                 <Accordion
                   key={index}
                   open={open === index}
-                  className="bg-slate-900 px-8 rounded-lg transition duration-200 ease-in-out shadow-md py-2 transition-all"
+                  className="bg-slate-900 px-8 rounded-lg transition duration-200 ease-in-out shadow-md py-2"
                   onClick={() => handleOpen(index)}
                 >
                   <AccordionHeader
                     className={`text-white border-none font-poppins`}
+                    onClick={() => handleOpen(index)}
                   >
                     <div className="flex w-full justify-between">
                       <p className="md:text-xl text-lg font-semibold text-blue-400">

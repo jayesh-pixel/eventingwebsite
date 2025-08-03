@@ -1,3 +1,4 @@
+
 import { URL } from "./constants";
 
 export const getBanner = `${URL}/webiste/homepage/getAllBannerSliderData`;
