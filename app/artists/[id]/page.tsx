@@ -2,7 +2,7 @@
 import { MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockArtists } from "@/data/mockData";
-import Navigation from "@/components/navigation";
+import Navigation from "@/components/navigation-new";
 
 type Event = {
   id: string;

@@ -335,7 +335,18 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-blue-900 to-black">
       <Toaster />
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-xl shadow-lg p-8 flex flex-col items-center">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-xl shadow-lg p-8 flex flex-col items-center relative">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="absolute left-4 top-4 flex items-center gap-1 text-blue-300 hover:text-white transition-colors text-base font-medium"
+          aria-label="Back"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back
+        </button>
         <Image src="/placeholder-user.jpg" alt="Signup" width={80} height={80} className="rounded-full mb-4 border-4 border-blue-400" />
         <h2 className="text-3xl font-bold text-white mb-2 tracking-wide">Create Account</h2>
         <p className="text-blue-200 mb-6 text-center">Join the Eventing Club and never miss an event!</p>

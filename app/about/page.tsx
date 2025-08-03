@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Navigation from "@/components/navigation";
+import Navigation from "@/components/navigation-new";
 import Footer from "@/components/footer";
 import { services } from "@/utils/constants";
 import Modal from "../../components/common/custom modal/Modal";

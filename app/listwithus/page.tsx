@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Navigation from "@/components/navigation";
+import Navigation from "@/components/navigation-new";
 import Footer from "@/components/footer";
 import Testimonials from "../../components/testimonials/Testimonials";
 import Faq from "../../components/faq/Faq";

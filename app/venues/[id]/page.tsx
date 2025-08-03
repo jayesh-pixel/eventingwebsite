@@ -1,6 +1,6 @@
 "use client"
 
-import Navigation from "@/components/navigation";
+import Navigation from "@/components/navigation-new";
 import { Users, MapPin } from "lucide-react";
 
 // Ensure mockVenues contains the 'events' property in its objects for proper typing.

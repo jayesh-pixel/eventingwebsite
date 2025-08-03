@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, Music, Guitar, Mic, Piano } from "lucide-react";
 import { mockCategories } from "@/data/mockData";
+import { categories as categoriesConfig } from "@/utils/config";
+import axios from "axios";
 
 const iconMap = {
   "fas fa-music": Music,
@@ -10,9 +12,53 @@ const iconMap = {
   "fas fa-piano": Piano,
 };
 
+interface Category {
+  _id: string;
+  Name: string;
+  Description: string | null;
+  Images: Array<{
+    image_path: string;
+    _id: string;
+  }>;
+  Priority: number;
+  status: number;
+}
+
+interface ApiResponse {
+  error: boolean;
+  message: string;
+  data: Category[];
+}
+
 export default function EventCategories() {
-  const [categories, setCategories] = useState<typeof mockCategories>(mockCategories);
-  const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get<ApiResponse>(categoriesConfig.GET_ALL);
+        
+        if (response.data && !response.data.error) {
+          setCategories(response.data.data || []);
+        } else {
+          console.error('API Error:', response.data.message);
+          // Fallback to empty array if API fails
+          setCategories([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // Fallback to empty array if API fails
+        setCategories([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   if (isLoading) {
     return (
@@ -52,45 +98,84 @@ export default function EventCategories() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories?.map((category, index) => {
-            const IconComponent = iconMap[category.icon as keyof typeof iconMap] || Music;
-            const colorClass = {
-              primary: "hover:shadow-primary/25 hover:text-primary",
-              secondary: "hover:shadow-secondary/25 hover:text-secondary",
-              accent: "hover:shadow-accent/25 hover:text-accent",
-              danger: "hover:shadow-destructive/25 hover:text-destructive",
-            }[category.color] || "hover:shadow-primary/25 hover:text-primary";
+          {categories && categories.length > 0 ? (
+            categories.map((category, index) => {
+              // Since API doesn't provide icon/color, we'll use defaults based on category name or index
+              const getIconAndColor = (name: string, index: number) => {
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes('music')) return { icon: Music, color: 'primary' };
+                if (lowerName.includes('concert') || lowerName.includes('live')) return { icon: Guitar, color: 'secondary' };
+                if (lowerName.includes('holi') || lowerName.includes('nye')) return { icon: Mic, color: 'accent' };
+                
+                // Default rotation based on index
+                const colors = ['primary', 'secondary', 'accent', 'danger'];
+                const icons = [Music, Guitar, Mic, Piano];
+                return { 
+                  icon: icons[index % icons.length], 
+                  color: colors[index % colors.length] 
+                };
+              };
 
-            return (
-              <div 
-                key={category.id}
-                className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft`}
-                style={{animationDelay: `${index * 0.2}s`}}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={`https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-                  <div className={`absolute top-4 right-4 bg-${category.color}/20 backdrop-blur-sm rounded-full p-2`}>
-                    <IconComponent className={`text-${category.color} h-5 w-5`} />
+              const { icon: IconComponent, color } = getIconAndColor(category.Name, index);
+              
+              const colorClass = {
+                primary: "hover:shadow-primary/25 hover:text-primary",
+                secondary: "hover:shadow-secondary/25 hover:text-secondary",
+                accent: "hover:shadow-accent/25 hover:text-accent",
+                danger: "hover:shadow-destructive/25 hover:text-destructive",
+              }[color] || "hover:shadow-primary/25 hover:text-primary";
+
+              // Get image URL from API response or use default
+              const imageUrl = category.Images && category.Images.length > 0 
+                ? category.Images[0].image_path.startsWith('http') 
+                  ? category.Images[0].image_path 
+                  : `https://devapi.eventingclub.in/${category.Images[0].image_path}`
+                : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+
+              return (
+                <div 
+                  key={category._id}
+                  className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft`}
+                  style={{animationDelay: `${index * 0.2}s`}}
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={imageUrl}
+                      alt={category.Name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        // Fallback to default image if API image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+                    <div className={`absolute top-4 right-4 bg-${color}/20 backdrop-blur-sm rounded-full p-2`}>
+                      <IconComponent className={`text-${color} h-5 w-5`} />
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
+                      {category.Name}
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                      {category.Description || "Discover amazing events in this category"}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-accent font-medium">Explore Events</span>
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
+                    </div>
                   </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
-                    {category.name}
-                  </h3>
-                  <p className="text-slate-400 text-sm mb-4">{category.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-accent font-medium">{category.eventCount} Events</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <Music className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No categories available at the moment.</p>
+              <p className="text-slate-500 text-sm mt-2">Please check back later for exciting event categories!</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

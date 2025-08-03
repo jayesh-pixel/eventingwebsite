@@ -4,14 +4,73 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { mockEvents } from "@/data/mockData";
+import { upcomingEvents as upcomingEventsConfig, featuredEvents as featuredEventsConfig } from "@/utils/config";
+import axios from "axios";
+
+interface UpcomingEvent {
+  event_id: string;
+  EventName: string;
+  EventStartDate: string;
+  EventStartTime: string;
+  EventCardImages: Array<{
+    image_path: string;
+    _id: string;
+  }>;
+  LowestticketPrice: number;
+  isFeatured: number;
+  VenueName: string;
+  VenueCity: string;
+}
+
+interface ApiResponse {
+  error: boolean;
+  message: string;
+  data: UpcomingEvent[];
+}
 
 export default function UpcomingEvents() {
-  const [allEvents, setAllEvents] = useState<typeof mockEvents>(mockEvents);
-  const [isLoading, setIsLoading] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<UpcomingEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const featuredEvents = allEvents.filter(event => event.featured === "true");
-  const upcomingEvents = allEvents.filter(event => event.featured !== "true").slice(0, 2);
-  const featuredEvent = featuredEvents[0];
+  // Fetch events from API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch both upcoming and featured events
+        const [upcomingResponse, featuredResponse] = await Promise.all([
+          axios.get<ApiResponse>(upcomingEventsConfig.GET_ALL),
+          axios.get<ApiResponse>(featuredEventsConfig.GET_ALL)
+        ]);
+
+        if (upcomingResponse.data && !upcomingResponse.data.error) {
+          setUpcomingEvents(upcomingResponse.data.data || []);
+        }
+
+        if (featuredResponse.data && !featuredResponse.data.error) {
+          setFeaturedEvents(featuredResponse.data.data || []);
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+        // Fallback to empty arrays if API fails
+        setUpcomingEvents([]);
+        setFeaturedEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Get the first featured event or first upcoming event as main featured
+  const featuredEvent = featuredEvents.length > 0 ? featuredEvents[0] : upcomingEvents[0];
+  
+  // Get remaining upcoming events for sidebar (excluding the featured one)
+  const sidebarEvents = upcomingEvents.filter(event => event.event_id !== featuredEvent?.event_id).slice(0, 2);
 
   if (isLoading) {
     return (
@@ -65,39 +124,49 @@ export default function UpcomingEvents() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Featured Event */}
-          {featuredEvent && (
+          {featuredEvent ? (
             <div className="lg:col-span-2">
               <div className="glass-card rounded-3xl overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/25 animate-slideInLeft">
                 <div className="relative h-80 overflow-hidden">
                   <img 
-                    src={featuredEvent.imageUrl}
-                    alt={featuredEvent.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    src={
+                      featuredEvent.EventCardImages && featuredEvent.EventCardImages.length > 0
+                        ? featuredEvent.EventCardImages[0].image_path.startsWith('http')
+                          ? featuredEvent.EventCardImages[0].image_path
+                          : `https://node.eventingclub.in/${featuredEvent.EventCardImages[0].image_path}`
+                        : 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop'
+                    }
+                    alt={featuredEvent.EventName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
                   
                   <div className="absolute top-6 left-6 bg-destructive/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
-                    Featured Event
+                    {featuredEvent.isFeatured ? 'Featured Event' : 'Upcoming Event'}
                   </div>
                   
                   <div className="absolute top-6 right-6 glass-card text-center p-4 rounded-xl">
-                    <div className="text-2xl font-bold text-accent">{featuredEvent.date.split(' ')[0]}</div>
-                    <div className="text-sm text-slate-300">{featuredEvent.date.split(' ')[1]}</div>
+                    <div className="text-2xl font-bold text-accent">{featuredEvent.EventStartDate.split(' ')[0]}</div>
+                    <div className="text-sm text-slate-300">{featuredEvent.EventStartDate.split(' ')[1]}</div>
                   </div>
                 </div>
                 
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                      {featuredEvent.category}
+                      Music Event
                     </span>
-                    <span className="text-slate-400 text-sm">{featuredEvent.venue}</span>
+                    <span className="text-slate-400 text-sm">{featuredEvent.VenueName}, {featuredEvent.VenueCity}</span>
                   </div>
                   <h3 className="text-3xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">
-                    {featuredEvent.title}
+                    {featuredEvent.EventName}
                   </h3>
                   <p className="text-slate-400 mb-6 leading-relaxed">
-                    {featuredEvent.description}
+                    Experience an amazing event at {featuredEvent.VenueName} in {featuredEvent.VenueCity}. Don't miss this incredible opportunity!
                   </p>
                   
                   <div className="flex items-center justify-between">
@@ -109,55 +178,79 @@ export default function UpcomingEvents() {
                           <span className="text-xs font-medium">+3</span>
                         </div>
                       </div>
-                      <span className="text-sm text-slate-400">5 Artists</span>
+                      <span className="text-sm text-slate-400">Multiple Artists</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-accent">${featuredEvent.price}</div>
-                      <div className="text-sm text-slate-400">per ticket</div>
+                      <div className="text-2xl font-bold text-accent">₹{featuredEvent.LowestticketPrice}</div>
+                      <div className="text-sm text-slate-400">onwards</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="lg:col-span-2 glass-card rounded-3xl p-12 text-center">
+              <Calendar className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-slate-400 mb-2">No Featured Events</h3>
+              <p className="text-slate-500">Check back soon for exciting featured events!</p>
+            </div>
           )}
 
           {/* Smaller Events */}
           <div className="space-y-8">
-            {upcomingEvents.map((event, index) => (
+            {sidebarEvents.map((event, index) => (
               <div 
-                key={event.id}
+                key={event.event_id}
                 className="glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-secondary/25 animate-slideInRight"
                 style={{animationDelay: `${index * 0.2}s`}}
               >
                 <div className="relative h-48 overflow-hidden">
                   <img 
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    src={
+                      event.EventCardImages && event.EventCardImages.length > 0
+                        ? event.EventCardImages[0].image_path.startsWith('http')
+                          ? event.EventCardImages[0].image_path
+                          : `https://node.eventingclub.in/${event.EventCardImages[0].image_path}`
+                        : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`
+                    }
+                    alt={event.EventName}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
                   <div className="absolute top-4 right-4 glass-card text-center p-2 rounded-lg">
-                    <div className="text-lg font-bold text-accent">{event.date.split(' ')[0]}</div>
-                    <div className="text-xs text-slate-300">{event.date.split(' ')[1]}</div>
+                    <div className="text-lg font-bold text-accent">{event.EventStartDate.split(' ')[0]}</div>
+                    <div className="text-xs text-slate-300">{event.EventStartDate.split(' ')[1]}</div>
                   </div>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-secondary/20 text-secondary px-2 py-1 rounded-full text-xs">
-                      {event.category}
+                      Event
                     </span>
                   </div>
                   <h4 className="text-lg font-semibold mb-2 group-hover:text-secondary transition-colors duration-300">
-                    {event.title}
+                    {event.EventName}
                   </h4>
-                  <p className="text-slate-400 text-sm mb-4">{event.venue}</p>
+                  <p className="text-slate-400 text-sm mb-4">{event.VenueName}, {event.VenueCity}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-accent font-medium">${event.price}</span>
-                    <span className="text-xs text-slate-500">{event.time}</span>
+                    <span className="text-accent font-medium">₹{event.LowestticketPrice}</span>
+                    <span className="text-xs text-slate-500">{event.EventStartTime}</span>
                   </div>
                 </div>
               </div>
             ))}
+            
+            {/* Empty state for sidebar if no events */}
+            {sidebarEvents.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400">More events coming soon!</p>
+              </div>
+            )}
           </div>
         </div>
 
