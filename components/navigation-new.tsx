@@ -172,7 +172,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
               Home
             </Link>
-            <Link href="/venue" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
               Venues
             </Link>
             <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
