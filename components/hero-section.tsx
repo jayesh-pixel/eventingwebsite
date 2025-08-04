@@ -124,15 +124,7 @@ export default function HeroSection() {
               />
             )}
             
-            {/* Banner Info Display */}
-            <div className="absolute bottom-20 left-6 z-20 bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 border border-slate-700">
-              <div className="text-white text-sm">
-                <span className="block">Banner {currentSlide + 1} of {banners.length}</span>
-                <span className="text-[#00E1FC] text-xs">
-                  ID: {banners.length > 0 ? banners[currentSlide]?._id?.slice(-8) : 'N/A'}
-                </span>
-              </div>
-            </div>
+
             
             {/* Navigation arrows */}
             {banners.length > 0 && (

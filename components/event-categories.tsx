@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { ArrowRight, Music, Guitar, Mic, Piano } from "lucide-react";
+
+import Link from "next/link";
 import { mockCategories } from "@/data/mockData";
 import { categories as categoriesConfig } from "@/utils/config";
 import axios from "axios";
@@ -126,47 +128,55 @@ export default function EventCategories() {
               }[color] || "hover:shadow-primary/25 hover:text-primary";
 
               // Get image URL from API response or use default
+
+              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
               const imageUrl = category.Images && category.Images.length > 0 
                 ? category.Images[0].image_path.startsWith('http') 
                   ? category.Images[0].image_path 
-                  : `https://devapi.eventingclub.in/${category.Images[0].image_path}`
+                  : `${backendUrl}/${category.Images[0].image_path}`
                 : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
 
               return (
-                <div 
+                <Link
                   key={category._id}
-                  className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft`}
-                  style={{animationDelay: `${index * 0.2}s`}}
+                  href={`/categories/${category._id}`}
+                  className="block"
+                  prefetch={false}
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={imageUrl}
-                      alt={category.Name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        // Fallback to default image if API image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-                    <div className={`absolute top-4 right-4 bg-${color}/20 backdrop-blur-sm rounded-full p-2`}>
-                      <IconComponent className={`text-${color} h-5 w-5`} />
+                  <div
+                    className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft`}
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        alt={category.Name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          // Fallback to default image if API image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+                      <div className={`absolute top-4 right-4 bg-${color}/20 backdrop-blur-sm rounded-full p-2`}>
+                        <IconComponent className={`text-${color} h-5 w-5`} />
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
+                        {category.Name}
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-4">
+                        {category.Description || "Discover amazing events in this category"}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-accent font-medium">Explore Events</span>
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
+                      </div>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
-                      {category.Name}
-                    </h3>
-                    <p className="text-slate-400 text-sm mb-4">
-                      {category.Description || "Discover amazing events in this category"}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-accent font-medium">Explore Events</span>
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
-                    </div>
-                  </div>
-                </div>
+                </Link>
               );
             })
           ) : (

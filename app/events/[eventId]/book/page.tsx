@@ -161,8 +161,9 @@ export default function BookEventPage() {
         setLoading(true);
         
         // Fetch event details
+        const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const eventDetailsResponse = await axios.post<ApiResponse>(
-          "https://node.eventingclub.in/webiste/events/getEventDetailsById",
+          `${apiBase}/webiste/events/getEventDetailsById`,
           { event_id: eventId }
         );
 
@@ -172,7 +173,7 @@ export default function BookEventPage() {
 
         // Fetch event dates and times
         const datesResponse = await axios.post<EventDateTimeResponse>(
-          "https://node.eventingclub.in/webiste/events/getEventDateTimeById",
+          `${apiBase}/webiste/events/getEventDateTimeById`,
           { event_id: eventId }
         );
 
@@ -200,8 +201,9 @@ export default function BookEventPage() {
   // Load tickets for selected date
   const loadTickets = async (eventDateTimeId: string) => {
     try {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "https://node.eventingclub.in";
       const response = await axios.post<TicketResponse>(
-        "https://node.eventingclub.in/webiste/eventtickets/getWebsiteTicketsbyEventDate",
+        `${apiBase}/webiste/eventtickets/getWebsiteTicketsbyEventDate`,
         {
           event_id: eventId,
           eventDateTime_id: eventDateTimeId
