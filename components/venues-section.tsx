@@ -50,7 +50,51 @@ export default function VenuesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="flex overflow-x-auto space-x-4 pb-4 md:hidden">
+          {venues?.map((venue, index) => {
+            const colorClass = getVenueColor(venue.capacity);
+            const hoverColorClass = {
+              primary: "hover:shadow-primary/25",
+              secondary: "hover:shadow-secondary/25",
+              accent: "hover:shadow-accent/25",
+              destructive: "hover:shadow-destructive/25",
+            }[colorClass];
+
+            return (
+              <div 
+                key={venue.id}
+                className={`flex-shrink-0 w-80 glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${hoverColorClass} animate-slideInLeft`}
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={venue.imageUrl}
+                    alt={venue.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4">
+                    <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                      <Users className="mr-1 h-3 w-3" />
+                      {venue.capacity.toLocaleString()} capacity
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className={`text-lg font-semibold mb-2 group-hover:text-${colorClass} transition-colors duration-300`}>
+                    {venue.name}
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-3">{venue.location}</p>
+                  <p className="text-slate-500 text-xs">
+                    {venue.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {venues?.map((venue, index) => {
             const colorClass = getVenueColor(venue.capacity);
             const hoverColorClass = {

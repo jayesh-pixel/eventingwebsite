@@ -169,10 +169,10 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
               Artists
             </Link>
-            <Link href="/aboutus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
               About Us
             </Link>
-            <Link href="/list-with-us" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
               List With Us
             </Link>
           </div>
@@ -221,8 +221,8 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
                 <FaUserCircle className="size-10 text-[#00E1FC] hover:text-[#FD743F] cursor-pointer transition-colors duration-300" />
               </Link>
             ) : (
-              <Link href="/signup">
-                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-6 py-2 rounded-lg text-white font-medium">
+              <Link href="/signup" className="hidden sm:block">
+                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-4 py-1 sm:px-6 sm:py-2 rounded-lg text-white font-medium">
                   Sign Up
                 </button>
               </Link>
@@ -270,6 +270,16 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
                       placeholder="Search events, venues..."
                     />
                   </div>
+                </div>
+              )}
+              
+              {!isLoggedIn && (
+                <div className="px-3 py-2">
+                  <Link href="/signup">
+                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-4 py-2 rounded-lg text-white font-medium">
+                      Sign Up
+                    </button>
+                  </Link>
                 </div>
               )}
             </div>

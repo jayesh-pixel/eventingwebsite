@@ -140,7 +140,7 @@ export default function UpcomingEvents() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col space-y-8 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0">
           {/* Featured Event */}
           {featuredEvent ? (
             <div className={upcomingEvents.length === 1 ? "lg:col-span-3" : "lg:col-span-2"}>
@@ -213,9 +213,9 @@ export default function UpcomingEvents() {
 
           {/* Smaller Events - Only show if there are multiple events */}
           {upcomingEvents.length > 1 && (
-            <div className="space-y-8">
+            <div className="flex overflow-x-auto space-x-4 lg:flex-col lg:overflow-x-visible lg:space-x-0 lg:space-y-8">
               {sidebarEvents.map((event, index) => (
-                <Link key={event.event_id} href={`/events/${event.event_id}`}>
+                <Link key={event.event_id} href={`/events/${event.event_id}`} className="flex-shrink-0 w-80 lg:w-auto">
                   <div 
                     className="glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-secondary/25 animate-slideInRight"
                     style={{animationDelay: `${index * 0.2}s`}}
@@ -258,7 +258,7 @@ export default function UpcomingEvents() {
               
               {/* Empty state for sidebar if no additional events */}
               {sidebarEvents.length === 0 && (
-                <div className="text-center py-8">
+                <div className="flex-shrink-0 w-80 lg:w-auto text-center py-8">
                   <Calendar className="h-12 w-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400">More events coming soon!</p>
                 </div>

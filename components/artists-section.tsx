@@ -112,7 +112,64 @@ export default function ArtistsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="flex overflow-x-auto space-x-4 pb-4 sm:hidden">
+          {artists && artists.length > 0 ? (
+            artists.map((artist, index) => {
+              const IconComponent = getGenreIcon(artist.Name);
+              const colorClass = getGenreColor(artist.Name);
+              
+              // Get image URL from API response or use default
+              const imageUrl = artist.Images && artist.Images.length > 0 
+                ? artist.Images[0].image_path.startsWith('http')
+                  ? artist.Images[0].image_path
+                  : `https://node.eventingclub.in/${artist.Images[0].image_path}`
+                : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
+
+              return (
+                <div 
+                  key={artist._id}
+                  className="flex-shrink-0 w-48 group cursor-pointer animate-fadeInUp"
+                  style={{animationDelay: `${index * 0.1}s`}}
+                >
+                  <div className="relative overflow-hidden rounded-2xl mb-4">
+                    <img 
+                      src={imageUrl}
+                      alt={`${artist.Name} - Artist`}
+                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                        <IconComponent className="mr-1 h-3 w-3" />
+                        View Events
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className={`text-lg font-semibold mb-1 group-hover:text-${colorClass} transition-colors duration-300`}>
+                      {artist.Name}
+                    </h3>
+                    <p className="text-slate-400 text-sm">
+                      {artist.Description ? artist.Description.slice(0, 50) + (artist.Description.length > 50 ? '...' : '') : 'Music Artist'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="flex-shrink-0 w-48 text-center py-12">
+              <Users className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No artists available at the moment.</p>
+              <p className="text-slate-500 text-sm mt-2">Please check back later for amazing artists!</p>
+            </div>
+          )}
+        </div>
+
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           {artists && artists.length > 0 ? (
             artists.map((artist, index) => {
               const IconComponent = getGenreIcon(artist.Name);

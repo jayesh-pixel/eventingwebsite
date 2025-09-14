@@ -99,7 +99,96 @@ export default function EventCategories() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="flex overflow-x-auto space-x-4 pb-4 md:hidden">
+          {categories && categories.length > 0 ? (
+            categories.map((category, index) => {
+              // Since API doesn't provide icon/color, we'll use defaults based on category name or index
+              const getIconAndColor = (name: string, index: number) => {
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes('music')) return { icon: Music, color: 'primary' };
+                if (lowerName.includes('concert') || lowerName.includes('live')) return { icon: Guitar, color: 'secondary' };
+                if (lowerName.includes('holi') || lowerName.includes('nye')) return { icon: Mic, color: 'accent' };
+                
+                // Default rotation based on index
+                const colors = ['primary', 'secondary', 'accent', 'danger'];
+                const icons = [Music, Guitar, Mic, Piano];
+                return { 
+                  icon: icons[index % icons.length], 
+                  color: colors[index % colors.length] 
+                };
+              };
+
+              const { icon: IconComponent, color } = getIconAndColor(category.Name, index);
+              
+              const colorClass = {
+                primary: "hover:shadow-primary/25 hover:text-primary",
+                secondary: "hover:shadow-secondary/25 hover:text-secondary",
+                accent: "hover:shadow-accent/25 hover:text-accent",
+                danger: "hover:shadow-destructive/25 hover:text-destructive",
+              }[color] || "hover:shadow-primary/25 hover:text-primary";
+
+              // Get image URL from API response or use default
+
+              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+              const imageUrl = category.Images && category.Images.length > 0 
+                ? category.Images[0].image_path.startsWith('http') 
+                  ? category.Images[0].image_path 
+                  : `${backendUrl}/${category.Images[0].image_path}`
+                : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+
+              return (
+                <Link
+                  key={category._id}
+                  href={`/categories/${category._id}`}
+                  className="block flex-shrink-0 w-80"
+                  prefetch={false}
+                >
+                  <div
+                    className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft`}
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        alt={category.Name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          // Fallback to default image if API image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+                      <div className={`absolute top-4 right-4 bg-${color}/20 backdrop-blur-sm rounded-full p-2`}>
+                        <IconComponent className={`text-${color} h-5 w-5`} />
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
+                        {category.Name}
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-4">
+                        {category.Description || "Discover amazing events in this category"}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-accent font-medium">Explore Events</span>
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="flex-shrink-0 w-80 text-center py-12">
+              <Music className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No categories available at the moment.</p>
+              <p className="text-slate-500 text-sm mt-2">Please check back later for exciting event categories!</p>
+            </div>
+          )}
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories && categories.length > 0 ? (
             categories.map((category, index) => {
               // Since API doesn't provide icon/color, we'll use defaults based on category name or index
