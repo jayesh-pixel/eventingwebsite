@@ -152,7 +152,7 @@ export default function UpcomingEvents() {
                         featuredEvent.EventCardImages && featuredEvent.EventCardImages.length > 0
                           ? featuredEvent.EventCardImages[0].image_path.startsWith('http')
                             ? featuredEvent.EventCardImages[0].image_path
-                            : `https://node.eventingclub.in/${featuredEvent.EventCardImages[0].image_path}`
+                            : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${featuredEvent.EventCardImages[0].image_path}`
                           : ''
                       }
                       alt={featuredEvent.EventName}
@@ -226,7 +226,7 @@ export default function UpcomingEvents() {
                           event.EventCardImages && event.EventCardImages.length > 0
                             ? event.EventCardImages[0].image_path.startsWith('http')
                               ? event.EventCardImages[0].image_path
-                              : `https://node.eventingclub.in/${event.EventCardImages[0].image_path}`
+                              : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${event.EventCardImages[0].image_path}`
                             : ''
                         }
                         alt={event.EventName}

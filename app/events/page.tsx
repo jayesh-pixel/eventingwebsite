@@ -71,7 +71,7 @@ export default function EventsPage() {
   const getImageUrl = (imagePath: string) => {
     return imagePath.startsWith('http') 
       ? imagePath 
-      : `https://node.eventingclub.in/${imagePath}`;
+      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${imagePath}`;
   };
 
   if (isLoading) {

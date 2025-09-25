@@ -106,7 +106,7 @@ export default function ArtistsPage() {
                 const imageUrl = artist.Images && artist.Images.length > 0 
                   ? artist.Images[0].image_path.startsWith('http')
                     ? artist.Images[0].image_path
-                    : `https://node.eventingclub.in/${artist.Images[0].image_path}`
+                    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${artist.Images[0].image_path}`
                   : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
 
                 return (

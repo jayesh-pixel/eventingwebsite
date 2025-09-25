@@ -149,7 +149,7 @@ export default function VenuesPage() {
                 const imageUrl = venue.Images && venue.Images.length > 0 
                   ? venue.Images[0].image_path.startsWith('http')
                     ? venue.Images[0].image_path
-                    : `https://node.eventingclub.in/${venue.Images[0].image_path}`
+                    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${venue.Images[0].image_path}`
                   : `https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=500&h=400&fit=crop&sig=${index}`;
 
                 // Get location string

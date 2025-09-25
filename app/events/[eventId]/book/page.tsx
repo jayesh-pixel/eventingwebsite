@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +32,9 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import { TicketType } from "@/lib/types";
+import { bookTicketApi } from "@/utils/config";
+import { encryptData, decryptData } from "@/utils/constants";
+import toast, { Toaster } from "react-hot-toast";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types & Interfaces
@@ -114,10 +118,35 @@ export default function BookEventPage() {
   const router = useRouter();
   const eventId = params?.eventId as string;
   
+  // Authentication state
+  const auth = useSelector((store: any) => store.uSess);
+  const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
+  
+  // Decrypt auth data
+  const isLoggedIn = auth?.jL3 ? decryptData(auth.jL3, passphrase) : null;
+  const customerId = auth?.xA1 ? decryptData(auth.xA1, passphrase) : null;
+  const customerExists = auth?.zX9 ? decryptData(auth.zX9, passphrase) : null;
+  
+  // Check if user is authenticated
+  const isAuthenticated = isLoggedIn === "true" && customerId;
+  
+  // Debug authentication state
+  React.useEffect(() => {
+    console.log("Authentication Debug:", {
+      auth,
+      isLoggedIn,
+      customerId,
+      customerExists,
+      isAuthenticated
+    });
+  }, [auth, isLoggedIn, customerId, customerExists, isAuthenticated]);
+  
   // ────────────────────────────────────────────────────────────────────────────
   // Local state
   // ────────────────────────────────────────────────────────────────────────────
   const [loading, setLoading] = React.useState(true);
+  const [paymentProcessing, setPaymentProcessing] = React.useState(false);
+  const [showLoginModal, setShowLoginModal] = React.useState(false);
   const [selectedDateId, setSelectedDateId] = React.useState<string | null>(null);
   const [dates, setDates] = React.useState<EventDateTime[]>([]);
   const [tickets, setTickets] = React.useState<TicketData[]>([]);
@@ -201,7 +230,7 @@ export default function BookEventPage() {
   // Load tickets for selected date
   const loadTickets = async (eventDateTimeId: string) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "https://node.eventingclub.in";
+      const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       const response = await axios.post<TicketResponse>(
         `${apiBase}/webiste/eventtickets/getWebsiteTicketsbyEventDate`,
         {
@@ -249,6 +278,14 @@ export default function BookEventPage() {
     });
   };
   
+  const handleContinueToDetails = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    setCustomerFormPage(true);
+  };
+
   const handleShowCount = (ticketId: string) => setShowCount(prev => ({ ...prev, [ticketId]: true }));
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -278,40 +315,201 @@ export default function BookEventPage() {
   };
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Booking simulation
+  // Payment gateway booking integration
   // ────────────────────────────────────────────────────────────────────────────
   const handleBooking = async () => {
-    try {
-      setLoading(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Booking details:', {
-        eventId,
-        selectedDateId,
-        customer,
-        tickets: tickets.filter(t => counts[t.Ticket_Id] > 0),
-        totalTickets,
-        totalPrice: finalAmount
-      });
-      
-      // Reset UI and redirect
-      setCounts({});
-      setShowCount({});
-      setCheckoutPage(false);
-      setCustomerFormPage(false);
-      setCustomer({ 
-        firstName: "", lastName: "", phone: "", email: "", age: "", 
-        note: "", whatsappNumber: "", isWhatsApp: 1 
-      });
-      
-      router.push(`/events/${eventId}/booking-success`);
-    } catch (error) {
-      console.error('Booking failed:', error);
-    } finally {
-      setLoading(false);
+    // Validation checks
+    if (!selectedDateId) {
+      toast.error("Please select a valid event date");
+      return;
     }
+
+    const selectedTickets = tickets.filter(t => counts[t.Ticket_Id] > 0);
+    if (selectedTickets.length === 0) {
+      toast.error("Please select at least one ticket");
+      return;
+    }
+
+    // Check if multiple different ticket types are selected
+    if (selectedTickets.length > 1) {
+      toast.error("Please select only one ticket type per booking. You can make separate bookings for different ticket types.");
+      return;
+    }
+
+    // Customer validation
+    if (!customer.firstName.trim() || !customer.lastName.trim()) {
+      toast.error("Please fill in your name");
+      return;
+    }
+
+    if (!customer.email.trim() || !customer.phone.trim()) {
+      toast.error("Please provide email and phone number");
+      return;
+    }
+
+    if (finalAmount <= 0) {
+      toast.error("Invalid booking amount");
+      return;
+    }
+
+    try {
+      setPaymentProcessing(true);
+      toast.loading("Preparing payment gateway...");
+      
+      // Get encryption key
+      const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY;
+      if (!passphrase) {
+        throw new Error("Payment configuration error. Please contact support.");
+      }
+
+      // Prepare booking payload to match backend expectation
+      const selectedTicket = selectedTickets[0];
+      const ticketQuantity = counts[selectedTicket.Ticket_Id];
+      
+      const bookingPayload = {
+        customer_id: customerId || mockUser.user_id, // Use authenticated customer ID or fallback to mock
+        event_id: eventId,
+        EventTicket_id: selectedTicket.Ticket_Id, // Backend expects single ticket ID
+        TicketQuantity: ticketQuantity, // Quantity for this specific ticket type
+      };
+      
+      console.log('Booking payload:', bookingPayload);
+
+      // Call booking API directly without encryption
+      const response = await axios.post(`${bookTicketApi.POST_DATA}`, bookingPayload);
+
+      toast.dismiss();
+
+      if (response.data && (response.data as any).data) {
+        // Get payment gateway data directly (no decryption needed)
+        const paymentData = (response.data as any).data;
+        
+        if (paymentData && typeof paymentData === 'object') {
+          console.log('Payment gateway data received:', Object.keys(paymentData));
+          
+          // Show success message before redirect
+          toast.success("Redirecting to secure payment gateway...");
+          
+          // Create and submit PayU form
+          const form = document.createElement("form");
+          form.setAttribute("method", "POST");
+          form.setAttribute("action", "https://secure.payu.in/_payment");
+          form.setAttribute("target", "_self");
+
+          // Add all payment parameters to form
+          Object.keys(paymentData).forEach((key) => {
+            const hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", String(paymentData[key]));
+            form.appendChild(hiddenField);
+          });
+
+          document.body.appendChild(form);
+          
+          // Submit form to PayU payment gateway
+          form.submit();
+          
+          // Clean up form after submission
+          setTimeout(() => {
+            document.body.removeChild(form);
+          }, 1000);
+        } else {
+          throw new Error("Invalid payment gateway response format");
+        }
+      } else {
+        throw new Error("No payment data received from server");
+      }
+      
+    } catch (error) {
+      console.error('Payment initiation failed:', error);
+      toast.dismiss();
+      
+      if (error instanceof Error) {
+        if ('response' in error && error.response) {
+          const axiosError = error as any;
+          const { status } = axiosError.response;
+          
+          switch (status) {
+            case 400:
+              toast.error("Invalid booking details. Please check your information.");
+              break;
+            case 401:
+              toast.error("Authentication required. Please login and try again.");
+              break;
+            case 403:
+              toast.error("Access denied. Please try again.");
+              break;
+            case 404:
+              toast.error("Event or tickets not found. Please refresh and try again.");
+              break;
+            case 409:
+              toast.error("Tickets no longer available. Please select different tickets.");
+              break;
+            case 500:
+              toast.error("Server error. Please try again in a moment.");
+              break;
+            default:
+              toast.error("Network error. Please check your connection.");
+          }
+        } else if (error.message.includes("Payment configuration")) {
+          toast.error(error.message);
+        } else {
+          toast.error("Connection error. Please check your internet and try again.");
+        }
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Login Modal Component
+  // ────────────────────────────────────────────────────────────────────────────
+  const LoginModal = () => {
+    if (!showLoginModal) return null;
+    
+    return (
+      <>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" aria-hidden="true" onClick={() => setShowLoginModal(false)}></div>
+        <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+          <Card className="w-full max-w-md bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md border border-slate-700/50 shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 pb-4">
+              <CardTitle className="text-xl text-white font-semibold text-center">Login Required</CardTitle>
+              <CardDescription className="text-slate-300 text-center">Please login to continue with your booking</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="text-center space-y-4">
+                <div className="text-4xl mb-4">🔐</div>
+                <p className="text-slate-300 mb-6">
+                  You need to be logged in to book tickets. This helps us secure your booking and send you confirmation details.
+                </p>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => {
+                      setShowLoginModal(false);
+                      router.push('/signup');
+                    }}
+                    className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300"
+                  >
+                    Login / Sign Up
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowLoginModal(false)}
+                    className="w-full h-10 border-slate-600/50 text-slate-300 hover:bg-slate-800/50 hover:text-white transition-colors"
+                  >
+                    Continue Browsing
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
   };
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -450,9 +648,9 @@ export default function BookEventPage() {
                 <Button 
                   className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 
                   onClick={handleBooking}
-                  disabled={loading}
+                  disabled={paymentProcessing}
                 >
-                  {loading ? (
+                  {paymentProcessing ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin mr-2" />
                       Processing Payment...
@@ -466,7 +664,14 @@ export default function BookEventPage() {
                 </Button>
                 
                 <p className="text-xs text-slate-400 text-center mt-3">
-                  🔒 Your payment is secured with 256-bit SSL encryption
+                  {paymentProcessing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Processing secure payment...
+                    </span>
+                  ) : (
+                    "🔒 Your payment is secured with 256-bit SSL encryption"
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -657,7 +862,9 @@ export default function BookEventPage() {
   // MAIN PAGE (step 1 – select date & tickets)
   // ---------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
+    <>
+      <LoginModal />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
       <div className="container mx-auto px-4 sm:px-8 py-8 max-w-6xl">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -674,6 +881,17 @@ export default function BookEventPage() {
             <ShieldCheck className="h-5 w-5 text-green-400" />
             <span className="text-sm text-slate-300">Secure & Encrypted</span>
           </div>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2 bg-green-900/20 px-3 py-2 rounded-lg border border-green-500/50">
+              <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-green-400">Logged In</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-orange-900/20 px-3 py-2 rounded-lg border border-orange-500/50">
+              <div className="h-2 w-2 bg-orange-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-orange-400">Guest Mode</span>
+            </div>
+          )}
         </div>
 
         {/* Event Info Card */}
@@ -876,15 +1094,39 @@ export default function BookEventPage() {
                 <Button 
                   size="lg" 
                   className="w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-lg shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 
-                  onClick={() => setCustomerFormPage(true)}
+                  onClick={handleContinueToDetails}
                 >
-                  Continue to Details →
+                  {isAuthenticated ? "Continue to Details →" : "Login to Continue →"}
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
       </div>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#1e293b',
+            color: '#fff',
+            border: '1px solid #475569'
+          },
+          success: {
+            iconTheme: {
+              primary: '#00E1FC',
+              secondary: '#fff'
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff'
+            }
+          }
+        }}
+      />
     </div>
+    </>
   );
 }

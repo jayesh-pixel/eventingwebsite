@@ -69,7 +69,7 @@ export default function EventDetailsPage() {
       try {
         setIsLoading(true);
         const response = await axios.post<ApiResponse>(
-          "https://node.eventingclub.in/webiste/events/getEventDetailsById",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/webiste/events/getEventDetailsById`,
           { event_id: eventId }
         );
 
@@ -145,7 +145,7 @@ export default function EventDetailsPage() {
   const getImageUrl = (imagePath: string) => {
     return imagePath.startsWith('http') 
       ? imagePath 
-      : `https://node.eventingclub.in/${imagePath}`;
+      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${imagePath}`;
   };
 
   return (

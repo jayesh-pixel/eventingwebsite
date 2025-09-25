@@ -240,7 +240,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                   {venue.venueImages.slice(0, 3).map((image, index) => (
                     <div key={index} className="rounded-xl overflow-hidden h-24 bg-slate-800">
                       <img
-                        src={image.image_path.startsWith('http') ? image.image_path : `https://node.eventingclub.in/${image.image_path}`}
+                        src={image.image_path.startsWith('http') ? image.image_path : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${image.image_path}`}
                         alt={`${venue.venueName} view ${index + 1}`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
