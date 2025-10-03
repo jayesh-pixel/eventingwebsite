@@ -367,7 +367,7 @@ export default function BookEventPage() {
       const ticketQuantity = counts[selectedTicket.Ticket_Id];
       
       const bookingPayload = {
-        customer_id: customerId || mockUser.user_id, // Use authenticated customer ID or fallback to mock
+        customer_id: customerId , // Use authenticated customer ID or fallback to mock
         event_id: eventId,
         EventTicket_id: selectedTicket.Ticket_Id, // Backend expects single ticket ID
         TicketQuantity: ticketQuantity, // Quantity for this specific ticket type
@@ -375,14 +375,19 @@ export default function BookEventPage() {
       
       console.log('Booking payload:', bookingPayload);
 
-      // Call booking API directly without encryption
-      const response = await axios.post(`${bookTicketApi.POST_DATA}`, bookingPayload);
+      // Encrypt the payload as backend expects (stringify first, then encrypt)
+      const encryptedPayload = encryptData(JSON.stringify(bookingPayload), passphrase);
+
+      // Call booking API with encrypted payload
+      const response = await axios.post(`${bookTicketApi.POST_DATA}`, {
+        string: encryptedPayload,
+      });
 
       toast.dismiss();
 
       if (response.data && (response.data as any).data) {
-        // Get payment gateway data directly (no decryption needed)
-        const paymentData = (response.data as any).data;
+        // Decrypt payment gateway data as backend sends encrypted response
+        const paymentData = decryptData((response.data as any).data, passphrase);
         
         if (paymentData && typeof paymentData === 'object') {
           console.log('Payment gateway data received:', Object.keys(paymentData));

@@ -93,7 +93,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20" style={{backgroundColor: 'rgb(2 6 23)', color: 'rgb(248 250 252)'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {/* Header */}
         <div className="text-center mb-12">
