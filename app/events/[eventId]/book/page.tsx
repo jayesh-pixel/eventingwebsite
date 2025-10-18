@@ -398,7 +398,7 @@ export default function BookEventPage() {
           // Create and submit PayU form
           const form = document.createElement("form");
           form.setAttribute("method", "POST");
-          form.setAttribute("action", "https://secure.payu.in/_payment");
+          form.setAttribute("action", process.env.NEXT_PUBLIC_PAYU_URL || "https://test.payu.in/_payment");
           form.setAttribute("target", "_self");
 
           // Add all payment parameters to form
