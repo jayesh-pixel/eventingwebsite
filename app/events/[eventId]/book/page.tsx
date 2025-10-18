@@ -179,6 +179,18 @@ export default function BookEventPage() {
   const finalAmount = totalPrice;
   const isAnyCountActive = Object.keys(showCount).some((id) => showCount[id] && counts[id] > 0);
 
+  // Check if user returned after login and has tickets selected
+  React.useEffect(() => {
+    if (isAuthenticated && totalTickets > 0 && !customerFormPage && !checkoutPage) {
+      // User logged in and returned with tickets selected, show customer form
+      const wasRedirectedForLogin = sessionStorage.getItem('redirectAfterLogin');
+      if (wasRedirectedForLogin) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        setCustomerFormPage(true);
+      }
+    }
+  }, [isAuthenticated, totalTickets, customerFormPage, checkoutPage]);
+
   // ────────────────────────────────────────────────────────────────────────────
   // Fetch event details and dates on mount
   // ────────────────────────────────────────────────────────────────────────────
@@ -280,6 +292,9 @@ export default function BookEventPage() {
   
   const handleContinueToDetails = () => {
     if (!isAuthenticated) {
+      // Save current URL to return after login
+      const currentUrl = window.location.pathname;
+      sessionStorage.setItem('redirectAfterLogin', currentUrl);
       setShowLoginModal(true);
       return;
     }
@@ -495,7 +510,9 @@ export default function BookEventPage() {
                   <Button 
                     onClick={() => {
                       setShowLoginModal(false);
-                      router.push('/signup');
+                      // Pass redirect URL as query parameter
+                      const redirectUrl = encodeURIComponent(window.location.pathname);
+                      router.push(`/signup?redirect=${redirectUrl}`);
                     }}
                     className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300"
                   >

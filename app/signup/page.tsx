@@ -15,7 +15,7 @@ import {
 } from "@/utils/config";
 import axios from "axios";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,6 +29,8 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
 
   const number = auth?.vY4 ? decryptData(auth.vY4, passphrase) : "";
   const cust_id = auth?.xA1 ? decryptData(auth.xA1, passphrase) : "";
@@ -64,9 +66,16 @@ const Signup = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoggedIn && token && cust_id) {
-      router.push("/");
+      // Check for redirect URL from query params or sessionStorage
+      const finalRedirect = redirectUrl || sessionStorage.getItem('redirectAfterLogin');
+      if (finalRedirect) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(finalRedirect);
+      } else {
+        router.push("/");
+      }
     }
-  }, [isLoggedIn, token, cust_id, router]);
+  }, [isLoggedIn, token, cust_id, router, redirectUrl]);
 
   //otp generation
   const otpGeneration = async () => {
@@ -163,7 +172,15 @@ const Signup = () => {
       dispatch(setIsNewCustomer(null));
       fetchCustomerData();
       dispatch(loggedInSucces(encryptData("true", passphrase)));
-      router.push("/");
+      
+      // Redirect to saved URL or home
+      const finalRedirect = redirectUrl || sessionStorage.getItem('redirectAfterLogin');
+      if (finalRedirect) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(finalRedirect);
+      } else {
+        router.push("/");
+      }
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
@@ -266,7 +283,15 @@ const Signup = () => {
           dispatch(setIsNewCustomer(encryptData(false, passphrase)));
           dispatch(loggedInSucces(encryptData("true", passphrase)));
           toast.success("Login successful!");
-          router.push("/");
+          
+          // Redirect to saved URL or home
+          const finalRedirect = redirectUrl || sessionStorage.getItem('redirectAfterLogin');
+          if (finalRedirect) {
+            sessionStorage.removeItem('redirectAfterLogin');
+            router.push(finalRedirect);
+          } else {
+            router.push("/");
+          }
         }
       } catch (customerError) {
         // If customer fetch fails, assume new user
