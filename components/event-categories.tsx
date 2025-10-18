@@ -91,9 +91,8 @@ export default function EventCategories() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Browse Events by 
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"> Categories</span>
-          </h2>
+            Browse Events by Categories         
+                      </h2>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
             From intimate acoustic sessions to massive festival experiences, find your perfect musical journey.
           </p>
@@ -121,11 +120,11 @@ export default function EventCategories() {
               const { icon: IconComponent, color } = getIconAndColor(category.Name, index);
               
               const colorClass = {
-                primary: "hover:shadow-primary/25 hover:text-primary",
-                secondary: "hover:shadow-secondary/25 hover:text-secondary",
-                accent: "hover:shadow-accent/25 hover:text-accent",
-                danger: "hover:shadow-destructive/25 hover:text-destructive",
-              }[color] || "hover:shadow-primary/25 hover:text-primary";
+                primary: "hover:shadow-primary/25",
+                secondary: "hover:shadow-secondary/25",
+                accent: "hover:shadow-accent/25",
+                danger: "hover:shadow-destructive/25",
+              }[color] || "hover:shadow-primary/25";
 
               // Get image URL from API response or use default
 
@@ -164,14 +163,14 @@ export default function EventCategories() {
                       </div>
                     </div>
                     <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
+                      <h3 className="text-xl font-semibold mb-2 text-white transition-colors duration-300">
                         {category.Name}
                       </h3>
                       <p className="text-slate-400 text-sm mb-4">
                         {category.Description || "Discover amazing events in this category"}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-accent font-medium">Explore Events</span>
+                        <span className="text-white font-medium">Explore Events</span>
                         <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
                       </div>
                     </div>
@@ -210,11 +209,11 @@ export default function EventCategories() {
               const { icon: IconComponent, color } = getIconAndColor(category.Name, index);
               
               const colorClass = {
-                primary: "hover:shadow-primary/25 hover:text-primary",
-                secondary: "hover:shadow-secondary/25 hover:text-secondary",
-                accent: "hover:shadow-accent/25 hover:text-accent",
-                danger: "hover:shadow-destructive/25 hover:text-destructive",
-              }[color] || "hover:shadow-primary/25 hover:text-primary";
+                primary: "hover:shadow-primary/25",
+                secondary: "hover:shadow-secondary/25",
+                accent: "hover:shadow-accent/25",
+                danger: "hover:shadow-destructive/25",
+              }[color] || "hover:shadow-primary/25";
 
               // Get image URL from API response or use default
 
@@ -253,14 +252,14 @@ export default function EventCategories() {
                       </div>
                     </div>
                     <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-current transition-colors duration-300">
+                      <h3 className="text-xl font-semibold mb-2 text-white transition-colors duration-300">
                         {category.Name}
                       </h3>
                       <p className="text-slate-400 text-sm mb-4">
                         {category.Description || "Discover amazing events in this category"}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-accent font-medium">Explore Events</span>
+                        <span className="text-white font-medium">Explore Events</span>
                         <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
                       </div>
                     </div>

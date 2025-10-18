@@ -117,6 +117,14 @@ export default function ArtistsSection() {
             artists.map((artist, index) => {
               const IconComponent = getGenreIcon(artist.Name);
               const colorClass = getGenreColor(artist.Name);
+
+              const badgeBgClassMap: Record<string, string> = {
+                primary: 'bg-slate-800/75',
+                secondary: 'bg-slate-800/75',
+                accent: 'bg-indigo-900/75',
+                destructive: 'bg-rose-900/75',
+              };
+              const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-slate-800/75';
               
               // Get image URL from API response or use default
               const imageUrl = artist.Images && artist.Images.length > 0 
@@ -143,14 +151,14 @@ export default function ArtistsSection() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
-                        <IconComponent className="mr-1 h-3 w-3" />
-                        View Events
-                      </div>
+                        <div className={`${badgeBgClass} backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                          <IconComponent className="mr-1 h-3 w-3 text-white" />
+                          <span className="text-white">View Events</span>
+                        </div>
                     </div>
                   </div>
                   <div className="text-center">
-                    <h3 className={`text-lg font-semibold mb-1 group-hover:text-${colorClass} transition-colors duration-300`}>
+                    <h3 className="text-lg font-semibold mb-1 text-white transition-colors duration-300">
                       {artist.Name}
                     </h3>
                     <p className="text-slate-400 text-sm">
@@ -174,6 +182,13 @@ export default function ArtistsSection() {
             artists.map((artist, index) => {
               const IconComponent = getGenreIcon(artist.Name);
               const colorClass = getGenreColor(artist.Name);
+              const badgeBgClassMap: Record<string, string> = {
+                primary: 'bg-slate-800/75',
+                secondary: 'bg-slate-800/75',
+                accent: 'bg-indigo-900/75',
+                destructive: 'bg-rose-900/75',
+              };
+              const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-slate-800/75';
               
               // Get image URL from API response or use default
               const imageUrl = artist.Images && artist.Images.length > 0 
@@ -200,14 +215,14 @@ export default function ArtistsSection() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
-                        <IconComponent className="mr-1 h-3 w-3" />
-                        View Events
-                      </div>
+                        <div className={`${badgeBgClass} backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                          <IconComponent className="mr-1 h-3 w-3 text-white" />
+                          <span className="text-white">View Events</span>
+                        </div>
                     </div>
                   </div>
                   <div className="text-center">
-                    <h3 className={`text-lg font-semibold mb-1 group-hover:text-${colorClass} transition-colors duration-300`}>
+                    <h3 className="text-lg font-semibold mb-1 text-white transition-colors duration-300">
                       {artist.Name}
                     </h3>
                     <p className="text-slate-400 text-sm">

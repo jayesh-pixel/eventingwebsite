@@ -171,12 +171,12 @@ export default function UpcomingEvents() {
                   
                   <div className="p-8">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-slate-800/75 text-white px-3 py-1 rounded-full text-sm font-medium">
                         Music Event
                       </span>
                       <span className="text-slate-400 text-sm">{featuredEvent.VenueName}, {featuredEvent.VenueCity}</span>
                     </div>
-                    <h3 className="text-3xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">
+                    <h3 className="text-3xl font-bold mb-3 text-white transition-colors duration-300">
                       {featuredEvent.EventName}
                     </h3>
                     <p className="text-slate-400 mb-6 leading-relaxed">
@@ -239,11 +239,11 @@ export default function UpcomingEvents() {
                     </div>
                     <div className="p-6">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-secondary/20 text-secondary px-2 py-1 rounded-full text-xs">
+                        <span className="bg-slate-800/75 text-white px-2 py-1 rounded-full text-xs">
                           Event
                         </span>
                       </div>
-                      <h4 className="text-lg font-semibold mb-2 group-hover:text-secondary transition-colors duration-300">
+                      <h4 className="text-lg font-semibold mb-2 text-white transition-colors duration-300">
                         {event.EventName}
                       </h4>
                       <p className="text-slate-400 text-sm mb-4">{event.VenueName}, {event.VenueCity}</p>

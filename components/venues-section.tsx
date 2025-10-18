@@ -60,6 +60,17 @@ export default function VenuesSection() {
               destructive: "hover:shadow-destructive/25",
             }[colorClass];
 
+            // Use explicit badge background classes so we can force good contrast for 'secondary'
+            const badgeBgClassMap: Record<string, string> = {
+              // Use darker, high-contrast backgrounds for badges so they never look pale
+              primary: 'bg-slate-800/75',
+              accent: 'bg-indigo-900/75',
+              destructive: 'bg-rose-900/75',
+              // secondary (gray)
+              secondary: 'bg-slate-800/75',
+            };
+            const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-primary/90';
+
             return (
               <div 
                 key={venue.id}
@@ -74,14 +85,15 @@ export default function VenuesSection() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
-                    <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
-                      <Users className="mr-1 h-3 w-3" />
-                      {venue.capacity.toLocaleString()} capacity
+                    <div className={`${badgeBgClass} backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                      {/* Force icon & text white when background may be gray */}
+                      <Users className="mr-1 h-3 w-3 text-white" />
+                      <span className="text-white">{venue.capacity.toLocaleString()} capacity</span>
                     </div>
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className={`text-lg font-semibold mb-2 group-hover:text-${colorClass} transition-colors duration-300`}>
+                  <h3 className="text-lg font-semibold mb-2 text-white transition-colors duration-300">
                     {venue.name}
                   </h3>
                   <p className="text-slate-400 text-sm mb-3">{venue.location}</p>
@@ -104,6 +116,15 @@ export default function VenuesSection() {
               destructive: "hover:shadow-destructive/25",
             }[colorClass];
 
+            const badgeBgClassMap: Record<string, string> = {
+              // Use darker, high-contrast backgrounds for badges so they never look pale
+              primary: 'bg-slate-800/75',
+              accent: 'bg-indigo-900/75',
+              destructive: 'bg-rose-900/75',
+              secondary: 'bg-slate-800/75',
+            };
+            const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-primary/90';
+
             return (
               <div 
                 key={venue.id}
@@ -118,14 +139,15 @@ export default function VenuesSection() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
-                    <div className={`bg-${colorClass}/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
-                      <Users className="mr-1 h-3 w-3" />
-                      {venue.capacity.toLocaleString()} capacity
+                    <div className={`${badgeBgClass} backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center`}>
+                      {/* Force icon & text white when background may be gray */}
+                      <Users className="mr-1 h-3 w-3 text-white" />
+                      <span className="text-white">{venue.capacity.toLocaleString()} capacity</span>
                     </div>
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className={`text-lg font-semibold mb-2 group-hover:text-${colorClass} transition-colors duration-300`}>
+                  <h3 className="text-lg font-semibold mb-2 text-white transition-colors duration-300">
                     {venue.name}
                   </h3>
                   <p className="text-slate-400 text-sm mb-3">{venue.location}</p>
