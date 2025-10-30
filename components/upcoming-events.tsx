@@ -185,6 +185,7 @@ export default function UpcomingEvents() {
                         <div className="text-xs font-bold text-white">{event.EventStartDate}</div>
                       </div>
                     </div>
+ 
                     
                     <div className="p-3">
                       <div className="flex items-center gap-2 mb-1.5">
