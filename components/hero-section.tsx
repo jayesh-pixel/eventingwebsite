@@ -97,7 +97,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full h-[400px] md:h-[550px] lg:h-[600px] overflow-hidden">
+    <section className="relative w-full h-[200px] md:h-[300px] lg:h-[350px] overflow-hidden">
       {/* Hero background with banner slider */}
       <div className="absolute inset-0 z-0">
         {isLoading ? (
