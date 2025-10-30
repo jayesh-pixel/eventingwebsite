@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import {
   setMobileNumber,
   setAuthDetails,
@@ -22,7 +23,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Loading from "../../components/common/loading/Loading";
 import { decryptData, encryptData } from "@/utils/constants";
 
-const Signup = () => {
+const SignupContent = () => {
   const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
   const auth = useSelector((store: any) => store.uSess);
   const dispatch = useDispatch();
@@ -527,4 +528,15 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+// Main export with Suspense boundary
+export default function Signup() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <SignupContent />
+    </Suspense>
+  );
+}
