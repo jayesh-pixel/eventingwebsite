@@ -180,15 +180,15 @@ export default function UpcomingEvents() {
                           Featured
                         </div>
                       )}
-                      
-                      <div className="absolute top-2 right-2 glass-card text-center p-1.5 rounded-lg">
-                        <div className="text-xs font-bold text-accent">{event.EventStartDate}</div>
+
+                      <div className="absolute top-2 right-2 bg-[#00E1FC] backdrop-blur-sm border border-[#00E1FC]/30 text-center p-1.5 rounded-lg">
+                        <div className="text-xs font-bold text-white">{event.EventStartDate}</div>
                       </div>
                     </div>
                     
                     <div className="p-3">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="bg-slate-800/75 text-white px-2 py-0.5 rounded-full text-xs">
+                        <span className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 px-2 py-0.5 rounded-full text-xs font-medium">
                           Event
                         </span>
                       </div>
