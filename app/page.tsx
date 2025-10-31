@@ -34,7 +34,7 @@ export default function Home() {
           </div>
 
           {/* Categories & Venues in Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:-mt-10 lg:gap-6">
             <div className="space-y-1">
               <h2 className="text-2xl md:text-3xl font-bold">
                 Browse by <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Categories</span>
