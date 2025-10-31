@@ -14,18 +14,18 @@ export default function Home() {
       <HeroSection />
       
       {/* Compact Grid Layout - Less Scrolling */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="space-y-2">
           {/* Upcoming Events & Artists - Full Width at Top */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            <div className="space-y-1">
               <h2 className="text-2xl md:text-3xl font-bold">
                 <span className="bg-gradient-to-r from-accent to-destructive bg-clip-text text-transparent">Upcoming</span> Events
               </h2>
               <UpcomingEvents />
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-1">
               <h2 className="text-2xl md:text-3xl font-bold">
                 Featured <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">Artists</span>
               </h2>
@@ -34,15 +34,15 @@ export default function Home() {
           </div>
 
           {/* Categories & Venues in Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            <div className="space-y-1">
               <h2 className="text-2xl md:text-3xl font-bold">
                 Browse by <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Categories</span>
               </h2>
               <EventCategories />
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-1">
               <h2 className="text-2xl md:text-3xl font-bold">
                 Premium <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Venues</span>
               </h2>
