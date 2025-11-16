@@ -270,7 +270,17 @@ export default function BookEventPage() {
   };
 
   const handleIncrease = (ticketId: string) => {
-    setCounts(prev => ({ ...prev, [ticketId]: (prev[ticketId] || 0) + 1 }));
+    setCounts(prev => {
+      // Check if there are any other tickets selected
+      const hasOtherTickets = Object.keys(prev).some(id => id !== ticketId && prev[id] > 0);
+      
+      if (hasOtherTickets) {
+        toast.error("Please select only one ticket type per booking. Remove other tickets first.");
+        return prev;
+      }
+      
+      return { ...prev, [ticketId]: (prev[ticketId] || 0) + 1 };
+    });
     setShowCount(prev => ({ ...prev, [ticketId]: true }));
   };
   
@@ -406,6 +416,9 @@ export default function BookEventPage() {
         
         if (paymentData && typeof paymentData === 'object') {
           console.log('Payment gateway data received:', Object.keys(paymentData));
+          
+          // Store event ID in sessionStorage for success/failure page redirect
+          sessionStorage.setItem('lastEventId', eventId);
           
           // Show success message before redirect
           toast.success("Redirecting to secure payment gateway...");
@@ -826,17 +839,6 @@ export default function BookEventPage() {
                     {formErrors.whatsappNumber && <p className="text-red-400 text-xs mt-1">{formErrors.whatsappNumber}</p>}
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <Label className="text-slate-200 font-medium">Special Notes (Optional)</Label>
-                  <textarea 
-                    rows={3} 
-                    value={customer.note} 
-                    className="w-full p-3 rounded-xl border border-slate-600/50 bg-slate-800/60 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 focus:outline-none transition-colors resize-none" 
-                    placeholder="Any special requirements, dietary restrictions, or notes for the event organizers..."
-                    onChange={(e) => handleCustChange("note", e.target.value)} 
-                  />
-                </div>
 
                 <Button 
                   className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 

@@ -142,16 +142,16 @@ function BookingSuccessContent() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href={`/events/${eventId}`}>
+          <Link href="/">
             <Button className="w-full sm:w-auto bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
-              View Event Details
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <Home className="mr-2 h-5 w-5" />
+              Go to Home
             </Button>
           </Link>
-          <Link href="/">
+          <Link href={`/events/${eventId}`}>
             <Button variant="outline" className="w-full sm:w-auto border-slate-600/50 text-slate-300 hover:bg-slate-800/50 hover:text-white px-8 py-6 text-lg transition-colors">
-              <Home className="mr-2 h-5 w-5" />
-              Back to Home
+              View Event Details
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
