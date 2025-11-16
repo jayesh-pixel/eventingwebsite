@@ -102,121 +102,79 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
   };
 
   return (
-    <div className="text-black bg-gray-50 md:p-6 p-4 rounded-lg shadow-md font-Atkinson">
+    <div className="text-white">
       <Toaster />
-      {/* Account Details */}
-      <div className="flex flex-col gap-4">
-        <div className="w-full border-b pb-4 mb-4">
-          <h1 className="md:text-2xl text-xl font-semibold capitalize text-gray-800 mb-4">
-            Account Details
-          </h1>
-          <div className="flex flex-col md:flex-row gap-6 w-full">
-            {/* Email Address */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <label className="text-gray-700 font-medium">
-                Email Address:
-              </label>
-              <input
-                type="text"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full md:w-96 py-2 px-4 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              />
-            </div>
-            {/* Mobile Number */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <label className="text-gray-700 font-medium">
-                Mobile Number:
-              </label>
-              <input
-                type="text"
-                name="number"
-                value={data ? data.MobileNumber : ""}
-                readOnly
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full md:w-96 py-2 px-4 rounded-md bg-gray-200 text-gray-600 cursor-not-allowed"
-              />
-            </div>
-          </div>
+      
+      <div className="space-y-6">
+        {/* Full Name */}
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Full Name:</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter your full name"
+            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
+          />
         </div>
 
-        {/* Personal Details */}
-        <div className="w-full border-b pb-4 mb-4">
-          <h1 className="md:text-2xl text-xl font-semibold capitalize text-gray-800 mb-4">
-            Personal Details
-          </h1>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2 w-full">
-              <label className="text-gray-700 font-medium">Full Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full md:w-96 py-2 px-4 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Address */}
-        <div className="w-full">
-          <h1 className="md:text-2xl text-xl font-semibold capitalize text-gray-800 mb-4">
-            Address
-          </h1>
-          <div className="flex flex-col md:flex-row flex-wrap gap-6">
+        {/* Address Section */}
+        <div className="border-t border-slate-700 pt-6">
+          <h3 className="text-lg font-bold text-white mb-4">Address</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Pincode */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <label className="text-gray-700 font-medium">Pincode:</label>
+            <div>
+              <label className="text-sm text-slate-400 block mb-2">Pincode:</label>
               <input
                 type="text"
                 name="pincode"
                 value={formData.pincode}
                 onChange={handleChange}
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full py-2 px-4 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                placeholder="Enter pincode"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
               />
             </div>
+            
             {/* City */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <label className="text-gray-700 font-medium">City:</label>
+            <div>
+              <label className="text-sm text-slate-400 block mb-2">City:</label>
               <input
                 type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full py-2 px-4 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                placeholder="Enter city"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
               />
             </div>
+            
             {/* State */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <label className="text-gray-700 font-medium">State:</label>
+            <div className="md:col-span-2">
+              <label className="text-sm text-slate-400 block mb-2">State:</label>
               <input
                 type="text"
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                placeholder="Enter here"
-                className="placeholder:text-gray-400 border w-full py-2 px-4 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                placeholder="Enter state"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
               />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Submit Button */}
-      <div className="flex mt-6">
-        <button
-          type="submit"
-          onClick={handleSubmit}
-          className="ml-auto px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
-        >
-          Save Changes
-        </button>
+        {/* Submit Button */}
+        <div className="flex justify-end pt-4">
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            className="px-8 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );

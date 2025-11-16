@@ -279,6 +279,13 @@ export default function BookEventPage() {
         return prev;
       }
       
+      // Limit to 1 ticket only
+      const currentCount = prev[ticketId] || 0;
+      if (currentCount >= 1) {
+        toast.error("Maximum 1 ticket allowed per booking.");
+        return prev;
+      }
+      
       return { ...prev, [ticketId]: (prev[ticketId] || 0) + 1 };
     });
     setShowCount(prev => ({ ...prev, [ticketId]: true }));
@@ -1075,7 +1082,7 @@ export default function BookEventPage() {
                                   size="sm" 
                                   variant="outline" 
                                   onClick={() => handleIncrease(t.Ticket_Id)} 
-                                  disabled={count >= maxAllowed} 
+                                  disabled={count >= 1} 
                                   className="h-10 w-10 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
                                 >
                                   <Plus className="h-4 w-4" />
