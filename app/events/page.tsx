@@ -93,43 +93,43 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20" style={{backgroundColor: 'rgb(2 6 23)', color: 'rgb(248 250 252)'}}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-accent to-destructive bg-clip-text text-transparent">All</span>
-            {" "}Events
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
+            <span className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] bg-clip-text text-transparent">All</span>
+            {" "}<span className="text-white">Events</span>
           </h1>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
             Discover amazing events happening around you. Book your tickets now!
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-5">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
             <Input
               placeholder="Search events, venues, or cities..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-800 border-slate-600 text-white focus:border-accent"
+              className="pl-10 h-11 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-400 focus:border-[#00E1FC] focus:ring-1 focus:ring-[#00E1FC]/20 transition-all"
             />
           </div>
           
-          <div className="flex gap-2">
-            <Button variant="outline" className="border-slate-600 text-white hover:bg-slate-700">
+          <div className="flex gap-3">
+            <Button variant="outline" className="h-11 border-slate-700 bg-slate-800/30 text-slate-300 hover:bg-slate-700/50 hover:text-white hover:border-slate-600 transition-all">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
             
-            <div className="flex border border-slate-600 rounded-lg">
+            <div className="flex border border-slate-700 rounded-lg bg-slate-800/30 p-1">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
-                className={viewMode === "grid" ? "bg-accent" : "text-white hover:bg-slate-700"}
+                className={`h-9 px-3 ${viewMode === "grid" ? "bg-[#00E1FC] text-white hover:bg-[#00E1FC]/90" : "text-slate-400 hover:bg-slate-700/50 hover:text-white"} transition-all`}
               >
                 <Grid className="h-4 w-4" />
               </Button>
@@ -137,7 +137,7 @@ export default function EventsPage() {
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("list")}
-                className={viewMode === "list" ? "bg-accent" : "text-white hover:bg-slate-700"}
+                className={`h-9 px-3 ${viewMode === "list" ? "bg-[#00E1FC] text-white hover:bg-[#00E1FC]/90" : "text-slate-400 hover:bg-slate-700/50 hover:text-white"} transition-all`}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -146,8 +146,8 @@ export default function EventsPage() {
         </div>
 
         {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-slate-400">
+        <div className="mb-5">
+          <p className="text-sm text-slate-400 font-medium">
             {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
           </p>
         </div>
@@ -163,15 +163,15 @@ export default function EventsPage() {
           <div className={
             viewMode === "grid" 
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-6"
+              : "space-y-4"
           }>
             {filteredEvents.map((event) => (
               <Link key={event.event_id} href={`/events/${event.event_id}`}>
-                <Card className={`glass-card border-slate-700 overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-xl hover:shadow-primary/25 ${
+                <Card className={`bg-slate-900/50 backdrop-blur-sm border-slate-800 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1 ${
                   viewMode === "list" ? "flex" : ""
                 }`}>
                   <div className={`relative overflow-hidden ${
-                    viewMode === "list" ? "w-80 h-48" : "h-48"
+                    viewMode === "list" ? "w-80 h-52" : "h-52"
                   }`}>
                     <img
                       src={
@@ -180,45 +180,45 @@ export default function EventsPage() {
                           : ''
                       }
                       alt={event.EventName}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
                     
-                    <div className="absolute top-4 right-4 glass-card text-center p-2 rounded-lg">
-                      <div className="text-sm font-bold text-accent">{event.EventStartDate}</div>
+                    <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-1.5 rounded-lg">
+                      <div className="text-xs font-semibold text-[#00E1FC]">{event.EventStartDate}</div>
                     </div>
                     
                     {event.isFeatured === 1 && (
-                      <div className="absolute top-4 left-4 bg-destructive/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                         Featured
                       </div>
                     )}
                   </div>
                   
-                  <div className={`p-6 flex-1 ${viewMode === "list" ? "flex flex-col justify-between" : ""}`}>
+                  <div className={`p-5 flex-1 ${viewMode === "list" ? "flex flex-col justify-between" : ""}`}>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors duration-300">
+                      <h3 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">
                         {event.EventName}
                       </h3>
                       
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-slate-400 text-sm">
-                          <Clock className="h-4 w-4 mr-2 text-accent" />
-                          {event.EventStartTime}
+                          <Clock className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
+                          <span className="truncate">{event.EventStartTime}</span>
                         </div>
                         <div className="flex items-center text-slate-400 text-sm">
-                          <MapPin className="h-4 w-4 mr-2 text-accent" />
-                          {event.VenueName}, {event.VenueCity}
+                          <MapPin className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
+                          <span className="truncate">{event.VenueName}, {event.VenueCity}</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-3 border-t border-slate-800">
                       <div>
-                        <div className="text-xl font-bold text-accent">₹{event.LowestticketPrice}</div>
-                        <div className="text-xs text-slate-400">onwards</div>
+                        <div className="text-xl font-bold text-[#00E1FC]">₹{event.LowestticketPrice}</div>
+                        <div className="text-xs text-slate-500">onwards</div>
                       </div>
-                      <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
+                      <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-5 py-2 shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300">
                         Book Now
                       </Button>
                     </div>

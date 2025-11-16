@@ -27,56 +27,56 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-20 relative md:-mt-16 overflow-hidden">
+    <section className="py-20 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&h=600" 
+          src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" 
           alt="Festival crowd with stage lights" 
-          className="w-full h-full object-cover" 
+          className="w-full h-full object-cover object-center" 
         />
-        <div className="absolute inset-0 bg-slate-950/80"></div>
+        <div className="absolute inset-0 bg-slate-950/85"></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="animate-fadeInUp">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            Never Miss a 
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"> Beat</span>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+            Never Miss a
+            <span className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] bg-clip-text text-transparent"> Beat</span>
           </h2>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-white font-medium mb-8 max-w-3xl mx-auto leading-relaxed">
             Get exclusive access to pre-sale tickets, artist announcements, and special events before anyone else.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-8">
             <Input
               type="email"
               placeholder="Enter your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-slate-800/50 border-slate-700 rounded-lg px-6 py-4 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 text-white placeholder-slate-400"
+              className="flex-1 bg-white/10 backdrop-blur-md border-white/20 rounded-lg px-6 py-4 text-lg focus:ring-2 focus:ring-[#00E1FC] focus:border-[#00E1FC] transition-all duration-300 text-white placeholder-white/60"
             />
             <Button 
               onClick={handleSubscribe}
-              className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-8 py-4 hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 whitespace-nowrap"
+              className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-8 py-4 text-lg font-bold hover:shadow-xl hover:shadow-[#00E1FC]/50 transition-all duration-300 transform hover:scale-105 whitespace-nowrap"
             >
               <Bell className="mr-2 h-4 w-4" />
               Get Notified
             </Button>
           </div>
           
-          <div className="flex items-center justify-center space-x-8 text-slate-400">
-            <div className="flex items-center">
-              <Ticket className="text-primary mr-2 h-5 w-5" />
-              <span className="text-sm">Early Access</span>
+          <div className="flex items-center justify-center gap-8 md:gap-12 text-white flex-wrap">
+            <div className="flex items-center gap-2">
+              <Ticket className="text-[#00E1FC] h-6 w-6" />
+              <span className="text-base font-semibold">Early Access</span>
             </div>
-            <div className="flex items-center">
-              <Star className="text-accent mr-2 h-5 w-5" />
-              <span className="text-sm">Exclusive Events</span>
+            <div className="flex items-center gap-2">
+              <Star className="text-[#FFD700] h-6 w-6" />
+              <span className="text-base font-semibold">Exclusive Events</span>
             </div>
-            <div className="flex items-center">
-              <Gift className="text-secondary mr-2 h-5 w-5" />
-              <span className="text-sm">Special Offers</span>
+            <div className="flex items-center gap-2">
+              <Gift className="text-[#FF6B6B] h-6 w-6" />
+              <span className="text-base font-semibold">Special Offers</span>
             </div>
           </div>
         </div>

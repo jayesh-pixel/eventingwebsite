@@ -149,19 +149,19 @@ export default function EventDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
-        <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="text-white hover:bg-white/10">
+        <div className="mb-6">
+          <Link href="/events">
+            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all">
               <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-              Back
+              Back to Events
             </Button>
           </Link>
         </div>
         {/* Hero Image Section */}
-        <div className="relative h-96 rounded-3xl overflow-hidden mb-8 group">
+        <div className="relative h-[400px] rounded-2xl overflow-hidden mb-8 group shadow-2xl">
           {eventDetails.EventCarouselImages.length > 0 && (
             <img
               src={getImageUrl(eventDetails.EventCarouselImages[activeImageIndex]?.image_path)}
@@ -169,7 +169,7 @@ export default function EventDetailsPage() {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent"></div>
           
           {/* Image Navigation Dots */}
           {eventDetails.EventCarouselImages.length > 1 && (
@@ -200,61 +200,67 @@ export default function EventDetailsPage() {
           </div>
 
           {/* Event Category Badge */}
-          <div className="absolute top-6 left-6 bg-primary/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
+          <div className="absolute top-4 left-4 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
             {eventDetails.categoryName}
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Event Details */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Event Header */}
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-5 leading-tight">
                 {eventDetails.EventName}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 text-slate-400">
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-accent" />
+              <div className="flex flex-wrap items-center gap-3 text-slate-300 text-sm mb-4">
+                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg">
+                  <Calendar className="h-4 w-4 mr-2 text-[#00E1FC]" />
                   {eventDetails.EventStartDate}
                 </div>
-                <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-accent" />
+                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg">
+                  <Clock className="h-4 w-4 mr-2 text-[#00E1FC]" />
                   {eventDetails.EventStartTime}
                 </div>
-                <div className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-accent" />
+                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg">
+                  <MapPin className="h-4 w-4 mr-2 text-[#00E1FC]" />
                   {eventDetails.VenueName}, {eventDetails.VenueCity}
                 </div>
               </div>
               
               {/* Tags */}
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="flex flex-wrap gap-2">
                 {eventDetails.Language.map((lang, index) => (
-                  <span key={index} className="bg-secondary/20 text-secondary px-3 py-1 rounded-full text-sm">
+                  <span key={index} className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 px-3 py-1 rounded-full text-sm font-medium">
                     {lang}
                   </span>
                 ))}
-                <span className="bg-accent/20 text-accent px-3 py-1 rounded-full text-sm">
+                <span className="bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/30 px-3 py-1 rounded-full text-sm font-medium">
                   {eventDetails.BestSuitedFor}
                 </span>
               </div>
             </div>
 
             {/* About Event */}
-            <div className="glass-card rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">About This Event</h2>
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <div className="h-1 w-1 bg-[#00E1FC] rounded-full mr-3"></div>
+                About This Event
+              </h2>
               <div 
-                className="text-slate-300 leading-relaxed prose prose-invert max-w-none"
+                className="text-slate-300 text-sm leading-relaxed prose prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
               />
             </div>
 
             {/* Artists */}
             {eventDetails.EventArtists.length > 0 && (
-              <div className="glass-card rounded-2xl p-8">
-                <h2 className="text-2xl font-bold text-white mb-6">Featured Artists</h2>
+              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-5 flex items-center">
+                  <div className="h-1 w-1 bg-[#00E1FC] rounded-full mr-3"></div>
+                  Featured Artists
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {eventDetails.EventArtists.map((artist, index) => (
                     <div key={index} className="flex items-center space-x-4">
@@ -274,20 +280,26 @@ export default function EventDetailsPage() {
             )}
 
             {/* Terms & Conditions */}
-            <div className="glass-card rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">Terms & Conditions</h2>
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <div className="h-1 w-1 bg-[#00E1FC] rounded-full mr-3"></div>
+                Terms & Conditions
+              </h2>
               <div 
-                className="text-slate-300 prose prose-invert max-w-none"
+                className="text-slate-300 text-sm prose prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
               />
             </div>
 
             {/* Venue Map */}
             {eventDetails.VenueMapLocationLink && (
-              <div className="glass-card rounded-2xl p-8">
-                <h2 className="text-2xl font-bold text-white mb-4">Venue Location</h2>
+              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <div className="h-1 w-1 bg-[#00E1FC] rounded-full mr-3"></div>
+                  Venue Location
+                </h2>
                 <div 
-                  className="rounded-xl overflow-hidden"
+                  className="rounded-xl overflow-hidden w-full h-[350px]"
                   dangerouslySetInnerHTML={{ __html: eventDetails.VenueMapLocationLink }}
                 />
               </div>
@@ -296,49 +308,51 @@ export default function EventDetailsPage() {
 
           {/* Right Column - Booking Card */}
           <div className="lg:col-span-1">
-            <div className="glass-card rounded-2xl p-8 sticky top-24">
-              <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-accent mb-2">
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6 sticky top-24 shadow-xl">
+              <div className="text-center mb-6 pb-6 border-b border-slate-800">
+                <div className="text-sm text-slate-400 mb-1">Starting from</div>
+                <div className="text-4xl font-bold text-[#00E1FC] mb-1">
                   ₹{eventDetails.TicketPriceStartsFrom}
                 </div>
-                <p className="text-slate-400">onwards</p>
+                <p className="text-xs text-slate-500">per person</p>
               </div>
 
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Event Date</span>
-                  <span className="text-white font-medium">{eventDetails.EventStartDate}</span>
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-400">Event Date</span>
+                  <span className="text-sm text-white font-medium">{eventDetails.EventStartDate}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Event Time</span>
-                  <span className="text-white font-medium">{eventDetails.EventStartTime}</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-400">Event Time</span>
+                  <span className="text-sm text-white font-medium">{eventDetails.EventStartTime}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Venue</span>
-                  <span className="text-white font-medium text-right">{eventDetails.VenueName}</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-400">Venue</span>
+                  <span className="text-sm text-white font-medium text-right">{eventDetails.VenueName}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">City</span>
-                  <span className="text-white font-medium">{eventDetails.VenueCity}</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-400">City</span>
+                  <span className="text-sm text-white font-medium">{eventDetails.VenueCity}</span>
                 </div>
               </div>
 
               <Link href={`/events/${eventId}/book`}>
-                <Button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 py-3 text-lg font-semibold">
+                <Button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300 py-3 text-base font-semibold">
                   <Ticket className="mr-2 h-5 w-5" />
-                  Book Now
+                  Book Tickets
                 </Button>
               </Link>
 
-              <div className="mt-6 pt-6 border-t border-slate-700">
-                <div className="flex items-center justify-center space-x-4 text-sm text-slate-400">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                    4.8 Rating
+              <div className="mt-6 pt-6 border-t border-slate-800">
+                <div className="flex items-center justify-around text-xs">
+                  <div className="flex items-center text-slate-400">
+                    <Star className="h-4 w-4 mr-1.5 text-yellow-400" />
+                    <span className="font-medium">4.8 Rating</span>
                   </div>
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-1 text-green-500" />
-                    150+ Attending
+                  <div className="h-4 w-px bg-slate-700"></div>
+                  <div className="flex items-center text-slate-400">
+                    <Users className="h-4 w-4 mr-1.5 text-green-400" />
+                    <span className="font-medium">150+ Going</span>
                   </div>
                 </div>
               </div>

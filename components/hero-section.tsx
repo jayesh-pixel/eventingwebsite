@@ -92,12 +92,13 @@ export default function HeroSection() {
     
     return {
       desktop: desktopUrl,
+
       mobile: mobileUrl
     };
   };
 
   return (
-    <section className="relative w-full h-[200px] md:h-[300px] lg:h-[350px] overflow-hidden">
+    <section className="relative w-full h-[250px] md:h-[400px] lg:h-[500px] overflow-hidden">
       {/* Hero background with banner slider */}
       <div className="absolute inset-0 z-0">
         {isLoading ? (

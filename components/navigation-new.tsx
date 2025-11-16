@@ -142,10 +142,10 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 font-poppins transition-all duration-300 ${scrolled ? 'bg-slate-950/80 backdrop-blur-md border-b border-slate-800/50' : 'bg-transparent'}`}>
+    <nav className="fixed top-0 w-full z-50 font-poppins bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
       <Toaster />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-24">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
               <div className="cursor-pointer relative h-40 w-64 -ml-14 md:-ml-32">
@@ -159,38 +159,38 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             </Link>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-8">
-            <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+          <div className="hidden lg:flex items-center flex-1 justify-center space-x-12 xl:space-x-16 mx-8">
+            <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
               Home
             </Link>
-            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
               Venues
             </Link>
-            <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
               Artists
             </Link>
-            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
               About Us
             </Link>
-            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-medium">
+            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
               List With Us
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             {homePageUrl && (
               <div className="relative hidden sm:block">
-                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
+                <MagnifyingGlassIcon className="w-6 h-6 absolute left-4 top-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={handleChange}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                  className="bg-slate-800/50 border border-slate-700 rounded-lg pl-12 pr-4 py-3.5 w-72 text-white text-base placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
                   placeholder="Search events, venues..."
                 />
                 
                 {searchData.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-lg border border-slate-700 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
                     {searchData.map((data: SearchItem, index: number) => (
                       <div key={data._id}>
                         {data.Name && (
@@ -222,7 +222,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
               </Link>
             ) : (
               <Link href="/signup" className="hidden sm:block">
-                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-4 py-1 sm:px-6 sm:py-2 rounded-lg text-white font-medium">
+                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-10 py-3.5 rounded-lg text-white font-bold text-lg">
                   Sign Up
                 </button>
               </Link>

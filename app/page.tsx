@@ -13,38 +13,42 @@ export default function Home() {
       <Navigation />
       <HeroSection />
       
-      {/* Compact Grid Layout - Less Scrolling */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="space-y-2">
+      {/* Compact Grid Layout - Full Width */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-8">
           {/* Upcoming Events & Artists - Full Width at Top */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-            <div className="space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold">
-                <span className="bg-gradient-to-r from-accent to-destructive bg-clip-text text-transparent">Upcoming</span> Events
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                <span className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] bg-clip-text text-transparent">Upcoming</span>{" "}
+                <span className="text-white">Events</span>
               </h2>
               <UpcomingEvents />
             </div>
             
-            <div className="space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Featured <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">Artists</span>
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                <span className="text-white">Featured</span>{" "}
+                <span className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] bg-clip-text text-transparent">Artists</span>
               </h2>
               <ArtistsSection />
             </div>
           </div>
 
           {/* Categories & Venues in Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:-mt-10 lg:gap-6">
-            <div className="space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Browse by <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Categories</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                <span className="text-white">Browse by</span>{" "}
+                <span className="bg-gradient-to-r from-[#4ADE80] to-[#10B981] bg-clip-text text-transparent">Categories</span>
               </h2>
               <EventCategories />
             </div>
             
-            <div className="space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Premium <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Venues</span>
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">
+                <span className="text-white">Premium</span>{" "}
+                <span className="bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] bg-clip-text text-transparent">Venues</span>
               </h2>
               <VenuesSection />
             </div>

@@ -201,8 +201,8 @@ export default function UpcomingEvents() {
                       <p className="text-slate-400 text-xs mb-2">{event.VenueName}, {event.VenueCity}</p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-accent font-medium text-sm">₹{event.LowestticketPrice}</span>
-                        <span className="text-xs text-slate-500">{event.EventStartTime}</span>
+                        <span className="text-[#00E1FC] font-bold text-sm">₹{event.LowestticketPrice}</span>
+                        <span className="text-xs text-slate-400">{event.EventStartTime}</span>
                       </div>
                     </div>
                   </div>
