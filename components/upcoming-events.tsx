@@ -105,20 +105,20 @@ export default function UpcomingEvents() {
 
   if (isLoading) {
     return (
-      <section className="py-12 bg-transparent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
+      <section className="py-6 sm:py-8 lg:py-12 bg-transparent">
+        <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-8">
+          <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[calc(16.666%-10px)] min-w-[200px] snap-center">
-                <div className="glass-card rounded-xl overflow-hidden animate-pulse">
-                  <div className="h-36 bg-slate-800"></div>
-                  <div className="p-3">
-                    <div className="h-3 bg-slate-800 rounded mb-2"></div>
-                    <div className="h-4 bg-slate-800 rounded mb-2"></div>
-                    <div className="h-3 bg-slate-800 rounded mb-2"></div>
+              <div key={i} className="flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center">
+                <div className="glass-card rounded-lg sm:rounded-xl overflow-hidden animate-pulse">
+                  <div className="h-32 sm:h-36 md:h-40 bg-slate-800"></div>
+                  <div className="p-2.5 sm:p-3">
+                    <div className="h-2.5 sm:h-3 bg-slate-800 rounded mb-2"></div>
+                    <div className="h-3 sm:h-4 bg-slate-800 rounded mb-2"></div>
+                    <div className="h-2.5 sm:h-3 bg-slate-800 rounded mb-2"></div>
                     <div className="flex justify-between">
-                      <div className="h-3 bg-slate-800 rounded w-14"></div>
-                      <div className="h-3 bg-slate-800 rounded w-10"></div>
+                      <div className="h-2.5 sm:h-3 bg-slate-800 rounded w-12 sm:w-14"></div>
+                      <div className="h-2.5 sm:h-3 bg-slate-800 rounded w-8 sm:w-10"></div>
                     </div>
                   </div>
                 </div>
@@ -131,8 +131,8 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <section className="py-12 bg-transparent">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-6 sm:py-8 lg:py-12 bg-transparent">
+      <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-accent to-destructive bg-clip-text text-transparent">Upcoming</span>
@@ -143,11 +143,11 @@ export default function UpcomingEvents() {
           </p>
         </div> */}
 
-        {/* Horizontal Scrollable Container - Shows 6 cards at a time */}
+        {/* Horizontal Scrollable Container - Responsive cards */}
         <div className="relative">
           <div 
             id="events-scroll-container"
-            className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide -mx-1 px-1"
             onScroll={handleScroll}
           >
             {upcomingEvents && upcomingEvents.length > 0 ? (
@@ -155,13 +155,13 @@ export default function UpcomingEvents() {
                 <Link 
                   key={event.event_id} 
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[calc(16.666%-10px)] min-w-[200px] snap-center"
+                  className="block flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center"
                 >
                   <div 
-                    className="glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-secondary/25 animate-slideInLeft"
+                    className="glass-card rounded-lg sm:rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-secondary/25 animate-slideInLeft"
                     style={{animationDelay: `${index * 0.1}s`}}
                   >
-                    <div className="relative h-36 overflow-hidden">
+                    <div className="relative h-32 sm:h-36 md:h-40 overflow-hidden">
                       <img 
                         src={
                           event.EventCardImages && event.EventCardImages.length > 0
@@ -187,22 +187,22 @@ export default function UpcomingEvents() {
                     </div>
  
                     
-                    <div className="p-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 px-2 py-0.5 rounded-full text-xs font-medium">
+                    <div className="p-2.5 sm:p-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                        <span className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
                           Event
                         </span>
                       </div>
                       
-                      <h4 className="text-sm font-semibold mb-1.5 text-white transition-colors duration-300 line-clamp-2">
+                      <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-white transition-colors duration-300 line-clamp-2">
                         {event.EventName}
                       </h4>
                       
-                      <p className="text-slate-400 text-xs mb-2">{event.VenueName}, {event.VenueCity}</p>
+                      <p className="text-slate-400 text-[10px] sm:text-xs mb-1.5 sm:mb-2 line-clamp-1">{event.VenueName}, {event.VenueCity}</p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-[#00E1FC] font-bold text-sm">₹{event.LowestticketPrice}</span>
-                        <span className="text-xs text-slate-400">{event.EventStartTime}</span>
+                        <span className="text-[#00E1FC] font-bold text-xs sm:text-sm">₹{event.LowestticketPrice}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-400">{event.EventStartTime}</span>
                       </div>
                     </div>
                   </div>
@@ -236,11 +236,11 @@ export default function UpcomingEvents() {
           )}
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-4 sm:mt-6 flex justify-end px-1">
           <Link href="/events">
-            <button className="group flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
+            <button className="group flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
               View All Events
-              <Calendar className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </Link>
         </div>

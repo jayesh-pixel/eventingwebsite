@@ -98,8 +98,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full h-[250px] md:h-[400px] lg:h-[500px] overflow-hidden">
-      {/* Hero background with banner slider */}
+    <section className="relative w-full h-[220px] sm:h-[280px] md:h-[400px] lg:h-[500px] overflow-hidden mt-16 lg:mt-24\">\n      {/* Hero background with banner slider */}
       <div className="absolute inset-0 z-0">
         {isLoading ? (
           <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-700 animate-pulse"></div>
@@ -132,17 +131,17 @@ export default function HeroSection() {
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-6 top-1/2 transform -translate-y-1/2 z-20 bg-slate-900/80 backdrop-blur-sm text-white p-3 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-110 border border-slate-700"
+                  className="absolute left-2 sm:left-4 lg:left-6 top-1/2 transform -translate-y-1/2 z-20 bg-slate-900/80 backdrop-blur-sm text-white p-2 sm:p-3 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-110 border border-slate-700"
                   aria-label="Previous slide"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-6 top-1/2 transform -translate-y-1/2 z-20 bg-slate-900/80 backdrop-blur-sm text-white p-3 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-110 border border-slate-700"
+                  className="absolute right-2 sm:right-4 lg:right-6 top-1/2 transform -translate-y-1/2 z-20 bg-slate-900/80 backdrop-blur-sm text-white p-2 sm:p-3 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-110 border border-slate-700"
                   aria-label="Next slide"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                 </button>
               </>
             )}
