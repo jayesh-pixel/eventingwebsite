@@ -145,15 +145,15 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
     <nav className="fixed top-0 w-full z-50 font-poppins bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
       <Toaster />
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-24">
+        <div className="flex justify-between items-center h-16 lg:h-24">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <div className="cursor-pointer relative h-20 w-56 md:h-24 md:w-72 lg:h-28 lg:w-80">
+              <div className="cursor-pointer relative h-28 w-40 md:h-36 md:w-56 lg:h-28 lg:w-80">
                 <Image
                   src="/EC%20Logo.png"
                   alt="Eventing Club Logo"
                   fill
-                  className="object-contain"
+                  className="object-contain object-left"
                   priority
                 />
               </div>
@@ -161,19 +161,19 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
           </div>
 
           <div className="hidden lg:flex items-center flex-1 justify-center space-x-12 xl:space-x-16 mx-8">
-            <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
+            <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
               Home
             </Link>
-            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
+            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
               Venues
             </Link>
-            <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
+            <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
               Artists
             </Link>
-            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
+            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
               About Us
             </Link>
-            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-bold text-xl tracking-wide">
+            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
               List With Us
             </Link>
           </div>
@@ -217,14 +217,14 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             
             {isLoggedIn ? (
               <Link href={`/userDetails/${cust_id}`} className="flex items-center gap-2 group">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
-                  <FaUserCircle className="size-10 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
+                <div className="flex items-center gap-2 px-2 lg:px-4 py-2 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
+                  <FaUserCircle className="size-7 lg:size-10 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
                   <span className="hidden xl:block text-white font-semibold">Profile</span>
                 </div>
               </Link>
             ) : (
               <Link href="/signup">
-                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-10 py-3.5 rounded-lg text-white font-bold text-lg">
+                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-6 lg:px-10 py-2 lg:py-3.5 rounded-lg text-white font-bold text-sm lg:text-lg">
                   Sign Up
                 </button>
               </Link>
@@ -247,16 +247,16 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
               <Link href="/" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
                 Home
               </Link>
-              <Link href="/venue" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link href="/venues" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
                 Venues
               </Link>
               <Link href="/artists" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
                 Artists
               </Link>
-              <Link href="/aboutus" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link href="/about" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
                 About Us
               </Link>
-              <Link href="/list-with-us" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link href="/listwithus" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
                 List With Us
               </Link>
               
