@@ -68,6 +68,10 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
     setOpen(!open);
   };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   useEffect(() => {
     const delay = setTimeout(() => {
       setDebouncedSearch(searchTerm);
@@ -244,19 +248,39 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
         {open && (
           <div className="lg:hidden bg-slate-900/95 backdrop-blur-lg border-t border-slate-800">
             <div className="px-4 pt-2 pb-3 space-y-1">
-              <Link href="/" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link
+                href="/"
+                onClick={handleClose}
+                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+              >
                 Home
               </Link>
-              <Link href="/venues" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link
+                href="/venues"
+                onClick={handleClose}
+                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+              >
                 Venues
               </Link>
-              <Link href="/artists" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link
+                href="/artists"
+                onClick={handleClose}
+                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+              >
                 Artists
               </Link>
-              <Link href="/about" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link
+                href="/about"
+                onClick={handleClose}
+                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+              >
                 About Us
               </Link>
-              <Link href="/listwithus" className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300">
+              <Link
+                href="/listwithus"
+                onClick={handleClose}
+                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+              >
                 List With Us
               </Link>
               
@@ -275,14 +299,14 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
               
               <div className="px-3 py-2">
                 {isLoggedIn ? (
-                  <Link href={`/userDetails/${cust_id}`}>
+                  <Link href={`/userDetails/${cust_id}`} onClick={handleClose}>
                     <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center gap-2">
                       <FaUserCircle className="text-[#00E1FC]" size={20} />
                       My Profile
                     </button>
                   </Link>
                 ) : (
-                  <Link href="/signup">
+                  <Link href="/signup" onClick={handleClose}>
                     <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-2 rounded-lg text-white font-semibold">
                       Sign Up
                     </button>
