@@ -27,7 +27,7 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-12 sm:py-14 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -40,15 +40,15 @@ export default function NewsletterSection() {
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="animate-fadeInUp">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+          <h2 className="text-3xl md:text-5xl font-bold mb-5 text-white">
             Never Miss a
             <span className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] bg-clip-text text-transparent"> Beat</span>
           </h2>
-          <p className="text-xl md:text-2xl text-white font-medium mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-white font-medium mb-6 max-w-3xl mx-auto leading-relaxed">
             Get exclusive access to pre-sale tickets, artist announcements, and special events before anyone else.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-6">
             <Input
               type="email"
               placeholder="Enter your email address"
@@ -65,7 +65,7 @@ export default function NewsletterSection() {
             </Button>
           </div>
           
-          <div className="flex items-center justify-center gap-8 md:gap-12 text-white flex-wrap">
+          <div className="flex items-center justify-center gap-6 md:gap-10 text-white flex-wrap">
             <div className="flex items-center gap-2">
               <Ticket className="text-[#00E1FC] h-6 w-6" />
               <span className="text-base font-semibold">Early Access</span>

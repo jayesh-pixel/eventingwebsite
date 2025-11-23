@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navigation from "@/components/navigation-new";
 import { Users, MapPin } from "lucide-react";
 import axios from "axios";
 import { venues as venuesConfig } from "@/utils/config";
@@ -98,23 +97,21 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
 
   if (isLoading) {
     return (
-      <>
-        <Navigation />
-        <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="py-12 sm:py-14 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4">
             {/* Enhanced Loading State */}
             <div className="animate-pulse">
               {/* Header skeleton */}
-              <div className="text-center mb-12">
+              <div className="text-center mb-10">
                 <div className="h-12 bg-slate-800 rounded-lg w-96 mx-auto mb-4"></div>
                 <div className="h-6 bg-slate-800 rounded w-64 mx-auto"></div>
               </div>
               
               {/* Content skeleton */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <div className="space-y-6">
-                  <div className="rounded-3xl overflow-hidden h-[500px] bg-gradient-to-r from-slate-800 to-slate-700"></div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-3xl overflow-hidden h-[420px] bg-gradient-to-r from-slate-800 to-slate-700"></div>
+                  <div className="grid grid-cols-3 gap-3">
                     {[...Array(3)].map((_, i) => (
                       <div key={i} className="h-24 bg-slate-800 rounded-xl"></div>
                     ))}
@@ -125,7 +122,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                   <div className="space-y-4">
                     <div className="h-8 bg-slate-800 rounded w-48"></div>
                     <div className="h-6 bg-slate-800 rounded w-full"></div>
-                    <div className="h-20 bg-slate-800 rounded w-full"></div>
+                    <div className="h-16 bg-slate-800 rounded w-full"></div>
                   </div>
                   <div className="h-80 bg-slate-800 rounded-2xl"></div>
                 </div>
@@ -133,15 +130,12 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
             </div>
           </div>
         </section>
-      </>
     );
   }
 
   if (error || !venue) {
     return (
-      <>
-        <Navigation />
-        <section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950">
+        <section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950 px-4 text-center">
           <div className="text-center max-w-md mx-auto px-4">
             <div className="text-8xl mb-8">🏢</div>
             <h2 className="text-4xl font-bold text-white mb-6">Venue Not Found</h2>
@@ -165,7 +159,6 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
             </div>
           </div>
         </section>
-      </>
     );
   }
 
@@ -180,14 +173,12 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
   const location = venue.venueAddress || 'Location TBA';
 
   return (
-    <>
-      <Navigation />
-      <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="py-12 sm:py-14 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+        <div className="max-w-6xl mx-auto px-4">
           {/* Header Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+              <span className="text-[#00E1FC]">
                 {venue.venueName}
               </span>
             </h1>
@@ -216,7 +207,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
+
                 {/* Image overlay info */}
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
@@ -259,7 +250,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
               {/* Venue Details Card */}
               <div className="glass-card rounded-3xl p-8">
                 <h2 className="text-2xl font-bold text-white mb-6">Venue Details</h2>
-                
+
                 <div className="space-y-6">
                   {/* Location */}
                   <div className="flex items-start gap-4">
@@ -328,7 +319,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
               </div>
             </div>
           </div>
-
+          
           {/* Events Section */}
           <div className="mb-16">
             <div className="text-center mb-12">
@@ -381,6 +372,4 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
           </div>
         </div>
       </section>
-    </>
-  );
-}
+  );}

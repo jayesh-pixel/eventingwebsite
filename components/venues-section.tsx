@@ -45,16 +45,16 @@ export default function VenuesSection() {
 
   if (isLoading) {
     return (
-      <section className="py-12 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
+      <section className="py-6 sm:py-8 lg:py-10 bg-transparent">
+        <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+          <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center">
+              <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
                 <div className="glass-card rounded-xl overflow-hidden animate-pulse">
-                  <div className="h-36 bg-slate-800"></div>
-                  <div className="p-3">
-                    <div className="h-4 bg-slate-800 rounded mb-2"></div>
-                    <div className="h-3 bg-slate-800 rounded mb-2"></div>
+                  <div className="h-32 sm:h-36 md:h-40 bg-slate-800"></div>
+                  <div className="p-2.5 sm:p-3">
+                    <div className="h-3 bg-slate-800 rounded mb-1.5"></div>
+                    <div className="h-3 bg-slate-800 rounded mb-1.5"></div>
                     <div className="h-3 bg-slate-800 rounded"></div>
                   </div>
                 </div>
@@ -67,8 +67,8 @@ export default function VenuesSection() {
   }
 
   return (
-    <section className="py-12 bg-transparent">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-6 sm:py-8 lg:py-10 bg-transparent">
+      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Premium 
@@ -83,7 +83,7 @@ export default function VenuesSection() {
         <div className="relative">
           <div 
             id="venues-scroll-container"
-            className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {venues?.map((venue, index) => {
@@ -106,10 +106,10 @@ export default function VenuesSection() {
               return (
                 <div 
                   key={venue.id}
-                  className={`flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${hoverColorClass} animate-slideInLeft`}
+                  className={`flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${hoverColorClass} animate-slideInLeft`}
                   style={{animationDelay: `${index * 0.1}s`}}
                 >
-                  <div className="relative h-36 overflow-hidden">
+                  <div className="relative h-32 sm:h-36 md:h-40 overflow-hidden">
                     <img 
                       src={venue.imageUrl}
                       alt={venue.name}
@@ -123,7 +123,7 @@ export default function VenuesSection() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-3">
+                  <div className="p-2.5 sm:p-3">
                     <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
                       {venue.name}
                     </h3>

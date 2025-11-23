@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Navigation from "@/components/navigation-new";
 import { mockArtists } from "@/data/mockData";
 import { artists as artistsConfig } from "@/utils/config";
 import axios from "axios";
@@ -64,9 +63,7 @@ export default function ArtistsPage() {
   );
 
   return (
-    <>
-      <Navigation />
-      <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+      <section className="py-12 sm:py-14 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -147,6 +144,5 @@ export default function ArtistsPage() {
           )}
         </div>
       </section>
-    </>
   );
 }

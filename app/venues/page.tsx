@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navigation from "@/components/navigation-new";
 import { Users } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
@@ -80,14 +79,12 @@ export default function VenuesPage() {
     );
 
   return (
-    <>
-      <Navigation />
-      <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+      <section className="py-12 sm:py-14 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Discover Amazing <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">Venues</span>
+          <div className="text-center mb-12">
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">
+              Discover Amazing <span className="text-[#00E1FC]">Venues</span>
             </h1>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
               Find the perfect venue for your next event. From intimate gatherings to grand celebrations.
@@ -95,7 +92,7 @@ export default function VenuesPage() {
           </div>
 
           {/* Filter Buttons */}
-          <div className="mb-10 flex flex-wrap gap-4 justify-center">
+          <div className="mb-8 flex flex-wrap gap-3 justify-center">
             {venueTypes.map(type => (
               <button
                 key={type}
@@ -112,7 +109,7 @@ export default function VenuesPage() {
           </div>
 
           {/* Search Bar */}
-          <div className="mb-12 flex justify-center">
+          <div className="mb-10 flex justify-center">
             <div className="relative w-full max-w-md">
               <input
                 type="text"
@@ -264,6 +261,5 @@ export default function VenuesPage() {
           )}
         </div>
       </section>
-    </>
   );
 }

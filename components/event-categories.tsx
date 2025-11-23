@@ -90,19 +90,19 @@ export default function EventCategories() {
 
   if (isLoading) {
     return (
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
+      <section className="relative py-6 sm:py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+          <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center">
-                <div className="glass-card rounded-2xl overflow-hidden animate-pulse">
-                  <div className="h-32 bg-slate-800"></div>
-                  <div className="p-3">
-                    <div className="h-4 bg-slate-800 rounded mb-1"></div>
+              <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
+                <div className="glass-card rounded-xl overflow-hidden animate-pulse">
+                  <div className="h-28 sm:h-32 md:h-36 bg-slate-800"></div>
+                  <div className="p-2.5 sm:p-3">
+                    <div className="h-3 bg-slate-800 rounded mb-1.5"></div>
                     <div className="h-3 bg-slate-800 rounded mb-2"></div>
                     <div className="flex justify-between">
-                      <div className="h-3 bg-slate-800 rounded w-16"></div>
-                      <div className="h-3 bg-slate-800 rounded w-3"></div>
+                      <div className="h-3 bg-slate-800 rounded w-14"></div>
+                      <div className="h-3 bg-slate-800 rounded w-4"></div>
                     </div>
                   </div>
                 </div>
@@ -115,8 +115,8 @@ export default function EventCategories() {
   }
 
   return (
-    <section className="py-20 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-6 sm:py-8 lg:py-10">
+      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Browse Events by Categories         
@@ -130,7 +130,7 @@ export default function EventCategories() {
         <div className="relative">
           <div 
             id="categories-scroll-container"
-            className="flex overflow-x-auto space-x-6 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {categories && categories.length > 0 ? (
@@ -173,14 +173,14 @@ export default function EventCategories() {
                 <Link
                   key={category._id}
                   href={`/categories/${category._id}`}
-                  className="block flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center"
+                  className="block flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center"
                   prefetch={false}
                 >
                   <div
-                    className={`glass-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft h-full`}
+                    className={`glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft h-full`}
                     style={{ animationDelay: `${index * 0.2}s` }}
                   >
-                    <div className="relative h-32 overflow-hidden">
+                    <div className="relative h-28 sm:h-32 md:h-36 overflow-hidden">
                       <img
                         src={imageUrl}
                         alt={category.Name}
@@ -196,11 +196,11 @@ export default function EventCategories() {
                         <IconComponent className={`text-${color} h-3 w-3`} />
                       </div>
                     </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300">
+                    <div className="p-2.5 sm:p-3">
+                      <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
                         {category.Name}
                       </h3>
-                      <p className="text-slate-400 text-xs mb-2">
+                      <p className="text-slate-400 text-xs mb-2 line-clamp-2">
                         {category.Description || "Discover amazing events in this category"}
                       </p>
                       <div className="flex items-center justify-between">

@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { MapPin, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Navigation from "@/components/navigation-new";
 import axios from "axios";
 
 interface Artist {
@@ -82,36 +81,30 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
 
   if (isLoading) {
     return (
-      <>
-        <Navigation />
-        <main className="pt-24 pb-12 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-          <div className="max-w-3xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center gap-8 mb-8 animate-pulse">
-              <div className="w-40 h-40 bg-slate-800 rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-8 bg-slate-800 rounded mb-4 w-48"></div>
-                <div className="h-6 bg-slate-800 rounded mb-2 w-32"></div>
-                <div className="h-4 bg-slate-800 rounded mb-4 w-full"></div>
-                <div className="h-10 bg-slate-800 rounded w-32"></div>
-              </div>
+      <section className="py-12 sm:py-14 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-8 mb-8 animate-pulse">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 bg-slate-800 rounded-full"></div>
+            <div className="flex-1 space-y-3">
+              <div className="h-8 bg-slate-800 rounded w-48"></div>
+              <div className="h-5 bg-slate-800 rounded w-32"></div>
+              <div className="h-4 bg-slate-800 rounded w-full"></div>
+              <div className="h-10 bg-slate-800 rounded w-32"></div>
             </div>
           </div>
-        </main>
-      </>
+        </div>
+      </section>
     );
   }
 
   if (error || !artist) {
     return (
-      <>
-        <Navigation />
-        <main className="pt-24 pb-12 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-          <div className="max-w-2xl mx-auto py-24 text-center">
-            <h2 className="text-2xl font-bold mb-4">Artist Not Found</h2>
-            <p className="text-slate-400">{error || "Sorry, we couldn't find this artist."}</p>
-          </div>
-        </main>
-      </>
+      <section className="py-12 sm:py-14 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <h2 className="text-2xl font-bold mb-4 text-white">Artist Not Found</h2>
+          <p className="text-slate-400">{error || "Sorry, we couldn't find this artist."}</p>
+        </div>
+      </section>
     );
   }
 
@@ -123,10 +116,8 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
     : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop&sig=${artist._id}`;
 
   return (
-    <>
-      <Navigation />
-      <main className="pt-24 pb-12 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="max-w-3xl mx-auto px-4">
+    <section className="py-12 sm:py-14 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="max-w-3xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
             <img
               src={imageUrl}
@@ -203,8 +194,7 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </>
+      </div>
+    </section>
   );
 }

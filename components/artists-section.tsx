@@ -106,18 +106,18 @@ export default function ArtistsSection() {
 
   if (isLoading) {
     return (
-      <section className="py-12 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
+      <section className="relative py-6 sm:py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+          <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center">
+              <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
                 <div className="group cursor-pointer animate-pulse">
-                  <div className="relative overflow-hidden rounded-xl mb-3">
-                    <div className="w-full h-44 bg-slate-800"></div>
+                  <div className="relative overflow-hidden rounded-lg sm:rounded-xl mb-3">
+                    <div className="w-full h-40 sm:h-44 bg-slate-800"></div>
                   </div>
-                  <div className="text-center">
-                    <div className="h-4 bg-slate-800 rounded mb-1"></div>
-                    <div className="h-3 bg-slate-800 rounded w-20 mx-auto"></div>
+                  <div className="text-center space-y-1">
+                    <div className="h-3 bg-slate-800 rounded"></div>
+                    <div className="h-3 bg-slate-800 rounded w-16 mx-auto"></div>
                   </div>
                 </div>
               </div>
@@ -129,8 +129,8 @@ export default function ArtistsSection() {
   }
 
   return (
-    <section className="py-12 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-6 sm:py-8 lg:py-10">
+      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Browse Events by 
@@ -145,7 +145,7 @@ export default function ArtistsSection() {
         <div className="relative">
           <div 
             id="artists-scroll-container"
-            className="flex overflow-x-auto space-x-3 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {artists && artists.length > 0 ? (
@@ -171,14 +171,14 @@ export default function ArtistsSection() {
               return (
                 <div 
                   key={artist._id}
-                  className="flex-shrink-0 w-[calc(16.666%-10px)] min-w-[160px] snap-center group cursor-pointer animate-fadeInUp"
+                  className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center group cursor-pointer animate-fadeInUp"
                   style={{animationDelay: `${index * 0.1}s`}}
                 >
-                  <div className="relative overflow-hidden rounded-xl mb-3">
+                  <div className="relative overflow-hidden rounded-lg sm:rounded-xl mb-3">
                     <img 
                       src={imageUrl}
                       alt={`${artist.Name} - Artist`}
-                      className="w-full h-44 object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-40 sm:h-44 object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
@@ -193,11 +193,11 @@ export default function ArtistsSection() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300">
+                    <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
                       {artist.Name}
                     </h3>
-                    <p className="text-slate-400 text-xs line-clamp-1">
-                      {artist.Description ? artist.Description.slice(0, 40) + (artist.Description.length > 40 ? '...' : '') : 'Music Artist'}
+                    <p className="text-slate-400 text-xs line-clamp-2">
+                      {artist.Description ? artist.Description : 'Music Artist'}
                     </p>
                   </div>
                 </div>

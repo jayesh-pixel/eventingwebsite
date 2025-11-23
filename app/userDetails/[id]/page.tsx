@@ -10,7 +10,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { resetState } from "@/store/slices/authSlice";
 import { IoIosLogOut } from "react-icons/io";
 import EditProfile from "@/components/EditProfile";
-import Navigation from "@/components/navigation-new";
 import Link from "next/link";
 
 const UserDetails = ({ params }: { params: { id: string } }) => {
@@ -87,11 +86,8 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-        <Navigation />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-white text-xl">Loading...</div>
-        </div>
+      <div className="min-h-[60vh] bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }
@@ -103,9 +99,7 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       <Toaster />
-      <Navigation />
-      
-      <div className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <div className="pt-12 pb-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
