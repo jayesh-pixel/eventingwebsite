@@ -25,6 +25,7 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
   const [userDetails, setUserDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'tickets'>('profile');
+  const [ticketsData, setTicketsData] = useState<any | null>(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -70,6 +71,28 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
       fetchUserDetails();
     }
   }, [cust_id]);
+
+  // Fetch tickets when tickets tab is selected
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (!cust_id) return;
+      try {
+        const payload = { customer_id: cust_id };
+        const response = await axios.post(`${customer.GET_TICKETS_BY_ID}`, payload);
+        if ((response.data as any)?.data) {
+          setTicketsData((response.data as any).data);
+        } else {
+          setTicketsData(null);
+        }
+      } catch (err) {
+        setTicketsData(null);
+      }
+    };
+
+    if (activeTab === 'tickets') {
+      fetchTickets();
+    }
+  }, [activeTab, cust_id]);
 
   // Handle logout
   const handleLogout = () => {
@@ -176,21 +199,73 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
         </div>
         ) : (
           /* Tickets Tab */
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <div className="mb-6">
-                <svg className="w-24 h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                </svg>
+          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+            {!ticketsData ? (
+              <div className="text-center p-12">
+                <div className="mb-6">
+                  <svg className="w-24 h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
+                <p className="text-slate-400 mb-8">Start exploring events and book your tickets to see them here.</p>
+                <Link href="/">
+                  <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-8 py-3 rounded-lg text-white font-semibold">
+                    Back to main page
+                  </button>
+                </Link>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
-              <p className="text-slate-400 mb-8">Start exploring events and book your tickets to see them here.</p>
-              <Link href="/">
-                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-8 py-3 rounded-lg text-white font-semibold">
-                  Back to main page
-                </button>
-              </Link>
-            </div>
+            ) : (
+              // Combine upcoming and past tickets into a single flat list
+              (() => {
+                const upcoming = (ticketsData as any)?.UpcomingEventTickets || [];
+                const past = (ticketsData as any)?.PastEventTickets || [];
+                const combined = [...upcoming, ...past];
+
+                if (combined.length === 0) {
+                  return (
+                    <div className="text-center p-12">
+                      <div className="mb-6">
+                        <svg className="w-24 h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
+                      <p className="text-slate-400 mb-8">Start exploring events and book your tickets to see them here.</p>
+                      <Link href="/">
+                        <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-8 py-3 rounded-lg text-white font-semibold">
+                          Back to main page
+                        </button>
+                      </Link>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {combined.map((t: any) => (
+                      <div key={t.Booking_id} className="bg-slate-800/40 p-4 rounded-lg flex items-start justify-between">
+                        <div className="text-left">
+                          <div className="text-white font-semibold">{t.EventName}</div>
+                          <div className="text-slate-300 text-sm">{t.EventDate} • {t.EventTime}</div>
+                          {/* Show venue details as requested */}
+                          {(t.EventVenue || t.VenueCity) && (
+                            <div className="text-slate-300 text-sm mt-1">{t.EventVenue}{t.EventVenue && t.VenueCity ? ` • ${t.VenueCity}` : t.VenueCity}</div>
+                          )}
+                          <div className="text-slate-400 text-sm mt-2">Status: <span className="font-medium text-white">{t.Status}</span></div>
+                        </div>
+                        <div className="flex flex-col items-end gap-3">
+                          <Link href={`/rndtckt/${t.Booking_id}`}>
+                            <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-4 py-2 rounded-md text-white font-semibold">View Ticket</button>
+                          </Link>
+                          <div className="text-slate-400 text-sm">Booking: {t.Booking_id}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()
+            )}
           </div>
         )}
       </div>

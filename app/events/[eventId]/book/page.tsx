@@ -279,10 +279,13 @@ export default function BookEventPage() {
         return prev;
       }
       
-      // Limit to 1 ticket only
+      // Get the booking max limit for this ticket
+      const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+      const maxAllowed = ticket?.BookingMaxLimit || 1;
       const currentCount = prev[ticketId] || 0;
-      if (currentCount >= 1) {
-        toast.error("Maximum 1 ticket allowed per booking.");
+      
+      if (currentCount >= maxAllowed) {
+        toast.error(`Maximum ${maxAllowed} ticket${maxAllowed > 1 ? 's' : ''} allowed per booking.`);
         return prev;
       }
       
@@ -1082,7 +1085,7 @@ export default function BookEventPage() {
                                   size="sm" 
                                   variant="outline" 
                                   onClick={() => handleIncrease(t.Ticket_Id)} 
-                                  disabled={count >= 1} 
+                                  disabled={count >= maxAllowed} 
                                   className="h-10 w-10 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
                                 >
                                   <Plus className="h-4 w-4" />
