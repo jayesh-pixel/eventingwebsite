@@ -155,15 +155,6 @@ export default function VenuesSection() {
             </div>
           )}
         </div>
-
-        <div className="mt-6 flex justify-end">
-          <Link href="/venues">
-            <button className="group flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
-              Explore All Venues
-              <MapPin className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
-          </Link>
-        </div>
       </div>
     </section>
   );

@@ -131,7 +131,7 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <section className="py-10 bg-black">
+    <section className="bg-black">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -154,14 +154,14 @@ export default function UpcomingEvents() {
                 <Link 
                   key={event.event_id} 
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[220px] sm:w-[240px] md:w-[260px] lg:w-[280px] snap-center"
+                  className="block flex-shrink-0 w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] snap-center"
                 >
                   <div 
-                    className="relative bg-gradient-to-br from-[#0a1128] to-[#0a0f1a] rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-[1.02] border-2 border-blue-600/20 hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-600/30 animate-slideInLeft h-[380px] sm:h-[380px]"
+                    className="relative bg-slate-900 rounded-xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-lg animate-slideInLeft"
                     style={{animationDelay: `${index * 0.1}s`}}
                   >
-                    {/* Background Image */}
-                    <div className="absolute inset-0">
+                    {/* Image Section */}
+                    <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
                       <img 
                         src={
                           event.EventCardImages && event.EventCardImages.length > 0
@@ -171,41 +171,46 @@ export default function UpcomingEvents() {
                             : ''
                         }
                         alt={event.EventName}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* Featured Badge - Top Left */}
+                      {event.isFeatured === 1 && (
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+                          ⭐ Featured
+                        </div>
+                      )}
+
+                      {/* Date Badge - Top Right */}
+                      <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">
+                        {event.EventStartDate}
+                      </div>
                     </div>
 
-                    {/* Content Overlay */}
-                    <div className="relative h-full flex flex-col justify-between p-4 sm:p-5">
-                      {/* Top Section - Badges */}
-                      <div className="flex items-start justify-between">
-                        {event.isFeatured === 1 && (
-                          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
-                            ⭐ Featured
-                          </div>
-                        )}
-                        <div className="ml-auto bg-blue-600/90 backdrop-blur-md text-center px-3 py-2 rounded-xl shadow-xl border border-blue-400/30">
-                          <div className="text-xs font-bold text-white">{event.EventStartDate}</div>
+                    {/* Content Section */}
+                    <div className="p-4 bg-slate-900">
+                      <h4 className="text-base font-bold mb-2 text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 flex items-center gap-2">
+                        {event.EventName}
+                        <span className="bg-red-500/20 text-red-400 border border-red-400/40 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1 flex-shrink-0">
+                          ⚡ LIVE
+                        </span>
+                      </h4>
+                      
+                      <p className="text-gray-400 text-xs mb-3 line-clamp-1 flex items-center gap-1">
+                        📍 {event.VenueName}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-blue-400 font-bold text-lg">₹{event.LowestticketPrice}</div>
+                        <div className="text-gray-400 text-xs flex items-center gap-1">
+                          ⏰ {event.EventStartTime}
                         </div>
                       </div>
 
-                      {/* Bottom Section - Event Details */}
-                      <div>
-                        <h4 className="text-base sm:text-lg font-bold mb-2 text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug flex items-center gap-2">
-                          {event.EventName}
-                          <span className="bg-blue-500/20 text-blue-300 border border-blue-400/40 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                            ⚡ Live
-                          </span>
-                        </h4>
-                        
-                        <p className="text-gray-300 text-xs sm:text-sm mb-2 line-clamp-1 flex items-center gap-1.5">📍 <span>{event.VenueName}, {event.VenueCity}</span></p>
-                        
-                        <div className="flex items-center justify-between pt-2 border-t border-blue-600/30">
-                          <span className="text-blue-400 font-bold text-base sm:text-lg">₹{event.LowestticketPrice}</span>
-                          <span className="text-xs text-gray-300 flex items-center gap-1">⏰ {event.EventStartTime}</span>
-                        </div>
-                      </div>
+                      <button className="w-full mt-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
+                        Book Now
+                      </button>
                     </div>
                   </div>
                 </Link>
@@ -236,15 +241,6 @@ export default function UpcomingEvents() {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="mt-4 sm:mt-6 flex justify-end">
-          <Link href="/events">
-            <button className="group flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
-              View All Events
-              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
-          </Link>
         </div>
       </div>
     </section>

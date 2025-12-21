@@ -129,117 +129,52 @@ export default function ArtistsSection() {
   }
 
   return (
-    <section className="relative py-10 bg-black">
-      <div className="max-w-full px-4 sm:px-6 lg:px-8">
-        {/* <div className="text-center mb-16 animate-fadeInUp">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Browse Events by 
-            <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent"> Artists</span>
-          </h2>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Follow your favorite artists and discover new talents performing at exclusive venues worldwide.
-          </p>
-        </div> */}
-
-        {/* Horizontal Scrollable Container - Shows 6 cards at a time */}
-        <div className="relative">
-          <div 
-            id="artists-scroll-container"
-            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
-            onScroll={handleScroll}
-          >
-            {artists && artists.length > 0 ? (
-              artists.map((artist, index) => {
-              const IconComponent = getGenreIcon(artist.Name);
-              const colorClass = getGenreColor(artist.Name);
-
-              const badgeBgClassMap: Record<string, string> = {
-                primary: 'bg-slate-800/75',
-                secondary: 'bg-slate-800/75',
-                accent: 'bg-indigo-900/75',
-                destructive: 'bg-rose-900/75',
-              };
-              const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-slate-800/75';
-              
-              // Get image URL from API response or use default
-              const imageUrl = artist.Images && artist.Images.length > 0 
-                ? artist.Images[0].image_path.startsWith('http')
-                  ? artist.Images[0].image_path
-                  : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${artist.Images[0].image_path}`
-                : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
-
-              return (
-                <div 
-                  key={artist._id}
-                  className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center group cursor-pointer animate-fadeInUp"
-                  style={{animationDelay: `${index * 0.1}s`}}
-                >
-                  <div className="relative overflow-hidden rounded-full mb-3 aspect-square">
-                    <img 
-                      src={imageUrl}
-                      alt={`${artist.Name} - Artist`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className={`${badgeBgClass} backdrop-blur-sm px-2 py-0.5 rounded-full text-xs font-medium flex items-center`}>
-                          <IconComponent className="mr-1 h-2.5 w-2.5 text-white" />
-                          <span className="text-white">View Events</span>
-                        </div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
-                      {artist.Name}
-                    </h3>
-                    <p className="text-slate-400 text-xs line-clamp-2">
-                      {artist.Description ? artist.Description : 'Music Artist'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="flex-shrink-0 w-full text-center py-8">
-              <Users className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400 text-base">No artists available at the moment.</p>
-              <p className="text-slate-500 text-sm mt-2">Please check back later for amazing artists!</p>
-            </div>
-          )}
-          </div>
+    <div className="relative">
+      {/* Horizontal Scrollable Container - Small circles */}
+      <div 
+        id="artists-scroll-container"
+        className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+        onScroll={handleScroll}
+      >
+        {artists && artists.length > 0 ? (
+          artists.slice(0, 15).map((artist, index) => {
           
-          {/* Navigation Dots */}
-          {artists.length > 6 && (
-            <div className="flex justify-center items-center gap-2 mt-4">
-              {[...Array(totalDots)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => scrollToIndex(index)}
-                  className={`transition-all duration-300 rounded-full ${
-                    activeIndex === index 
-                      ? 'w-8 h-2 bg-primary' 
-                      : 'w-2 h-2 bg-slate-600 hover:bg-slate-500'
-                  }`}
-                  aria-label={`Go to page ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+          // Get image URL from API response or use default
+          const imageUrl = artist.Images && artist.Images.length > 0 
+            ? artist.Images[0].image_path.startsWith('http')
+              ? artist.Images[0].image_path
+              : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${artist.Images[0].image_path}`
+            : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
 
-        <div className="mt-6 flex justify-end">
-          <Link href="/artists">
-            <button className="group flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
-              Discover More Artists
-              <Users className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
-          </Link>
+          return (
+            <div 
+              key={artist._id}
+              className="flex-shrink-0 snap-center group cursor-pointer flex flex-col items-center gap-1.5"
+            >
+              <div className="relative overflow-hidden rounded-full w-16 h-16 sm:w-20 sm:h-20 border-2 border-blue-500/30 hover:border-blue-400 transition-all duration-300">
+                <img 
+                  src={imageUrl}
+                  alt={`${artist.Name} - Artist`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
+                  }}
+                />
+              </div>
+              <p className="text-white text-[10px] sm:text-xs font-medium text-center line-clamp-1 max-w-[80px] sm:max-w-[100px]">
+                {artist.Name}
+              </p>
+            </div>
+          );
+        })
+      ) : (
+        <div className="flex-shrink-0 w-full text-center py-4">
+          <Users className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+          <p className="text-slate-400 text-xs">No artists available</p>
         </div>
+      )}
       </div>
-    </section>
+    </div>
   );
 }

@@ -119,58 +119,86 @@ export default function HeroSection() {
   return (
     <section className="relative w-full overflow-hidden bg-black">
       {/* Hero background with banner slider */}
-      <div className="relative w-full h-[45vh] sm:h-[50vh] md:h-[55vh] lg:h-[60vh]">
+      <div className="relative w-full h-[45vh] sm:h-[50vh] md:h-[55vh] lg:h-[60vh] px-4 sm:px-8 md:px-12 lg:px-16 flex items-center">
         {isLoading ? (
-          <div className="w-full h-full bg-gradient-to-r from-blue-950 to-black animate-pulse"></div>
+          <div className="w-full h-full bg-gradient-to-r from-blue-950 to-black animate-pulse rounded-2xl"></div>
         ) : banners.length > 0 ? (
-          <>
-            {/* Desktop Image */}
-            {getCurrentBannerImage().desktop && (
-              <img 
-                src={getCurrentBannerImage().desktop}
-                alt="Event banner" 
-                className="hidden md:block w-full h-full object-cover transition-all duration-1000" 
-                draggable={false}
-              />
-            )}
-            
-            {/* Mobile Image */}
-            {getCurrentBannerImage().mobile && (
-              <img 
-                src={getCurrentBannerImage().mobile}
-                alt="Event banner" 
-                className="block md:hidden w-full h-full object-cover transition-all duration-1000" 
-                draggable={false}
-              />
-            )}
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
-            
-
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Slider Container - Shows 3 slides (prev, current, next) */}
+            <div className="relative w-full h-full flex items-center justify-center overflow-visible">
+              {banners.map((banner, index) => {
+                const isActive = index === currentSlide;
+                const isPrev = index === (currentSlide - 1 + banners.length) % banners.length;
+                const isNext = index === (currentSlide + 1) % banners.length;
+                
+                if (!isActive && !isPrev && !isNext) return null;
+                
+                let position = 'translate-x-0 scale-100 z-20 opacity-100';
+                if (isPrev) position = '-translate-x-[85%] scale-75 z-10 opacity-40';
+                if (isNext) position = 'translate-x-[85%] scale-75 z-10 opacity-40';
+                
+                const desktopUrl = banner.DesktopbannerImage.startsWith('http')
+                  ? banner.DesktopbannerImage
+                  : `${BACKEND_URL}/${banner.DesktopbannerImage}`;
+                  
+                const mobileUrl = banner.MobilebannerImage.startsWith('http')
+                  ? banner.MobilebannerImage
+                  : `${BACKEND_URL}/${banner.MobilebannerImage}`;
+                
+                return (
+                  <div
+                    key={banner._id}
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${position} ${!isActive ? 'pointer-events-none' : ''}`}
+                  >
+                    {/* Desktop Image */}
+                    <img 
+                      src={desktopUrl}
+                      alt="Event banner" 
+                      className="hidden md:block w-full h-full object-cover rounded-2xl shadow-2xl" 
+                      draggable={false}
+                    />
+                    
+                    {/* Mobile Image */}
+                    <img 
+                      src={mobileUrl}
+                      alt="Event banner" 
+                      className="block md:hidden w-full h-full object-cover rounded-2xl shadow-2xl" 
+                      draggable={false}
+                    />
+                    
+                    {isActive && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-2xl"></div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
             
             {/* Navigation arrows */}
             {banners.length > 1 && (
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 text-white/70 hover:text-blue-400 transition-all duration-300 hover:scale-125"
+                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-2 transition-all duration-300 hover:scale-110 shadow-lg"
                   aria-label="Previous slide"
                 >
-                  <ChevronLeft className="h-8 w-8 sm:h-10 sm:w-10 drop-shadow-lg" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 text-white/70 hover:text-blue-400 transition-all duration-300 hover:scale-125"
+                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-2 transition-all duration-300 hover:scale-110 shadow-lg"
                   aria-label="Next slide"
                 >
-                  <ChevronRight className="h-8 w-8 sm:h-10 sm:w-10 drop-shadow-lg" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </>
             )}
 
             {/* Slide indicators */}
             {banners.length > 1 && (
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex space-x-3">
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex space-x-3">
                 {banners.map((_, index) => (
                   <button
                     key={index}
@@ -185,9 +213,9 @@ export default function HeroSection() {
                 ))}
               </div>
             )}
-          </>
+          </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950"></div>
+          <div className="w-full h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 rounded-2xl"></div>
         )}
       </div>
     </section>
