@@ -45,8 +45,8 @@ export default function VenuesSection() {
 
   if (isLoading) {
     return (
-      <section className="py-6 sm:py-8 lg:py-10 bg-transparent">
-        <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+      <section className="py-6 bg-black">
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
@@ -67,8 +67,8 @@ export default function VenuesSection() {
   }
 
   return (
-    <section className="py-6 sm:py-8 lg:py-10 bg-transparent">
-      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+    <section className="py-10 bg-black">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Premium 

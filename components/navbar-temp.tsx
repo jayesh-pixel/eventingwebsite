@@ -208,7 +208,17 @@ const Navbar = ({ bgColor }: NavbarProps) => {
               </ul>
             </div>
 
-            <div className="flex">
+            <div className="flex items-center gap-4">
+              {homePageUrl && (
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-all duration-300 hover:shadow-md"
+                    aria-label="Search"
+                  >
+                    <MagnifyingGlassIcon className="w-5 h-5 md:w-6 md:h-6 text-gray-600" />
+                  </button>
+                </div>
+              )}
               {isLoggedIn ? (
                 <div className="flex justify-center items-center">
                   <Link href={`/userDetails/${cust_id}`}>
@@ -225,78 +235,7 @@ const Navbar = ({ bgColor }: NavbarProps) => {
             </div>
           </div>
 
-          {homePageUrl && (
-            <div className=" lg:w-2/4 mt-6 md:mt-2 md:mb-2 mb-4">
-              <label className="relative w-full">
-                <span className="sr-only">search</span>
-                <MagnifyingGlassIcon className="w-5 h-5 absolute inset-y-0 left-6 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleChange}
-                  className="placeholder:text-gray-400 placeholder:text-sm md:text-base  border w-full border-gray-400 rounded-md py-2 md:py-3 pl-12 pr-3"
-                  placeholder="Search for Events, Venues"
-                />
-              </label>
 
-              {searchData.length > 0 && (
-                <div
-                  className={`bg-white shadow-2xl mt-2 rounded-md z-50 absolute top-full left-0 w-full ${
-                    searchData.length > 5
-                      ? "max-h-52 overflow-y-scroll"
-                      : "h-auto"
-                  }`}
-                >
-                  {searchData.map((data: SearchItem, index: number) => (
-                    <div key={data._id}>
-                      <div className="">
-                        {data.Name && (
-                          <div className="w-full">
-                            <Link href={`/venue/${data._id}`} key={data._id}>
-                              <div
-                                className={`p-4  flex items-center space-x-2 w-full  hover:bg-gray-200  ${
-                                  index === searchData.length - 1
-                                    ? " border-none"
-                                    : "border-b-[1px] border-gray-200 "
-                                }`}
-                              >
-                                <LuMapPin className="text-gray-500" size={20} />
-
-                                <p className="cursor-pointer">{data.Name}</p>
-                              </div>
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                      <div className="  ">
-                        {data.EventName && (
-                          <div className="w-full">
-                            <Link href={`/events/${data._id}`} key={data._id}>
-                              <div
-                                className={`p-4 flex items-center space-x-2 w-full  hover:bg-gray-200  ${
-                                  index === searchData.length - 1
-                                    ? " border-none hover:rounded-b-md"
-                                    : "border-b-[1px] border-gray-200 "
-                                }`}
-                              >
-                                <MdEventAvailable
-                                  className="text-gray-500"
-                                  size={20}
-                                />
-                                <p className=" cursor-pointer ">
-                                  {data.EventName}
-                                </p>
-                              </div>
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -115,22 +115,12 @@ export default function EventCategories() {
   }
 
   return (
-    <section className="relative py-6 sm:py-8 lg:py-10">
-      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
-        {/* <div className="text-center mb-16 animate-fadeInUp">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Browse Events by Categories         
-                      </h2>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            From intimate acoustic sessions to massive festival experiences, find your perfect musical journey.
-          </p>
-        </div> */}
-
-        {/* Horizontal Scrollable Container - Shows 4 cards at a time */}
+    <section className="relative bg-black py-10">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8">
         <div className="relative">
           <div 
             id="categories-scroll-container"
-            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-6 sm:gap-8 md:gap-10 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {categories && categories.length > 0 ? (
@@ -173,14 +163,14 @@ export default function EventCategories() {
                 <Link
                   key={category._id}
                   href={`/categories/${category._id}`}
-                  className="block flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center"
+                  className="flex-shrink-0 flex flex-col items-center gap-4 w-[130px] sm:w-[150px] md:w-[170px] snap-center group"
                   prefetch={false}
                 >
                   <div
-                    className={`glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${colorClass} animate-slideInLeft h-full`}
-                    style={{ animationDelay: `${index * 0.2}s` }}
+                    className="cursor-pointer transition-all duration-500 hover:scale-110 animate-slideInLeft"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="relative h-28 sm:h-32 md:h-36 overflow-hidden">
+                    <div className="relative w-[110px] h-[110px] sm:w-[130px] sm:h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-[3px] border-blue-600/50 group-hover:border-blue-400 transition-all duration-300 shadow-xl shadow-blue-600/30 group-hover:shadow-blue-400/60">
                       <img
                         src={imageUrl}
                         alt={category.Name}
@@ -191,24 +181,12 @@ export default function EventCategories() {
                           target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&sig=${index}`;
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-                      <div className={`absolute top-2 right-2 bg-${color}/20 backdrop-blur-sm rounded-full p-1`}>
-                        <IconComponent className={`text-${color} h-3 w-3`} />
-                      </div>
-                    </div>
-                    <div className="p-2.5 sm:p-3">
-                      <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
-                        {category.Name}
-                      </h3>
-                      <p className="text-slate-400 text-xs mb-2 line-clamp-2">
-                        {category.Description || "Discover amazing events in this category"}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium text-xs">Explore Events</span>
-                        <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform duration-300" />
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                     </div>
                   </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white text-center group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 px-2">
+                    {category.Name}
+                  </h3>
                 </Link>
               );
             })

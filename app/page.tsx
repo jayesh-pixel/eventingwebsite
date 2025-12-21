@@ -24,16 +24,16 @@ const SectionHeader = ({
   href,
   linkLabel,
 }: SectionHeaderProps) => (
-  <div className="flex flex-col gap-4 px-1 sm:flex-row sm:items-end sm:justify-between">
-    <div className="space-y-2 sm:space-y-3">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#00E1FC]/80">
+  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between px-4 sm:px-6 lg:px-8 py-3 border-b border-blue-500/10">
+    <div className="space-y-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">
         {eyebrow}
       </span>
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
-        {title} {accent && <span className="text-[#00E1FC]">{accent}</span>}
+        {title} {accent && <span className="text-blue-500">{accent}</span>}
       </h2>
       {description && (
-        <p className="max-w-xl text-sm sm:text-base text-slate-300/90">
+        <p className="max-w-2xl text-xs text-gray-400 leading-relaxed">
           {description}
         </p>
       )}
@@ -41,10 +41,10 @@ const SectionHeader = ({
     {href && linkLabel && (
       <Link
         href={href}
-        className="group inline-flex items-center gap-2 self-start rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-[#00E1FC]/60 hover:text-[#00E1FC]"
+        className="group inline-flex items-center gap-2 self-start bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
       >
         <span>{linkLabel}</span>
-        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
       </Link>
     )}
   </div>
@@ -52,12 +52,12 @@ const SectionHeader = ({
 
 export default function Home() {
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden bg-black">
       <HeroSection />
 
-      <div className="relative z-10 w-full px-3 sm:px-6 lg:px-8 pb-10 sm:pb-14 lg:pb-20">
-        <div className="space-y-8 sm:space-y-12 lg:space-y-14">
-          <section className="space-y-4 sm:space-y-6">
+      <div className="relative z-10 w-full bg-black">
+        <div>
+          <section>
             <SectionHeader
               eyebrow="Don't miss"
               title="Upcoming"
@@ -67,7 +67,7 @@ export default function Home() {
             <UpcomingEvents />
           </section>
 
-          <section className="space-y-4 sm:space-y-6">
+          <section className="border-b border-blue-900/20">
             <SectionHeader
               eyebrow="Browse"
               title="Curated"
@@ -79,7 +79,7 @@ export default function Home() {
             <EventCategories />
           </section>
 
-          <section className="space-y-4 sm:space-y-6">
+          <section className="border-b border-blue-900/20">
             <SectionHeader
               eyebrow="Featuring"
               title="Spotlight"
@@ -91,7 +91,7 @@ export default function Home() {
             <ArtistsSection />
           </section>
 
-          <section className="space-y-4 sm:space-y-6">
+          <section className="border-b border-blue-900/20">
             <SectionHeader
               eyebrow="Premium"
               title="Signature"

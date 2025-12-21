@@ -105,6 +105,32 @@ interface BookingForm {
   note: string;
 }
 
+interface PromocodeData {
+  _id?: string;
+  promocode_id?: string;
+  PromoCodeName: string;
+  TermsCondition: string;
+  PromType: number; // 1 for fixed amount, 2 for percentage
+  Value: number;
+  MinAmount?: number;
+  MinCheckoutAmount?: string;
+  ExpiryDate?: string;
+  OneTimeUseFlag?: string;
+  PromocodeValidFor?: string;
+}
+
+interface PromocodeListResponse {
+  error: boolean;
+  message: string;
+  data: PromocodeData[];
+}
+
+interface ApplyPromocodeResponse {
+  error: boolean;
+  message: string;
+  data: PromocodeData;
+}
+
 // Mock user for demo
 const mockUser = {
   user_id: "user_123",
@@ -156,6 +182,14 @@ export default function BookEventPage() {
   const [checkoutPage, setCheckoutPage] = React.useState(false);
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
 
+  // Promocode state ------------------------------------------------------------
+  const [promocodeInput, setPromocodeInput] = React.useState("");
+  const [appliedPromocode, setAppliedPromocode] = React.useState<PromocodeData | null>(null);
+  const [promocodeLoading, setPromocodeLoading] = React.useState(false);
+  const [promocodeError, setPromocodeError] = React.useState("");
+  const [availablePromocodes, setAvailablePromocodes] = React.useState<PromocodeData[]>([]);
+  const [showPromocodeSuggestions, setShowPromocodeSuggestions] = React.useState(false);
+
   // Customer details -----------------------------------------------------------
   const [customer, setCustomer] = React.useState<BookingForm>({
     firstName: "",
@@ -176,7 +210,20 @@ export default function BookEventPage() {
     const ticket = tickets.find(t => t.Ticket_Id === ticketId);
     return ticket ? sum + qty * ticket.TicketPrice : sum;
   }, 0);
-  const finalAmount = totalPrice;
+  
+  // Calculate discount from promocode
+  let discountAmount = 0;
+  if (appliedPromocode) {
+    if (appliedPromocode.PromType === 1) {
+      // Fixed amount discount
+      discountAmount = appliedPromocode.Value;
+    } else if (appliedPromocode.PromType === 2) {
+      // Percentage discount
+      discountAmount = (totalPrice * appliedPromocode.Value) / 100;
+    }
+  }
+  
+  const finalAmount = Math.max(0, totalPrice - discountAmount);
   const isAnyCountActive = Object.keys(showCount).some((id) => showCount[id] && counts[id] > 0);
 
   // Check if user returned after login and has tickets selected
@@ -190,6 +237,32 @@ export default function BookEventPage() {
       }
     }
   }, [isAuthenticated, totalTickets, customerFormPage, checkoutPage]);
+
+  // Fetch available promocodes
+  React.useEffect(() => {
+    const fetchPromocodes = async () => {
+      if (!eventId || !customerId) return;
+      
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+        const response = await axios.post<PromocodeListResponse>(
+          `${apiBase}/webiste/promocodes/getPromocodesforWebsite`,
+          {
+            event_id: eventId,
+            customer_id: customerId
+          }
+        );
+        
+        if (response.data && !response.data.error) {
+          setAvailablePromocodes(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch promocodes:', error);
+      }
+    };
+    
+    fetchPromocodes();
+  }, [eventId, customerId]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // Fetch event details and dates on mount
@@ -222,10 +295,17 @@ export default function BookEventPage() {
           const eventDates = datesResponse.data.data.DateTimeDate;
           setDates(eventDates);
           
-          // Auto-select first date and load tickets
+          // Auto-select the date if there's only one, or first date if multiple
           if (eventDates.length > 0) {
-            setSelectedDateId(eventDates[0].eventDateTime_id);
-            await loadTickets(eventDates[0].eventDateTime_id);
+            const dateToSelect = eventDates[0].eventDateTime_id;
+            setSelectedDateId(dateToSelect);
+            await loadTickets(dateToSelect);
+            
+            // If only one date, automatically show the customer form section
+            if (eventDates.length === 1) {
+              // Date is already selected, tickets will be loaded
+              console.log('Only one date available, auto-selected:', dateToSelect);
+            }
           }
         }
         
@@ -308,6 +388,60 @@ export default function BookEventPage() {
       }
       return { ...prev, [ticketId]: newCount };
     });
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Promocode functions
+  // ────────────────────────────────────────────────────────────────────────────
+  const handleApplyPromocode = async () => {
+    if (!promocodeInput.trim()) {
+      setPromocodeError("Please enter a promocode");
+      return;
+    }
+    
+    if (!eventId || !customerId) {
+      toast.error("Please login to apply promocode");
+      return;
+    }
+    
+    setPromocodeLoading(true);
+    setPromocodeError("");
+    
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const response = await axios.post<ApplyPromocodeResponse>(
+        `${apiBase}/webiste/promocodes/applyPromocodeForWebsite`,
+        {
+          event_id: eventId,
+          customer_id: customerId,
+          promocode_name: promocodeInput.trim(),
+          amount: totalPrice.toString()
+        }
+      );
+      
+      if (response.data && !response.data.error) {
+        setAppliedPromocode(response.data.data);
+        toast.success(`Promocode "${promocodeInput}" applied successfully!`);
+        setPromocodeInput("");
+        setShowPromocodeSuggestions(false);
+      } else {
+        setPromocodeError(response.data.message || "Invalid promocode");
+        toast.error(response.data.message || "Invalid promocode");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Failed to apply promocode";
+      setPromocodeError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setPromocodeLoading(false);
+    }
+  };
+
+  const handleRemovePromocode = () => {
+    setAppliedPromocode(null);
+    setPromocodeInput("");
+    setPromocodeError("");
+    toast.success("Promocode removed");
   };
   
   const handleContinueToDetails = () => {
@@ -678,11 +812,90 @@ export default function BookEventPage() {
 
                 <Separator className="bg-slate-600/50" />
                 
+                {/* Promocode Section */}
+                <div className="space-y-3">
+                  {!appliedPromocode ? (
+                    <>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={promocodeInput}
+                          onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
+                          placeholder="Enter promocode"
+                          className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20"
+                          onFocus={() => setShowPromocodeSuggestions(true)}
+                        />
+                        <Button 
+                          onClick={handleApplyPromocode}
+                          disabled={promocodeLoading || !promocodeInput.trim()}
+                          className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                        >
+                          {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                        </Button>
+                      </div>
+                      {promocodeError && (
+                        <p className="text-red-400 text-xs">{promocodeError}</p>
+                      )}
+                      {showPromocodeSuggestions && availablePromocodes.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-slate-400">Available promocodes:</p>
+                          {availablePromocodes.slice(0, 3).map((promo) => (
+                            <button
+                              key={promo.promocode_id}
+                              onClick={() => {
+                                setPromocodeInput(promo.PromoCodeName);
+                                setShowPromocodeSuggestions(false);
+                              }}
+                              className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
+                                <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
+                                  {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {appliedPromocode.PromType === 1 
+                              ? `₹${appliedPromocode.Value} discount applied` 
+                              : `${appliedPromocode.Value}% discount applied`}
+                          </p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={handleRemovePromocode}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <Separator className="bg-slate-600/50" />
+                
                 <div className="space-y-3">
                   <div className="flex justify-between text-slate-300 p-3 bg-slate-800/30 rounded-lg">
                     <span>Subtotal</span>
                     <span className="font-medium">₹{totalPrice}</span>
                   </div>
+                  {appliedPromocode && discountAmount > 0 && (
+                    <div className="flex justify-between text-sm p-3 bg-green-900/10 rounded-lg">
+                      <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
+                      <span className="text-green-400 font-medium">-₹{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-between items-center bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 p-4 rounded-xl border border-[#00E1FC]/30 shadow-lg">
@@ -877,6 +1090,96 @@ export default function BookEventPage() {
                   ))}
                 </div>
                 <Separator className="bg-slate-600/50" />
+                
+                {/* Promocode Section */}
+                <div className="space-y-3">
+                  {!appliedPromocode ? (
+                    <>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={promocodeInput}
+                          onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
+                          placeholder="Enter promocode"
+                          className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20"
+                          onFocus={() => setShowPromocodeSuggestions(true)}
+                        />
+                        <Button 
+                          onClick={handleApplyPromocode}
+                          disabled={promocodeLoading || !promocodeInput.trim()}
+                          className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                        >
+                          {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                        </Button>
+                      </div>
+                      {promocodeError && (
+                        <p className="text-red-400 text-xs">{promocodeError}</p>
+                      )}
+                      {showPromocodeSuggestions && availablePromocodes.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-slate-400">Available promocodes:</p>
+                          {availablePromocodes.slice(0, 3).map((promo) => (
+                            <button
+                              key={promo.promocode_id}
+                              onClick={() => {
+                                setPromocodeInput(promo.PromoCodeName);
+                                setShowPromocodeSuggestions(false);
+                              }}
+                              className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
+                                <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
+                                  {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {appliedPromocode.PromType === 1 
+                              ? `₹${appliedPromocode.Value} discount applied` 
+                              : `${appliedPromocode.Value}% discount applied`}
+                          </p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={handleRemovePromocode}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <Separator className="bg-slate-600/50" />
+                
+                {/* Price breakdown */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Subtotal</span>
+                    <span className="text-white">₹{totalPrice}</span>
+                  </div>
+                  {appliedPromocode && discountAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
+                      <span className="text-green-400">-₹{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <Separator className="bg-slate-600/50" />
+                
                 <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 rounded-lg border border-[#00E1FC]/20">
                   <span className="text-white font-semibold">Total</span>
                   <span className="text-[#00E1FC] font-bold text-lg">₹{finalAmount}</span>
@@ -963,34 +1266,35 @@ export default function BookEventPage() {
           </CardContent>
         </Card>
 
-        {/* Date selection */}
-        <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-8">
-          <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
-            <CardTitle className="flex items-center gap-2 text-xl text-white font-semibold">
-              <CalendarDays className="h-5 w-5 text-[#00E1FC]" /> 
-              {dates.length === 1 ? "Event Date" : "Select Event Date"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex gap-4 flex-wrap">
-              {dates.map((d) => {
-                const selected = selectedDateId === d.eventDateTime_id;
-                return (
-                  <div 
-                    key={d.eventDateTime_id} 
-                    onClick={() => handleDateClick(d.eventDateTime_id)} 
-                    className={`cursor-pointer border-2 rounded-2xl px-6 py-4 min-w-[160px] text-center transition-all duration-300 ${
-                      selected 
-                        ? "border-[#00E1FC] bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 scale-105 shadow-lg shadow-[#00E1FC]/25" 
-                        : "border-slate-600/50 bg-slate-800/30 hover:border-[#00E1FC]/50 hover:bg-slate-800/50"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-white mb-1">{d.Day}</p>
-                    <p className="text-xs text-slate-400 mb-2">{d.Month} 2025</p>
-                    <span className={`inline-block text-xl font-bold rounded-full px-4 py-2 ${
-                      selected 
-                        ? "bg-[#00E1FC] text-white shadow-lg" 
-                        : "bg-slate-700 text-[#00E1FC]"
+        {/* Date selection - Hide if only one date */}
+        {dates.length > 1 && (
+          <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-8">
+            <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
+              <CardTitle className="flex items-center gap-2 text-xl text-white font-semibold">
+                <CalendarDays className="h-5 w-5 text-[#00E1FC]" /> 
+                Select Event Date
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex gap-4 flex-wrap">
+                {dates.map((d) => {
+                  const selected = selectedDateId === d.eventDateTime_id;
+                  return (
+                    <div 
+                      key={d.eventDateTime_id} 
+                      onClick={() => handleDateClick(d.eventDateTime_id)} 
+                      className={`cursor-pointer border-2 rounded-2xl px-6 py-4 min-w-[160px] text-center transition-all duration-300 ${
+                        selected 
+                          ? "border-[#00E1FC] bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 scale-105 shadow-lg shadow-[#00E1FC]/25" 
+                          : "border-slate-600/50 bg-slate-800/30 hover:border-[#00E1FC]/50 hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-white mb-1">{d.Day}</p>
+                      <p className="text-xs text-slate-400 mb-2">{d.Month} 2025</p>
+                      <span className={`inline-block text-xl font-bold rounded-full px-4 py-2 ${
+                        selected 
+                          ? "bg-[#00E1FC] text-white shadow-lg" 
+                          : "bg-slate-700 text-[#00E1FC]"
                     }`}>
                       {d.Date}
                     </span>
@@ -1001,6 +1305,22 @@ export default function BookEventPage() {
             </div>
           </CardContent>
         </Card>
+        )}
+
+        {/* Show selected date info if only one date */}
+        {dates.length === 1 && dates[0] && (
+          <div className="mb-8 bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 border border-[#00E1FC]/30 rounded-2xl p-5">
+            <div className="flex items-center gap-3">
+              <CalendarDays className="h-6 w-6 text-[#00E1FC]" />
+              <div>
+                <p className="text-sm text-slate-400">Event Date & Time</p>
+                <p className="text-xl font-bold text-white">
+                  {dates[0].Day}, {dates[0].Month} {dates[0].Date} • {dates[0].Time}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Ticket selection */}
         {selectedDateId && (

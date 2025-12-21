@@ -105,8 +105,8 @@ export default function UpcomingEvents() {
 
   if (isLoading) {
     return (
-      <section className="py-6 sm:py-8 lg:py-12 bg-transparent">
-        <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-8">
+      <section className="py-6 bg-black">
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center">
@@ -131,8 +131,8 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <section className="py-6 sm:py-8 lg:py-12 bg-transparent">
-      <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-8">
+    <section className="py-10 bg-black">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-accent to-destructive bg-clip-text text-transparent">Upcoming</span>
@@ -143,11 +143,10 @@ export default function UpcomingEvents() {
           </p>
         </div> */}
 
-        {/* Horizontal Scrollable Container - Responsive cards */}
         <div className="relative">
           <div 
             id="events-scroll-container"
-            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide -mx-1 px-1"
+            className="flex overflow-x-auto gap-5 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {upcomingEvents && upcomingEvents.length > 0 ? (
@@ -155,13 +154,14 @@ export default function UpcomingEvents() {
                 <Link 
                   key={event.event_id} 
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center"
+                  className="block flex-shrink-0 w-[220px] sm:w-[240px] md:w-[260px] lg:w-[280px] snap-center"
                 >
                   <div 
-                    className="glass-card rounded-lg sm:rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-secondary/25 animate-slideInLeft"
+                    className="relative bg-gradient-to-br from-[#0a1128] to-[#0a0f1a] rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-[1.02] border-2 border-blue-600/20 hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-600/30 animate-slideInLeft h-[380px] sm:h-[380px]"
                     style={{animationDelay: `${index * 0.1}s`}}
                   >
-                    <div className="relative h-32 sm:h-36 md:h-40 overflow-hidden">
+                    {/* Background Image */}
+                    <div className="absolute inset-0">
                       <img 
                         src={
                           event.EventCardImages && event.EventCardImages.length > 0
@@ -173,36 +173,38 @@ export default function UpcomingEvents() {
                         alt={event.EventName}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
-                      
-                      {event.isFeatured === 1 && (
-                        <div className="absolute top-2 left-2 bg-destructive/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-medium">
-                          Featured
-                        </div>
-                      )}
-
-                      <div className="absolute top-2 right-2 bg-[#00E1FC] backdrop-blur-sm border border-[#00E1FC]/30 text-center p-1.5 rounded-lg">
-                        <div className="text-xs font-bold text-white">{event.EventStartDate}</div>
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30"></div>
                     </div>
- 
-                    
-                    <div className="p-2.5 sm:p-3">
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                        <span className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
-                          Event
-                        </span>
+
+                    {/* Content Overlay */}
+                    <div className="relative h-full flex flex-col justify-between p-4 sm:p-5">
+                      {/* Top Section - Badges */}
+                      <div className="flex items-start justify-between">
+                        {event.isFeatured === 1 && (
+                          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
+                            ⭐ Featured
+                          </div>
+                        )}
+                        <div className="ml-auto bg-blue-600/90 backdrop-blur-md text-center px-3 py-2 rounded-xl shadow-xl border border-blue-400/30">
+                          <div className="text-xs font-bold text-white">{event.EventStartDate}</div>
+                        </div>
                       </div>
-                      
-                      <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-white transition-colors duration-300 line-clamp-2">
-                        {event.EventName}
-                      </h4>
-                      
-                      <p className="text-slate-400 text-[10px] sm:text-xs mb-1.5 sm:mb-2 line-clamp-1">{event.VenueName}, {event.VenueCity}</p>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#00E1FC] font-bold text-xs sm:text-sm">₹{event.LowestticketPrice}</span>
-                        <span className="text-[10px] sm:text-xs text-slate-400">{event.EventStartTime}</span>
+
+                      {/* Bottom Section - Event Details */}
+                      <div>
+                        <h4 className="text-base sm:text-lg font-bold mb-2 text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-snug flex items-center gap-2">
+                          {event.EventName}
+                          <span className="bg-blue-500/20 text-blue-300 border border-blue-400/40 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                            ⚡ Live
+                          </span>
+                        </h4>
+                        
+                        <p className="text-gray-300 text-xs sm:text-sm mb-2 line-clamp-1 flex items-center gap-1.5">📍 <span>{event.VenueName}, {event.VenueCity}</span></p>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t border-blue-600/30">
+                          <span className="text-blue-400 font-bold text-base sm:text-lg">₹{event.LowestticketPrice}</span>
+                          <span className="text-xs text-gray-300 flex items-center gap-1">⏰ {event.EventStartTime}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -236,7 +238,7 @@ export default function UpcomingEvents() {
           )}
         </div>
 
-        <div className="mt-4 sm:mt-6 flex justify-end px-1">
+        <div className="mt-4 sm:mt-6 flex justify-end">
           <Link href="/events">
             <button className="group flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-[#00E1FC] transition-all duration-300 border border-slate-700/50 rounded-lg hover:border-[#00E1FC]/50 hover:bg-slate-800/50">
               View All Events

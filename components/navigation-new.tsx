@@ -184,39 +184,9 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
           <div className="flex items-center space-x-6">
             <div className="relative hidden sm:block">
-              <MagnifyingGlassIcon className="w-6 h-6 absolute left-4 top-3.5 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleChange}
-                className="bg-slate-800/50 border border-slate-700 rounded-lg pl-12 pr-4 py-3.5 w-72 text-white text-base placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
-                placeholder="Search events, venues..."
-              />
-              
-              {searchData.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-lg border border-slate-700 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
-                    {searchData.map((data: SearchItem, index: number) => (
-                      <div key={data._id}>
-                        {data.Name && (
-                          <Link href={`/venue/${data._id}`}>
-                            <div className="p-3 flex items-center space-x-2 hover:bg-slate-700 transition-colors duration-200 border-b border-slate-700 last:border-b-0">
-                              <LuMapPin className="text-[#00E1FC]" size={16} />
-                              <p className="text-white">{data.Name}</p>
-                            </div>
-                          </Link>
-                        )}
-                        {data.EventName && (
-                          <Link href={`/events/${data._id}`}>
-                            <div className="p-3 flex items-center space-x-2 hover:bg-slate-700 transition-colors duration-200 border-b border-slate-700 last:border-b-0">
-                              <MdEventAvailable className="text-[#FD743F]" size={16} />
-                              <p className="text-white">{data.EventName}</p>
-                            </div>
-                          </Link>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <button className="p-3 hover:bg-slate-800/50 rounded-lg transition-all duration-300 group">
+                <MagnifyingGlassIcon className="w-6 h-6 text-slate-400 group-hover:text-[#00E1FC] transition-colors duration-300" />
+              </button>
             </div>
             
             {isLoggedIn ? (

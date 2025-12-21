@@ -106,8 +106,8 @@ export default function ArtistsSection() {
 
   if (isLoading) {
     return (
-      <section className="relative py-6 sm:py-8 lg:py-10">
-        <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+      <section className="relative py-6 bg-black">
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
@@ -129,8 +129,8 @@ export default function ArtistsSection() {
   }
 
   return (
-    <section className="relative py-6 sm:py-8 lg:py-10">
-      <div className="max-w-6xl mx-auto px-1 sm:px-3 lg:px-4">
+    <section className="relative py-10 bg-black">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Browse Events by 
@@ -174,18 +174,18 @@ export default function ArtistsSection() {
                   className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center group cursor-pointer animate-fadeInUp"
                   style={{animationDelay: `${index * 0.1}s`}}
                 >
-                  <div className="relative overflow-hidden rounded-lg sm:rounded-xl mb-3">
+                  <div className="relative overflow-hidden rounded-full mb-3 aspect-square">
                     <img 
                       src={imageUrl}
                       alt={`${artist.Name} - Artist`}
-                      className="w-full h-40 sm:h-44 object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className={`${badgeBgClass} backdrop-blur-sm px-2 py-0.5 rounded-full text-xs font-medium flex items-center`}>
                           <IconComponent className="mr-1 h-2.5 w-2.5 text-white" />
                           <span className="text-white">View Events</span>
