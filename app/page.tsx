@@ -54,7 +54,7 @@ export default function Home() {
                   Browse All <span className="text-blue-500">Categories</span>
                 </h2>
                 <Link
-                  href="/events"
+                  href="/categories"
                   className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
                 >
                   <span>View all</span>
