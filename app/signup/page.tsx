@@ -7,6 +7,7 @@ import {
   setIsNewCustomer,
   setToken,
   loggedInSucces,
+  resetState,
 } from "@/store/slices/authSlice";
 import {
   generateOPT,
@@ -64,10 +65,10 @@ const SignupContent = () => {
     isLoggedIn: !!isLoggedIn
   });
 
-  // Redirect if already logged in
+  // Clear partial auth state on mount if not fully logged in
   useEffect(() => {
+    // If user has isLoggedIn flag and is fully authenticated, redirect them
     if (isLoggedIn && token && cust_id) {
-      // Check for redirect URL from query params or sessionStorage
       const finalRedirect = redirectUrl || sessionStorage.getItem('redirectAfterLogin');
       if (finalRedirect) {
         sessionStorage.removeItem('redirectAfterLogin');
@@ -75,8 +76,18 @@ const SignupContent = () => {
       } else {
         router.push("/");
       }
+    } 
+    // If user has partial state (cust_id but no token), it means they didn't complete
+    // the login flow previously. Clear the state to start fresh.
+    else if (cust_id && !token && !isLoggedIn) {
+      // Only clear if this is a fresh navigation (not after OTP generation)
+      const hasJustGeneratedOtp = sessionStorage.getItem('otpGenerated');
+      if (!hasJustGeneratedOtp) {
+        dispatch(resetState());
+        setMobileNumberLocal('');
+      }
     }
-  }, [isLoggedIn, token, cust_id, router, redirectUrl]);
+  }, [isLoggedIn, token, cust_id, router, redirectUrl, dispatch]);
 
   //otp generation
   const otpGeneration = async () => {
@@ -88,6 +99,9 @@ const SignupContent = () => {
     const payload = { MobileNumber: String(mobileNumber) };
 
     try {
+      // Mark that OTP was just generated
+      sessionStorage.setItem('otpGenerated', 'true');
+      
       const response = await axios.post(generateOPT, payload);
       const data = response.data as {
         data: { customer_id: string; customerExists: boolean };
@@ -102,6 +116,11 @@ const SignupContent = () => {
 
       toast.success(data.message);
       setNumberModal(false);
+      
+      // Clear the flag after a short delay
+      setTimeout(() => {
+        sessionStorage.removeItem('otpGenerated');
+      }, 1000);
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
@@ -130,6 +149,9 @@ const SignupContent = () => {
     const payload = { MobileNumber: String(mobileNumber) };
 
     try {
+      // Mark that OTP was just generated
+      sessionStorage.setItem('otpGenerated', 'true');
+      
       const response = await axios.post(generateOPT, payload);
       dispatch(
         setAuthDetails({
@@ -140,6 +162,11 @@ const SignupContent = () => {
 
       toast.success((response.data as { message: string }).message);
       setNumberModal(false);
+      
+      // Clear the flag after a short delay
+      setTimeout(() => {
+        sessionStorage.removeItem('otpGenerated');
+      }, 1000);
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
