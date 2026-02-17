@@ -152,25 +152,26 @@ export default function EventDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black">
-      <div className="w-full px-4 sm:px-6 lg:px-10 py-4 flex flex-col gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
-        <div className="flex-none">
+        <div className="mb-6">
           <Link href="/events">
-            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all">
-              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all group">
+              <svg className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
               Back to Events
             </Button>
           </Link>
         </div>
 
-        {/* Full-viewport unified card */}
-        <div className="flex-1 min-h-0 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-5 lg:p-6">
-            {/* Left */}
-            <div className="lg:col-span-9 min-h-0 grid grid-rows-[3fr_2fr] gap-4">
-              {/* Hero */}
-              <div className="relative min-h-0 rounded-2xl overflow-hidden group">
+        {/* Main Layout Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Hero Image Section */}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+              {/* Main Image */}
+              <div className="relative h-[450px] sm:h-[550px]">
                 {eventDetails.EventCarouselImages.length > 0 && (
                   <img
                     src={getImageUrl(eventDetails.EventCarouselImages[activeImageIndex]?.image_path)}
@@ -178,71 +179,62 @@ export default function EventDetailsPage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/25 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40"></div>
 
-                {/* Image Navigation Dots */}
-                {eventDetails.EventCarouselImages.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {eventDetails.EventCarouselImages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setActiveImageIndex(index)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                          index === activeImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
+                {/* Category Badge */}
+                <div className="absolute top-6 left-6">
+                  <Badge className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white border-0 px-4 py-2 text-sm font-semibold shadow-lg">
+                    {eventDetails.categoryName}
+                  </Badge>
+                </div>
 
                 {/* Action Buttons */}
-                <div className="absolute top-4 right-4 flex space-x-2">
+                <div className="absolute top-6 right-6 flex space-x-3">
                   <button
                     onClick={() => setIsLiked(!isLiked)}
-                    className="glass-card p-2.5 rounded-full hover:bg-white/20 transition-colors duration-300"
+                    className="bg-slate-900/80 backdrop-blur-md p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50"
                   >
-                    <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                    <Heart className={`h-5 w-5 transition-all ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-white'}`} />
                   </button>
-                  <button className="glass-card p-2.5 rounded-full hover:bg-white/20 transition-colors duration-300">
+                  <button className="bg-slate-900/80 backdrop-blur-md p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50">
                     <Share2 className="h-5 w-5 text-white" />
                   </button>
                 </div>
 
-                {/* Category */}
-                <div className="absolute top-4 left-4 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
-                  {eventDetails.categoryName}
-                </div>
-
-                {/* Title + Meta overlay */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                {/* Title and Meta Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
                     {eventDetails.EventName}
                   </h1>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-slate-200 text-sm">
-                    <span className="inline-flex items-center gap-2 bg-slate-900/60 border border-slate-700/40 px-3 py-2 rounded-lg">
-                      <Calendar className="h-4 w-4 text-[#00E1FC]" />
-                      {eventDetails.EventStartDate}
-                    </span>
-                    <span className="inline-flex items-center gap-2 bg-slate-900/60 border border-slate-700/40 px-3 py-2 rounded-lg">
-                      <Clock className="h-4 w-4 text-[#00E1FC]" />
-                      {eventDetails.EventStartTime}
-                    </span>
-                    <span className="inline-flex items-center gap-2 bg-slate-900/60 border border-slate-700/40 px-3 py-2 rounded-lg">
-                      <MapPin className="h-4 w-4 text-[#00E1FC]" />
-                      {eventDetails.VenueName}, {eventDetails.VenueCity}
-                    </span>
+                  
+                  {/* Meta Info Cards */}
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
+                      <Calendar className="h-5 w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium">{eventDetails.EventStartDate}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
+                      <Clock className="h-5 w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium">{eventDetails.EventStartTime}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
+                      <MapPin className="h-5 w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium">{eventDetails.VenueCity}</span>
+                    </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2">
                     {eventDetails.Language.map((lang, index) => (
                       <Badge
                         key={index}
-                        className="bg-[#00E1FC]/15 text-[#00E1FC] border border-[#00E1FC]/25 hover:bg-[#00E1FC]/15"
+                        className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 hover:bg-[#00E1FC]/30 backdrop-blur-md"
                       >
                         {lang}
                       </Badge>
                     ))}
                     {eventDetails.BestSuitedFor && (
-                      <Badge className="bg-[#4ADE80]/15 text-[#4ADE80] border border-[#4ADE80]/25 hover:bg-[#4ADE80]/15">
+                      <Badge className="bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/30 hover:bg-[#4ADE80]/30 backdrop-blur-md">
                         {eventDetails.BestSuitedFor}
                       </Badge>
                     )}
@@ -250,119 +242,174 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              {/* Bottom content (no scrolling) */}
-              <div className="min-h-0 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="min-h-0 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-4 overflow-hidden">
-                  <h2 className="text-base font-semibold text-white mb-2">About This Event</h2>
-                  <div
-                    className="min-h-0 overflow-hidden text-slate-300 text-sm leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1"
-                    dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
-                  />
+              {/* Image Carousel Navigation */}
+              {eventDetails.EventCarouselImages.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                  {eventDetails.EventCarouselImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImageIndex(index)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        index === activeImageIndex 
+                          ? 'bg-white w-8' 
+                          : 'bg-white/40 w-2 hover:bg-white/60'
+                      }`}
+                    />
+                  ))}
                 </div>
-
-                <div className="min-h-0 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-4 overflow-hidden">
-                  <h2 className="text-base font-semibold text-white mb-3">Featured Artists</h2>
-                  {eventDetails.EventArtists.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3">
-                      {eventDetails.EventArtists.slice(0, 4).map((artist, index) => (
-                        <div key={index} className="flex items-center gap-3 p-2.5 bg-slate-800/40 rounded-xl border border-slate-700/30">
-                          <img
-                            src={getImageUrl(artist.ArtistImage)}
-                            alt={artist.ArtistName}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                          <div className="min-w-0">
-                            <h3 className="text-sm font-semibold text-white truncate">{artist.ArtistName}</h3>
-                            <p className="text-xs text-slate-400">Artist</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-400">No featured artists listed.</p>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
 
-            {/* Right */}
-            <div className="lg:col-span-3 flex flex-col gap-4">
-              {/* Booking */}
-              <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl rounded-2xl overflow-hidden">
-                <div className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 p-4">
-                  <div className="text-xs text-slate-300">Starting from</div>
-                  <div className="text-3xl font-bold text-[#00E1FC] leading-tight">₹{eventDetails.TicketPriceStartsFrom}</div>
-                  <div className="text-[11px] text-slate-400">per person</div>
+            {/* About Event Section */}
+            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                About This Event
+              </h2>
+              <div
+                className="text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2"
+                dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
+              />
+            </div>
+
+            {/* Featured Artists Section */}
+            {eventDetails.EventArtists.length > 0 && (
+              <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
+                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                  Featured Artists
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {eventDetails.EventArtists.map((artist, index) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/40 hover:bg-slate-800/70 hover:border-[#00E1FC]/30 transition-all duration-300 group"
+                    >
+                      <div className="relative">
+                        <img
+                          src={getImageUrl(artist.ArtistImage)}
+                          alt={artist.ArtistName}
+                          className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-700/50 group-hover:ring-[#00E1FC]/50 transition-all"
+                        />
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00E1FC]/0 to-[#0F33D1]/0 group-hover:from-[#00E1FC]/20 group-hover:to-[#0F33D1]/20 transition-all"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-white mb-1 truncate group-hover:text-[#00E1FC] transition-colors">
+                          {artist.ArtistName}
+                        </h3>
+                        <p className="text-sm text-slate-400">Featured Artist</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Terms & Conditions Section */}
+            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                Terms & Conditions
+              </h2>
+              <div
+                className="text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 max-h-96 overflow-y-auto custom-scrollbar"
+                dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
+              />
+            </div>
+          </div>
+
+          {/* Right Column - Booking Card & Map */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-24 space-y-6">
+              {/* Booking Card */}
+              <div className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl overflow-hidden">
+                {/* Price Header */}
+                <div className="bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 border-b border-slate-700/50 p-6">
+                  <div className="text-sm text-slate-300 mb-2">Starting from</div>
+                  <div className="text-4xl font-bold text-white mb-1">
+                    ₹{eventDetails.TicketPriceStartsFrom.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-slate-400">per person</div>
                 </div>
 
-                <div className="p-4 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">Event Date</span>
-                      <span className="text-xs text-white font-medium">{eventDetails.EventStartDate}</span>
+                {/* Event Details */}
+                <div className="p-6 space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm text-slate-400 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-[#00E1FC]" />
+                        Date
+                      </span>
+                      <span className="text-sm text-white font-medium text-right">{eventDetails.EventStartDate}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">Event Time</span>
-                      <span className="text-xs text-white font-medium">{eventDetails.EventStartTime}</span>
+                    <Separator className="bg-slate-700/50" />
+                    
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm text-slate-400 flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-[#00E1FC]" />
+                        Time
+                      </span>
+                      <span className="text-sm text-white font-medium text-right">{eventDetails.EventStartTime}</span>
                     </div>
-                    <div className="flex justify-between items-start gap-4">
-                      <span className="text-xs text-slate-400">Venue</span>
-                      <span className="text-xs text-white font-medium text-right">{eventDetails.VenueName}</span>
+                    <Separator className="bg-slate-700/50" />
+                    
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm text-slate-400 flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-[#00E1FC]" />
+                        Venue
+                      </span>
+                      <span className="text-sm text-white font-medium text-right max-w-[200px]">
+                        {eventDetails.VenueName}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">City</span>
-                      <span className="text-xs text-white font-medium">{eventDetails.VenueCity}</span>
+                    <Separator className="bg-slate-700/50" />
+                    
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm text-slate-400">City</span>
+                      <span className="text-sm text-white font-medium">{eventDetails.VenueCity}</span>
                     </div>
                   </div>
 
-                  <Separator className="bg-slate-600/40" />
-
-                  <Link href={`/events/${eventId}/book`}>
-                    <Button className="w-full h-10 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
-                      <Ticket className="mr-2 h-5 w-5" />
-                      Book Tickets
+                  {/* CTA Button */}
+                  <Link href={`/events/${eventId}/book`} className="block mt-6">
+                    <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg hover:shadow-[#00E1FC]/30 transition-all duration-300 group">
+                      <Ticket className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
+                      Book Tickets Now
                     </Button>
                   </Link>
 
-                  <div className="flex items-center justify-around text-[11px] text-slate-400 pt-1">
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 mr-1.5 text-yellow-400" />
-                      <span className="font-medium">4.8 Rating</span>
+                  {/* Social Proof */}
+                  <div className="flex items-center justify-around text-xs text-slate-400 pt-4 border-t border-slate-700/50">
+                    <div className="flex flex-col items-center gap-1">
+                      <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                      <span className="font-medium text-white">4.8</span>
+                      <span>Rating</span>
                     </div>
-                    <div className="h-4 w-px bg-slate-700"></div>
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1.5 text-green-400" />
-                      <span className="font-medium">150+ Going</span>
+                    <div className="h-12 w-px bg-slate-700/50"></div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Users className="h-5 w-5 text-green-400" />
+                      <span className="font-medium text-white">150+</span>
+                      <span>Going</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Terms + Map */}
-              <div className="bg-slate-900/40 border border-slate-700/40 rounded-2xl p-4 space-y-4">
-                <div className="max-h-48 overflow-y-auto">
-                  <h2 className="text-base font-semibold text-white mb-2">Terms & Conditions</h2>
+              {/* Venue Location Map */}
+              {eventDetails.VenueMapLocationLink && (
+                <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-[#00E1FC]" />
+                      Venue Location
+                    </h2>
+                  </div>
                   <div
-                    className="text-slate-300 text-sm leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1"
-                    dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
+                    className="w-full h-[300px] border-t border-slate-700/50 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:min-h-[300px]"
+                    dangerouslySetInnerHTML={{ __html: eventDetails.VenueMapLocationLink }}
                   />
                 </div>
-
-                {eventDetails.VenueMapLocationLink ? (
-                  <div>
-                    <h2 className="text-base font-semibold text-white mb-2">Venue Location</h2>
-                    <div
-                      className="rounded-2xl overflow-hidden w-full h-[300px] border border-slate-700/40 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:min-h-[300px]"
-                      dangerouslySetInnerHTML={{ __html: eventDetails.VenueMapLocationLink }}
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <h2 className="text-base font-semibold text-white mb-2">Venue Location</h2>
-                    <p className="text-sm text-slate-400">Map not available.</p>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
