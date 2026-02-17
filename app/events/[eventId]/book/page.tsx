@@ -851,14 +851,14 @@ export default function BookEventPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 md:flex-wrap md:overflow-visible">
                 {dates.map((d) => {
                   const selected = selectedDateId === d.eventDateTime_id;
                   return (
                     <div 
                       key={d.eventDateTime_id} 
                       onClick={() => handleDateClick(d.eventDateTime_id)} 
-                      className={`cursor-pointer border-2 rounded-2xl px-6 py-4 min-w-[160px] text-center transition-all duration-300 ${
+                      className={`cursor-pointer border-2 rounded-2xl px-6 py-4 text-center transition-all duration-300 flex-shrink-0 w-[calc(50%-0.5rem)] md:w-auto md:min-w-[160px] ${
                         selected 
                           ? "border-[#00E1FC] bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 scale-105 shadow-lg shadow-[#00E1FC]/25" 
                           : "border-slate-600/50 bg-slate-800/30 hover:border-[#00E1FC]/50 hover:bg-slate-800/50"
