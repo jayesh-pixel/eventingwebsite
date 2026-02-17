@@ -64,17 +64,6 @@ export default function EventDetailsPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Keep this view as a single-screen experience (no page scrolling)
-  useEffect(() => {
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-    };
-  }, []);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -163,8 +152,8 @@ export default function EventDetailsPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-5rem)] lg:h-[calc(100vh-6rem)] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-black">
-      <div className="h-full w-full px-4 sm:px-6 lg:px-10 py-4 flex flex-col gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-4 flex flex-col gap-3">
         {/* Back Button */}
         <div className="flex-none">
           <Link href="/events">
@@ -297,7 +286,7 @@ export default function EventDetailsPage() {
             </div>
 
             {/* Right */}
-            <div className="lg:col-span-3 min-h-0 grid grid-rows-[auto_1fr] gap-4">
+            <div className="lg:col-span-3 flex flex-col gap-4">
               {/* Booking */}
               <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl rounded-2xl overflow-hidden">
                 <div className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 p-4">
@@ -350,25 +339,25 @@ export default function EventDetailsPage() {
               </div>
 
               {/* Terms + Map */}
-              <div className="min-h-0 bg-slate-900/40 border border-slate-700/40 rounded-2xl p-4 overflow-hidden grid grid-rows-[1fr_1fr] gap-4">
-                <div className="min-h-0 overflow-hidden">
+              <div className="bg-slate-900/40 border border-slate-700/40 rounded-2xl p-4 space-y-4">
+                <div className="max-h-48 overflow-y-auto">
                   <h2 className="text-base font-semibold text-white mb-2">Terms & Conditions</h2>
                   <div
-                    className="min-h-0 overflow-hidden text-slate-300 text-sm leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1"
+                    className="text-slate-300 text-sm leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1"
                     dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
                   />
                 </div>
 
                 {eventDetails.VenueMapLocationLink ? (
-                  <div className="min-h-0 overflow-hidden">
+                  <div>
                     <h2 className="text-base font-semibold text-white mb-2">Venue Location</h2>
                     <div
-                      className="min-h-0 rounded-2xl overflow-hidden w-full h-full border border-slate-700/40 [&_iframe]:w-full [&_iframe]:h-full"
+                      className="rounded-2xl overflow-hidden w-full h-[300px] border border-slate-700/40 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:min-h-[300px]"
                       dangerouslySetInnerHTML={{ __html: eventDetails.VenueMapLocationLink }}
                     />
                   </div>
                 ) : (
-                  <div className="min-h-0 overflow-hidden">
+                  <div>
                     <h2 className="text-base font-semibold text-white mb-2">Venue Location</h2>
                     <p className="text-sm text-slate-400">Map not available.</p>
                   </div>
