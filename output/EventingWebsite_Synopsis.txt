@@ -1,0 +1,49 @@
+Project Synopsis
+On
+"TITLE OF PROJECT"
+
+Submitted to Chhatrapati Shivaji Maharaj University, Panvel, Navi Mumbai
+for the partial fulfillment of requirement for the Degree of
+BACHELOR COMPUTER APPLICATION
+
+Submitted By
+Student 1
+Student 2
+Student 3
+Student 4
+
+Guide
+Prof. X.Y.Z
+
+Department of Computer Science & Information Technology
+Chhatrapati Shivaji Maharaj University, Panvel, Navi Mumbai
+2024-25
+
+1. Introduction
+This project develops "EventingWebsite", a responsive web platform that connects event organizers, venues, artists, and attendees. The site provides searchable event listings, artist profiles, venue information, booking and ticketing workflows, organizer tools, and secure payment handling. The platform focuses on usability, discoverability, and mobile-first design to simplify event management and increase attendance for local events.
+
+2. Problem Definition
+Market fragmentation and inconsistent booking experiences make it difficult for small organizers and local artists to reach audiences. Attendees encounter confusing booking flows and unclear fees, reducing conversions. Organizers lack integrated tools for listings, booking management, and secure payment reception without a technical burden. These issues lead to reduced ticket sales, inefficient marketing spend, and increased overhead for event production.
+
+3. Aims & Objective
+Primary aim: Build a production-ready event discovery and management website that improves discoverability and conversion for small-to-medium events. Objectives include: implement intuitive event search and category browsing; provide artist and venue profiles; create a smooth booking flow with clear costs and confirmations; integrate secure payment processing and reliable payment-response handling; add an organizer dashboard for event and booking management; ensure accessibility and mobile responsiveness; and follow security and privacy best practices.
+
+4. Proposed Work
+Frontend: Next.js with server-side rendering for SEO; responsive components for listings, artist and venue pages, booking summary, and checkout. Backend/API: REST or serverless endpoints for event CRUD, booking creation, payment webhook handling, and authentication. Payments: Integrate a payment gateway (e.g., Stripe) with server-side verification and dedicated success/failure pages. Store & State: Use a lightweight store (Redux or Context) for booking and auth state. Data & Search: Event schema with categories, dates, and capacity; searchable indices and filters. Testing & QA: Unit and E2E tests for booking/payment flows. Deployment: CI/CD hosting with monitoring and basic analytics.
+
+5. Plan of Work
+Phase 1 — Requirements & Design (Week 1): finalize features and wireframes. Phase 2 — Core Implementation (Weeks 2–5): frontend skeleton, backend endpoints, payment sandbox. Phase 3 — Features & Integrations (Weeks 6–8): profiles, search filters, organizer dashboard, auth. Phase 4 — Testing & Polishing (Weeks 9–10): tests, accessibility, responsive tuning. Phase 5 — Deployment & Handover (Week 11): production deploy, monitoring, documentation.
+
+6. Conclusion
+EventingWebsite simplifies event discovery and booking while empowering organizers with intuitive tools. By prioritizing clear UX, robust payment handling, and mobile-first design, the platform aims to increase event attendance and reduce organizer overhead. The phased plan balances delivery speed with testing and security to enable a reliable public launch.
+
+7. References
+1. Nielsen Norman Group — UX best practices.
+2. Stripe Integration Docs.
+3. WCAG 2.1 guidelines.
+4. OWASP Top 10.
+
+
+               Prof.X.Y.Z.                                                           Dr.Praveen Gupta
+                  Guide.                                                                         H.O.D.
+           CS/IT Department                                                  CS/IT Department 

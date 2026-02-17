@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useMemo, useState } from "react";
 import { Calendar } from "lucide-react";
-import { mockEvents } from "@/data/mockData";
-import { upcomingEvents as upcomingEventsConfig, featuredEvents as featuredEventsConfig } from "@/utils/config";
 import axios from "axios";
 import Link from "next/link";
+import {
+  upcomingEvents as upcomingEventsConfig,
+  featuredEvents as featuredEventsConfig,
+} from "@/utils/config";
 
 interface UpcomingEvent {
   event_id: string;
@@ -21,6 +22,9 @@ interface UpcomingEvent {
   isFeatured: number;
   VenueName: string;
   VenueCity: string;
+  CategoryName?: string;
+  AttendeeAvatars?: Array<{ image_path: string }>;
+  AttendeeCount?: number;
 }
 
 interface ApiResponse {
@@ -29,42 +33,55 @@ interface ApiResponse {
   data: UpcomingEvent[];
 }
 
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return "";
+  return imagePath.startsWith("http")
+    ? imagePath
+    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${imagePath}`;
+};
+
+const formatShortDate = (d?: string) => {
+  if (!d) return "";
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  return dt.toLocaleString("en-US", { day: "numeric", month: "short" });
+};
+
 export default function UpcomingEvents() {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<UpcomingEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Fetch events from API
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setIsLoading(true);
-        
-        // Fetch upcoming events using POST request
-        const upcomingResponse = await axios.post<ApiResponse>(upcomingEventsConfig.GET_ALL);
-        
-        console.log('Upcoming Events Response:', upcomingResponse.data);
+
+        const upcomingResponse = await axios.post<ApiResponse>(
+          upcomingEventsConfig.GET_ALL
+        );
 
         if (upcomingResponse.data && !upcomingResponse.data.error) {
           setUpcomingEvents(upcomingResponse.data.data || []);
-          console.log('Set upcoming events:', upcomingResponse.data.data);
+        } else {
+          setUpcomingEvents([]);
         }
 
-        // Try to fetch featured events, but don't fail if it doesn't work
         try {
-          const featuredResponse = await axios.post<ApiResponse>(featuredEventsConfig.GET_ALL);
+          const featuredResponse = await axios.post<ApiResponse>(
+            featuredEventsConfig.GET_ALL
+          );
           if (featuredResponse.data && !featuredResponse.data.error) {
             setFeaturedEvents(featuredResponse.data.data || []);
+          } else {
+            setFeaturedEvents([]);
           }
-        } catch (featuredError) {
-          console.log('Featured events not available:', featuredError);
+        } catch {
           setFeaturedEvents([]);
         }
-
       } catch (error) {
-        console.error('Failed to fetch events:', error);
-        // Fallback to empty arrays if API fails
+        console.error("Failed to fetch events:", error);
         setUpcomingEvents([]);
         setFeaturedEvents([]);
       } finally {
@@ -75,33 +92,35 @@ export default function UpcomingEvents() {
     fetchEvents();
   }, []);
 
-  // Handle scroll to update active dot
+  const displayEvents = useMemo(() => {
+    return upcomingEvents.filter((e) => {
+      const hasImage = Array.isArray(e.EventCardImages) && e.EventCardImages.length > 0;
+      const hasPrice = typeof e.LowestticketPrice === "number" && e.LowestticketPrice > 0;
+      return hasImage && hasPrice;
+    });
+  }, [upcomingEvents]);
+
+  const totalDots = Math.ceil(displayEvents.length / 4);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
+    if (!container || displayEvents.length === 0) return;
     const scrollPosition = container.scrollLeft;
-    const cardWidth = container.scrollWidth / upcomingEvents.length;
-    const newIndex = Math.round(scrollPosition / (cardWidth * 4)); // 4 cards visible at once
+    const cardWidth = container.scrollWidth / displayEvents.length;
+    const newIndex = Math.round(scrollPosition / (cardWidth * 4));
     setActiveIndex(newIndex);
   };
 
-  // Scroll to specific section
   const scrollToIndex = (index: number) => {
-    const container = document.getElementById('events-scroll-container');
-    if (container) {
-      const cardWidth = container.scrollWidth / upcomingEvents.length;
-      container.scrollTo({
-        left: cardWidth * index * 4, // 4 cards at a time
-        behavior: 'smooth'
-      });
-      setActiveIndex(index);
-    }
+    const container = document.getElementById("events-scroll-container");
+    if (!container || displayEvents.length === 0) return;
+    const cardWidth = container.scrollWidth / displayEvents.length;
+    container.scrollTo({
+      left: cardWidth * index * 4,
+      behavior: "smooth",
+    });
+    setActiveIndex(index);
   };
-
-  // Calculate total number of dots needed (groups of 4 cards)
-  const totalDots = Math.ceil(upcomingEvents.length / 4);
-
-  // console.log('Upcoming Events Count:', upcomingEvents.length);
-  // console.log('Featured Events Count:', featuredEvents.length);
 
   if (isLoading) {
     return (
@@ -109,7 +128,10 @@ export default function UpcomingEvents() {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center">
+              <div
+                key={i}
+                className="flex-shrink-0 w-[160px] sm:w-[200px] md:w-[220px] lg:w-[240px] snap-center"
+              >
                 <div className="glass-card rounded-lg sm:rounded-xl overflow-hidden animate-pulse">
                   <div className="h-32 sm:h-36 md:h-40 bg-slate-800"></div>
                   <div className="p-2.5 sm:p-3">
@@ -149,83 +171,111 @@ export default function UpcomingEvents() {
             className="flex overflow-x-auto gap-5 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
-            {upcomingEvents && upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event, index) => (
-                <Link 
-                  key={event.event_id} 
+            {displayEvents.length > 0 ? (
+              displayEvents.map((event, index) => (
+                <Link
+                  key={event.event_id}
                   href={`/events/${event.event_id}`}
                   className="block flex-shrink-0 w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] snap-center"
                 >
-                  <div 
-                    className="relative bg-slate-900 rounded-xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-lg animate-slideInLeft"
-                    style={{animationDelay: `${index * 0.1}s`}}
+                  <div
+                    className="relative h-[360px] sm:h-[380px] bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-lg"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Image Section */}
-                    <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
-                      <img 
-                        src={
-                          event.EventCardImages && event.EventCardImages.length > 0
-                            ? event.EventCardImages[0].image_path.startsWith('http')
-                              ? event.EventCardImages[0].image_path
-                              : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${event.EventCardImages[0].image_path}`
-                            : ''
-                        }
+                    <div className="relative h-[190px] sm:h-[210px] overflow-hidden">
+                      <img
+                        src={getImageUrl(event.EventCardImages?.[0]?.image_path || "")}
                         alt={event.EventName}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+
                       {/* Featured Badge - Top Left */}
                       {event.isFeatured === 1 && (
-                        <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
-                          ⭐ Featured
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <span className="text-sm">⭐</span>
+                          <span className="ml-1">Featured</span>
                         </div>
                       )}
 
                       {/* Date Badge - Top Right */}
-                      <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">
-                        {event.EventStartDate}
+                      <div className="absolute top-3 right-3 bg-white/95 border border-blue-200/60 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+                        {formatShortDate(event.EventStartDate)}
                       </div>
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-4 bg-slate-900">
-                      <h4 className="text-base font-bold mb-2 text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 flex items-center gap-2">
-                        {event.EventName}
-                        <span className="bg-red-500/20 text-red-400 border border-red-400/40 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1 flex-shrink-0">
-                          ⚡ LIVE
-                        </span>
-                      </h4>
-                      
-                      <p className="text-gray-400 text-xs mb-3 line-clamp-1 flex items-center gap-1">
-                        📍 {event.VenueName}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="text-blue-400 font-bold text-lg">₹{event.LowestticketPrice}</div>
-                        <div className="text-gray-400 text-xs flex items-center gap-1">
-                          ⏰ {event.EventStartTime}
+                    <div className="p-4 h-[170px] sm:h-[170px] flex flex-col bg-slate-950/70">
+                      <div className="flex items-start justify-between gap-3 min-h-0">
+                        <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
+                          <h4 className="text-base font-semibold mb-2 text-white line-clamp-2">{event.EventName}</h4>
+
+                          <div className="flex items-center gap-3 mb-3">
+                            {/* Category pill (if available) */}
+                            {event.CategoryName && (
+                              <span className="text-blue-300 text-xs font-medium px-2 py-1 rounded-full border border-blue-500/30 bg-blue-500/10">{event.CategoryName}</span>
+                            )}
+
+                            {/* Attendee avatars + count (only when provided by API) */}
+                            {event.AttendeeAvatars && event.AttendeeAvatars.length > 0 && (
+                              <div className="flex items-center gap-2">
+                                <div className="flex -space-x-2">
+                                  {event.AttendeeAvatars.slice(0,3).map((a, i) => (
+                                    <img
+                                      key={i}
+                                      src={getImageUrl(a.image_path)}
+                                      className="h-6 w-6 rounded-full border border-white"
+                                      alt={`avatar-${i}`}
+                                    />
+                                  ))}
+                                </div>
+                                {typeof event.AttendeeCount === 'number' && (
+                                  <span className="text-slate-300 text-xs">{event.AttendeeCount.toLocaleString()} going</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="text-slate-300 text-sm flex items-center gap-2 min-w-0">
+                            <svg className="h-4 w-4 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <span className="opacity-90 truncate">{event.VenueName}{event.VenueCity ? `, ${event.VenueCity}` : ''}</span>
+                          </p>
+                        </div>
+
+                        {/* Bookmark icon */}
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-slate-500 hover:text-slate-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h8a2 2 0 0 1 2 2v17l-6-3-6 3V4a2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
                       </div>
 
-                      <button className="w-full mt-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
-                        Book Now
-                      </button>
+                      <div className="mt-auto pt-2">
+                        <div className="flex items-center justify-between">
+                          <div className="text-blue-300 font-bold text-lg">{typeof event.LowestticketPrice === 'number' ? `₹${event.LowestticketPrice}` : ''}</div>
+                          <div className="text-slate-400 text-xs">{event.EventStartTime || ''}</div>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="text-slate-500 text-xs">{/* optional metadata */}</div>
+                          <div>
+                            <button className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-medium">Book Now</button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Link>
               ))
             ) : (
               <div className="flex-shrink-0 w-full text-center py-8">
-                <Calendar className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400 text-base">No upcoming events available at the moment.</p>
-                <p className="text-slate-500 text-sm mt-2">Please check back later for exciting events!</p>
+                <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+                <p className="text-slate-400 text-base">No upcoming events with available tickets to show.</p>
               </div>
             )}
           </div>
           
           {/* Navigation Dots */}
-          {upcomingEvents.length > 6 && (
+          {displayEvents.length > 6 && (
             <div className="flex justify-center items-center gap-2 mt-4">
               {[...Array(totalDots)].map((_, index) => (
                 <button

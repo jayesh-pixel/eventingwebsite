@@ -60,14 +60,10 @@ export default function AllCategoriesPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {[...Array(10)].map((_, i) => (
-              <div key={i} className="glass-card rounded-xl overflow-hidden animate-pulse">
-                <div className="h-48 bg-slate-800"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-slate-700 rounded mb-2"></div>
-                  <div className="h-3 bg-slate-700 rounded w-2/3"></div>
-                </div>
+              <div key={i} className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden animate-pulse">
+                <div className="h-40 sm:h-48 bg-slate-800"></div>
               </div>
             ))}
           </div>
@@ -76,14 +72,14 @@ export default function AllCategoriesPage() {
             <p className="text-gray-400 text-lg">No categories available</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {categories.map((category) => (
               <Link
                 key={category._id}
                 href={`/categories/${category._id}`}
-                className="group glass-card rounded-xl overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all duration-300"
+                className="group bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-40 sm:h-48 overflow-hidden bg-slate-800">
                   {category.Images && category.Images.length > 0 ? (
                     <img
                       src={category.Images[0].image_path}
@@ -92,22 +88,22 @@ export default function AllCategoriesPage() {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                      <span className="text-white text-4xl font-bold">
+                      <span className="text-white text-4xl sm:text-5xl font-bold drop-shadow-lg">
                         {category.Name.charAt(0)}
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-white font-semibold mb-1 group-hover:text-blue-500 transition-colors">
-                    {category.Name}
-                  </h3>
-                  {category.Description && (
-                    <p className="text-gray-400 text-sm line-clamp-2">
-                      {category.Description}
-                    </p>
-                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+                    <h3 className="text-white font-bold text-sm sm:text-base group-hover:text-blue-400 transition-colors drop-shadow-md">
+                      {category.Name}
+                    </h3>
+                    {category.Description && (
+                      <p className="text-gray-300 text-xs sm:text-sm line-clamp-1 mt-1 drop-shadow-md">
+                        {category.Description}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </Link>
             ))}

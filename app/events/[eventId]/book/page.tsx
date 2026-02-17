@@ -178,8 +178,6 @@ export default function BookEventPage() {
   const [tickets, setTickets] = React.useState<TicketData[]>([]);
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [showCount, setShowCount] = React.useState<Record<string, boolean>>({});
-  const [customerFormPage, setCustomerFormPage] = React.useState(false);
-  const [checkoutPage, setCheckoutPage] = React.useState(false);
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
 
   // Promocode state ------------------------------------------------------------
@@ -190,6 +188,22 @@ export default function BookEventPage() {
   const [availablePromocodes, setAvailablePromocodes] = React.useState<PromocodeData[]>([]);
   const [showPromocodeSuggestions, setShowPromocodeSuggestions] = React.useState(false);
 
+  // Normalize backend promocode object to frontend shape
+  const normalizePromocode = (p: any): PromocodeData => {
+    return {
+      _id: p._id || p.promocode_id || p.id,
+      promocode_id: p.promocode_id || p._id,
+      PromoCodeName: p.PromoCodeName || p.PromoCode || p.promocode_name || p.PromoCodeName,
+      TermsCondition: p.TermsCondition || p.Terms || p.terms || p.TermsCondition || "",
+      PromType: p.PromType ?? p.PromocodeType ?? p.Promocode_Type ?? 1,
+      Value: Number(p.Value ?? p.value ?? 0),
+      MinAmount: Number(p.MinAmount ?? p.minAmount ?? p.MinCheckoutAmount ?? 0),
+      MinCheckoutAmount: p.MinCheckoutAmount ?? p.MinAmount ?? undefined,
+      ExpiryDate: p.ExpiryDate ?? p.expiryDate ?? undefined,
+      OneTimeUseFlag: p.OneTimeUseFlag ?? p.oneTimeUseFlag ?? undefined,
+      PromocodeValidFor: p.PromocodeValidFor ?? p.promocodeValidFor ?? undefined,
+    } as PromocodeData;
+  };
   // Customer details -----------------------------------------------------------
   const [customer, setCustomer] = React.useState<BookingForm>({
     firstName: "",
@@ -216,27 +230,17 @@ export default function BookEventPage() {
   if (appliedPromocode) {
     if (appliedPromocode.PromType === 1) {
       // Fixed amount discount
-      discountAmount = appliedPromocode.Value;
+      discountAmount = Math.min(Number(appliedPromocode.Value ?? 0), totalPrice);
     } else if (appliedPromocode.PromType === 2) {
       // Percentage discount
-      discountAmount = (totalPrice * appliedPromocode.Value) / 100;
+      discountAmount = Math.min((totalPrice * Number(appliedPromocode.Value ?? 0)) / 100, totalPrice);
     }
   }
   
   const finalAmount = Math.max(0, totalPrice - discountAmount);
   const isAnyCountActive = Object.keys(showCount).some((id) => showCount[id] && counts[id] > 0);
 
-  // Check if user returned after login and has tickets selected
-  React.useEffect(() => {
-    if (isAuthenticated && totalTickets > 0 && !customerFormPage && !checkoutPage) {
-      // User logged in and returned with tickets selected, show customer form
-      const wasRedirectedForLogin = sessionStorage.getItem('redirectAfterLogin');
-      if (wasRedirectedForLogin) {
-        sessionStorage.removeItem('redirectAfterLogin');
-        setCustomerFormPage(true);
-      }
-    }
-  }, [isAuthenticated, totalTickets, customerFormPage, checkoutPage]);
+  // (Single-page booking flow) If user returns after login, keep selections and continue inline.
 
   // Fetch available promocodes
   React.useEffect(() => {
@@ -254,7 +258,7 @@ export default function BookEventPage() {
         );
         
         if (response.data && !response.data.error) {
-          setAvailablePromocodes(response.data.data || []);
+          setAvailablePromocodes((response.data.data || []).map((p: any) => normalizePromocode(p)));
         }
       } catch (error) {
         console.error('Failed to fetch promocodes:', error);
@@ -420,7 +424,7 @@ export default function BookEventPage() {
       );
       
       if (response.data && !response.data.error) {
-        setAppliedPromocode(response.data.data);
+        setAppliedPromocode(normalizePromocode(response.data.data));
         toast.success(`Promocode "${promocodeInput}" applied successfully!`);
         setPromocodeInput("");
         setShowPromocodeSuggestions(false);
@@ -452,7 +456,9 @@ export default function BookEventPage() {
       setShowLoginModal(true);
       return;
     }
-    setCustomerFormPage(true);
+    // Single-page flow: details are shown inline
+    const el = document.getElementById("booking-details");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleShowCount = (ticketId: string) => setShowCount(prev => ({ ...prev, [ticketId]: true }));
@@ -487,6 +493,13 @@ export default function BookEventPage() {
   // Payment gateway booking integration
   // ────────────────────────────────────────────────────────────────────────────
   const handleBooking = async () => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname;
+      sessionStorage.setItem('redirectAfterLogin', currentUrl);
+      setShowLoginModal(true);
+      return;
+    }
+
     // Validation checks
     if (!selectedDateId) {
       toast.error("Please select a valid event date");
@@ -516,6 +529,11 @@ export default function BookEventPage() {
       return;
     }
 
+    if (!validateCustomerForm()) {
+      toast.error("Please correct customer details");
+      return;
+    }
+
     if (finalAmount <= 0) {
       toast.error("Invalid booking amount");
       return;
@@ -534,13 +552,33 @@ export default function BookEventPage() {
       // Prepare booking payload to match backend expectation
       const selectedTicket = selectedTickets[0];
       const ticketQuantity = counts[selectedTicket.Ticket_Id];
-      
-      const bookingPayload = {
-        customer_id: customerId , // Use authenticated customer ID or fallback to mock
+
+      const bookingPayload: any = {
+        customer_id: customerId, // Use authenticated customer ID or fallback to mock
         event_id: eventId,
         EventTicket_id: selectedTicket.Ticket_Id, // Backend expects single ticket ID
         TicketQuantity: ticketQuantity, // Quantity for this specific ticket type
+        // Send payable amount to ensure gateway reflects promocode discount
+        amount: Number(finalAmount.toFixed(2)),
+        subTotalAmount: Number(totalPrice.toFixed(2)),
       };
+
+      // Include applied promocode details (normalized) so backend can validate/charge correctly
+      if (appliedPromocode) {
+        bookingPayload.appliedPromocode = {
+          promocode_id: appliedPromocode.promocode_id ?? appliedPromocode._id,
+          PromoCodeName: appliedPromocode.PromoCodeName,
+          PromType: appliedPromocode.PromType,
+          Value: Number(appliedPromocode.Value ?? 0),
+          discountAmount: Number(discountAmount.toFixed(2)),
+          finalAmount: Number(finalAmount.toFixed(2)),
+        };
+
+        // Common root-level keys some backends expect
+        bookingPayload.promocode_id = appliedPromocode.promocode_id ?? appliedPromocode._id;
+        bookingPayload.promocode_name = appliedPromocode.PromoCodeName;
+        bookingPayload.discountAmount = Number(discountAmount.toFixed(2));
+      }
       
       console.log('Booking payload:', bookingPayload);
 
@@ -726,469 +764,6 @@ export default function BookEventPage() {
                 Browse All Events
               </Button>
             </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // CHECKOUT PAGE (step 3)
-  // ---------------------------------------------------------------------------
-  if (checkoutPage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
-        <div className="container mx-auto px-4 sm:px-8 py-8 max-w-5xl">
-          <div className="flex items-center gap-3 mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => setCheckoutPage(false)} 
-              className="text-white hover:bg-white/10 border border-slate-700/50"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">Final Checkout</h1>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Customer summary */}
-            <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
-                <CardTitle className="text-xl text-white font-semibold">Customer Information</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                    <span className="text-slate-400">Name:</span>
-                    <span className="font-medium text-white">{customer.firstName} {customer.lastName}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                    <span className="text-slate-400">Phone:</span>
-                    <span className="font-medium text-white">{customer.phone}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                    <span className="text-slate-400">Email:</span>
-                    <span className="font-medium text-white">{customer.email}</span>
-                  </div>
-                  {customer.age && (
-                    <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                      <span className="text-slate-400">Age:</span>
-                      <span className="font-medium text-white">{customer.age}</span>
-                    </div>
-                  )}
-                  {customer.isWhatsApp === 0 && (
-                    <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                      <span className="text-slate-400">WhatsApp:</span>
-                      <span className="font-medium text-white">{customer.whatsappNumber}</span>
-                    </div>
-                  )}
-                  {customer.note && (
-                    <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                      <span className="text-slate-400 block mb-2">Note:</span>
-                      <span className="text-white">{customer.note}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Booking summary */}
-            <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
-                <CardTitle className="text-xl text-white font-semibold">Booking Summary</CardTitle>
-                <CardDescription className="text-slate-300">Review your selection before confirming</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                {tickets.filter((t) => counts[t.Ticket_Id] > 0).map((t) => (
-                  <div key={t.Ticket_Id} className="flex justify-between items-center bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition-colors">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-white">{t.TicketName}</p>
-                      <p className="text-xs text-slate-400">Quantity: {counts[t.Ticket_Id]}</p>
-                    </div>
-                    <p className="text-lg font-bold text-[#00E1FC]">₹{counts[t.Ticket_Id] * t.TicketPrice}</p>
-                  </div>
-                ))}
-
-                <Separator className="bg-slate-600/50" />
-                
-                {/* Promocode Section */}
-                <div className="space-y-3">
-                  {!appliedPromocode ? (
-                    <>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={promocodeInput}
-                          onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
-                          placeholder="Enter promocode"
-                          className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20"
-                          onFocus={() => setShowPromocodeSuggestions(true)}
-                        />
-                        <Button 
-                          onClick={handleApplyPromocode}
-                          disabled={promocodeLoading || !promocodeInput.trim()}
-                          className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
-                        >
-                          {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-                        </Button>
-                      </div>
-                      {promocodeError && (
-                        <p className="text-red-400 text-xs">{promocodeError}</p>
-                      )}
-                      {showPromocodeSuggestions && availablePromocodes.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-slate-400">Available promocodes:</p>
-                          {availablePromocodes.slice(0, 3).map((promo) => (
-                            <button
-                              key={promo.promocode_id}
-                              onClick={() => {
-                                setPromocodeInput(promo.PromoCodeName);
-                                setShowPromocodeSuggestions(false);
-                              }}
-                              className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
-                                <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
-                                  {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <div className="flex-1">
-                          <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
-                          <p className="text-xs text-slate-400 mt-1">
-                            {appliedPromocode.PromType === 1 
-                              ? `₹${appliedPromocode.Value} discount applied` 
-                              : `${appliedPromocode.Value}% discount applied`}
-                          </p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={handleRemovePromocode}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <Separator className="bg-slate-600/50" />
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between text-slate-300 p-3 bg-slate-800/30 rounded-lg">
-                    <span>Subtotal</span>
-                    <span className="font-medium">₹{totalPrice}</span>
-                  </div>
-                  {appliedPromocode && discountAmount > 0 && (
-                    <div className="flex justify-between text-sm p-3 bg-green-900/10 rounded-lg">
-                      <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
-                      <span className="text-green-400 font-medium">-₹{discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-between items-center bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 p-4 rounded-xl border border-[#00E1FC]/30 shadow-lg">
-                  <p className="font-bold text-white text-lg">Total ({totalTickets} ticket{totalTickets !== 1 ? "s" : ""})</p>
-                  <p className="text-2xl font-bold text-[#00E1FC]">₹{finalAmount}</p>
-                </div>
-
-                <Button 
-                  className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 
-                  onClick={handleBooking}
-                  disabled={paymentProcessing}
-                >
-                  {paymentProcessing ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      Processing Payment...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-5 w-5 mr-2" />
-                      Confirm Booking ₹{finalAmount}
-                    </>
-                  )}
-                </Button>
-                
-                <p className="text-xs text-slate-400 text-center mt-3">
-                  {paymentProcessing ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Processing secure payment...
-                    </span>
-                  ) : (
-                    "🔒 Your payment is secured with 256-bit SSL encryption"
-                  )}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // CUSTOMER FORM (step 2)
-  // ---------------------------------------------------------------------------
-  if (customerFormPage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
-        <div className="container mx-auto px-4 sm:px-8 py-8 max-w-5xl">
-          <div className="flex items-center gap-3 mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => setCustomerFormPage(false)} 
-              className="text-white hover:bg-white/10 border border-slate-700/50"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">Customer Details</h1>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Form */}
-            <Card className="lg:col-span-2 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
-                <CardTitle className="text-xl text-white font-semibold">Contact Information</CardTitle>
-                <CardDescription className="text-slate-300">Required for booking confirmation and ticket delivery</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">First Name *</Label>
-                    <Input 
-                      value={customer.firstName} 
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                      placeholder="Enter first name"
-                      onChange={(e) => handleCustChange("firstName", e.target.value)} 
-                    />
-                    {formErrors.firstName && <p className="text-red-400 text-xs mt-1">{formErrors.firstName}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">Last Name *</Label>
-                    <Input 
-                      value={customer.lastName} 
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                      placeholder="Enter last name"
-                      onChange={(e) => handleCustChange("lastName", e.target.value)} 
-                    />
-                    {formErrors.lastName && <p className="text-red-400 text-xs mt-1">{formErrors.lastName}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-slate-200 font-medium">Phone Number *</Label>
-                  <Input 
-                    value={customer.phone} 
-                    maxLength={10} 
-                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                    placeholder="Enter 10-digit phone number"
-                    onChange={(e) => handleCustChange("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} 
-                  />
-                  {formErrors.phone && <p className="text-red-400 text-xs mt-1">{formErrors.phone}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-slate-200 font-medium">Email Address *</Label>
-                  <Input 
-                    value={customer.email} 
-                    type="email" 
-                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                    placeholder="Enter email address"
-                    onChange={(e) => handleCustChange("email", e.target.value)} 
-                  />
-                  {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-slate-200 font-medium">Age (Optional)</Label>
-                  <Input 
-                    value={customer.age} 
-                    type="number" 
-                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                    placeholder="Enter age"
-                    onChange={(e) => handleCustChange("age", e.target.value)} 
-                  />
-                  {formErrors.age && <p className="text-red-400 text-xs mt-1">{formErrors.age}</p>}
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-slate-200 font-medium">Is this a WhatsApp number?</Label>
-                  <div className="flex gap-6 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
-                    <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
-                      <input 
-                        type="radio" 
-                        checked={customer.isWhatsApp === 1} 
-                        onChange={() => handleCustChange("isWhatsApp", 1)}
-                        className="accent-[#00E1FC] w-4 h-4"
-                      /> 
-                      Yes, same number
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
-                      <input 
-                        type="radio" 
-                        checked={customer.isWhatsApp === 0} 
-                        onChange={() => handleCustChange("isWhatsApp", 0)}
-                        className="accent-[#00E1FC] w-4 h-4"
-                      /> 
-                      No, different number
-                    </label>
-                  </div>
-                </div>
-
-                {customer.isWhatsApp === 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">WhatsApp Number *</Label>
-                    <Input 
-                      value={customer.whatsappNumber} 
-                      maxLength={10} 
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors" 
-                      placeholder="Enter WhatsApp number"
-                      onChange={(e) => handleCustChange("whatsappNumber", e.target.value.replace(/\D/g, "").slice(0, 10))} 
-                    />
-                    {formErrors.whatsappNumber && <p className="text-red-400 text-xs mt-1">{formErrors.whatsappNumber}</p>}
-                  </div>
-                )}
-
-                <Button 
-                  className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 
-                  onClick={() => validateCustomerForm() && setCheckoutPage(true)}
-                >
-                  Continue to Checkout →
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Sidebar summary */}
-            <Card className="lg:col-span-1 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl sticky top-4 h-fit">
-              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
-                <CardTitle className="text-xl text-white font-semibold">Booking Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-3">
-                  {tickets.filter((t) => counts[t.Ticket_Id] > 0).map((t) => (
-                    <div key={t.Ticket_Id} className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                      <div className="flex-1">
-                        <p className="text-white font-medium text-sm">{t.TicketName}</p>
-                        <p className="text-slate-400 text-xs">Qty: {counts[t.Ticket_Id]}</p>
-                      </div>
-                      <span className="font-semibold text-[#00E1FC]">₹{counts[t.Ticket_Id] * t.TicketPrice}</span>
-                    </div>
-                  ))}
-                </div>
-                <Separator className="bg-slate-600/50" />
-                
-                {/* Promocode Section */}
-                <div className="space-y-3">
-                  {!appliedPromocode ? (
-                    <>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={promocodeInput}
-                          onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
-                          placeholder="Enter promocode"
-                          className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20"
-                          onFocus={() => setShowPromocodeSuggestions(true)}
-                        />
-                        <Button 
-                          onClick={handleApplyPromocode}
-                          disabled={promocodeLoading || !promocodeInput.trim()}
-                          className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
-                        >
-                          {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-                        </Button>
-                      </div>
-                      {promocodeError && (
-                        <p className="text-red-400 text-xs">{promocodeError}</p>
-                      )}
-                      {showPromocodeSuggestions && availablePromocodes.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-slate-400">Available promocodes:</p>
-                          {availablePromocodes.slice(0, 3).map((promo) => (
-                            <button
-                              key={promo.promocode_id}
-                              onClick={() => {
-                                setPromocodeInput(promo.PromoCodeName);
-                                setShowPromocodeSuggestions(false);
-                              }}
-                              className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
-                                <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
-                                  {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <div className="flex-1">
-                          <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
-                          <p className="text-xs text-slate-400 mt-1">
-                            {appliedPromocode.PromType === 1 
-                              ? `₹${appliedPromocode.Value} discount applied` 
-                              : `${appliedPromocode.Value}% discount applied`}
-                          </p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={handleRemovePromocode}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <Separator className="bg-slate-600/50" />
-                
-                {/* Price breakdown */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-300">Subtotal</span>
-                    <span className="text-white">₹{totalPrice}</span>
-                  </div>
-                  {appliedPromocode && discountAmount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
-                      <span className="text-green-400">-₹{discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <Separator className="bg-slate-600/50" />
-                
-                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 rounded-lg border border-[#00E1FC]/20">
-                  <span className="text-white font-semibold">Total</span>
-                  <span className="text-[#00E1FC] font-bold text-lg">₹{finalAmount}</span>
-                </div>
-                <p className="text-xs text-slate-400 text-center">
-                  ✨ All taxes included
-                </p>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -1431,30 +1006,263 @@ export default function BookEventPage() {
           </Card>
         )}
 
-        {/* Sticky footer checkout */}
+        {/* Inline booking details + checkout (single-page flow) */}
         {totalTickets > 0 && (
-          <Card className="bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-md border border-slate-700/50 shadow-2xl sticky bottom-4 z-10">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-center sm:text-left">
-                  <p className="text-3xl font-bold text-[#00E1FC] flex items-center justify-center sm:justify-start">
-                    <IndianRupee className="h-7 w-7" />
-                    {finalAmount}
-                  </p>
-                  <p className="text-sm text-slate-300">
-                    {totalTickets} ticket{totalTickets !== 1 ? "s" : ""} selected
-                  </p>
+          <div id="booking-details" className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <Card className="lg:col-span-2 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl">
+              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
+                <CardTitle className="text-xl text-white font-semibold">Customer Details</CardTitle>
+                <CardDescription className="text-slate-300">Required for booking confirmation and ticket delivery</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-5">
+                {!isAuthenticated && (
+                  <div className="p-4 rounded-xl border border-orange-500/40 bg-orange-900/10 text-slate-200 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <span>Please login to complete the booking.</span>
+                      <Button
+                        onClick={handleContinueToDetails}
+                        className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                      >
+                        Login
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">First Name *</Label>
+                    <Input
+                      value={customer.firstName}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter first name"
+                      onChange={(e) => handleCustChange("firstName", e.target.value)}
+                    />
+                    {formErrors.firstName && <p className="text-red-400 text-xs mt-1">{formErrors.firstName}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">Last Name *</Label>
+                    <Input
+                      value={customer.lastName}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter last name"
+                      onChange={(e) => handleCustChange("lastName", e.target.value)}
+                    />
+                    {formErrors.lastName && <p className="text-red-400 text-xs mt-1">{formErrors.lastName}</p>}
+                  </div>
                 </div>
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-lg shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]" 
-                  onClick={handleContinueToDetails}
+
+                <div className="space-y-2">
+                  <Label className="text-slate-200 font-medium">Phone Number *</Label>
+                  <Input
+                    value={customer.phone}
+                    maxLength={10}
+                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                    placeholder="Enter 10-digit phone number"
+                    onChange={(e) => handleCustChange("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  />
+                  {formErrors.phone && <p className="text-red-400 text-xs mt-1">{formErrors.phone}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-200 font-medium">Email Address *</Label>
+                  <Input
+                    value={customer.email}
+                    type="email"
+                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                    placeholder="Enter email address"
+                    onChange={(e) => handleCustChange("email", e.target.value)}
+                  />
+                  {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-200 font-medium">Age (Optional)</Label>
+                  <Input
+                    value={customer.age}
+                    type="number"
+                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                    placeholder="Enter age"
+                    onChange={(e) => handleCustChange("age", e.target.value)}
+                  />
+                  {formErrors.age && <p className="text-red-400 text-xs mt-1">{formErrors.age}</p>}
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-slate-200 font-medium">Is this a WhatsApp number?</Label>
+                  <div className="flex gap-6 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
+                      <input
+                        type="radio"
+                        checked={customer.isWhatsApp === 1}
+                        onChange={() => handleCustChange("isWhatsApp", 1)}
+                        className="accent-[#00E1FC] w-4 h-4"
+                      />
+                      Yes, same number
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
+                      <input
+                        type="radio"
+                        checked={customer.isWhatsApp === 0}
+                        onChange={() => handleCustChange("isWhatsApp", 0)}
+                        className="accent-[#00E1FC] w-4 h-4"
+                      />
+                      No, different number
+                    </label>
+                  </div>
+                </div>
+
+                {customer.isWhatsApp === 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">WhatsApp Number *</Label>
+                    <Input
+                      value={customer.whatsappNumber}
+                      maxLength={10}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter WhatsApp number"
+                      onChange={(e) => handleCustChange("whatsappNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    />
+                    {formErrors.whatsappNumber && <p className="text-red-400 text-xs mt-1">{formErrors.whatsappNumber}</p>}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-1 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl sticky top-24 h-fit">
+              <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50">
+                <CardTitle className="text-xl text-white font-semibold">Checkout</CardTitle>
+                <CardDescription className="text-slate-300">Apply promocode and pay</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-3">
+                  {tickets.filter((t) => counts[t.Ticket_Id] > 0).map((t) => (
+                    <div key={t.Ticket_Id} className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
+                      <div className="flex-1">
+                        <p className="text-white font-medium text-sm">{t.TicketName}</p>
+                        <p className="text-slate-400 text-xs">Qty: {counts[t.Ticket_Id]}</p>
+                      </div>
+                      <span className="font-semibold text-[#00E1FC]">₹{counts[t.Ticket_Id] * t.TicketPrice}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator className="bg-slate-600/50" />
+
+                {/* Promocode Section */}
+                <div className="space-y-3">
+                  {!appliedPromocode ? (
+                    <>
+                      <div className="flex gap-2">
+                        <Input
+                          value={promocodeInput}
+                          onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
+                          placeholder="Enter promocode"
+                          className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20"
+                          onFocus={() => setShowPromocodeSuggestions(true)}
+                        />
+                        <Button
+                          onClick={handleApplyPromocode}
+                          disabled={promocodeLoading || !promocodeInput.trim()}
+                          className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                        >
+                          {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                        </Button>
+                      </div>
+                      {promocodeError && <p className="text-red-400 text-xs">{promocodeError}</p>}
+                      {showPromocodeSuggestions && availablePromocodes.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-slate-400">Available promocodes:</p>
+                          {availablePromocodes.slice(0, 3).map((promo) => (
+                            <button
+                              key={promo.promocode_id}
+                              onClick={() => {
+                                setPromocodeInput(promo.PromoCodeName);
+                                setShowPromocodeSuggestions(false);
+                              }}
+                              className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
+                                <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
+                                  {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {appliedPromocode.PromType === 1
+                              ? `₹${appliedPromocode.Value} discount applied`
+                              : `${appliedPromocode.Value}% discount applied`}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemovePromocode}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <Separator className="bg-slate-600/50" />
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Subtotal</span>
+                    <span className="text-white">₹{totalPrice}</span>
+                  </div>
+                  {appliedPromocode && discountAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
+                      <span className="text-green-400">-₹{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <Separator className="bg-slate-600/50" />
+
+                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 rounded-lg border border-[#00E1FC]/20">
+                  <span className="text-white font-semibold">Total</span>
+                  <span className="text-[#00E1FC] font-bold text-lg">₹{finalAmount}</span>
+                </div>
+
+                <Button
+                  className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-[1.02]"
+                  onClick={handleBooking}
+                  disabled={paymentProcessing}
                 >
-                  {isAuthenticated ? "Continue to Details →" : "Login to Continue →"}
+                  {paymentProcessing ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Confirm Booking ₹{finalAmount}
+                    </>
+                  )}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+
+                <p className="text-xs text-slate-400 text-center">
+                  {paymentProcessing ? "Processing secure payment..." : "🔒 Your payment is secured with 256-bit SSL encryption"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
       <Toaster 

@@ -68,6 +68,38 @@
   .gradient-overlay {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
   }
+
+  /* Site-wide components using CSS variables for consistent theming */
+  .site-header {
+    background: var(--background);
+    color: var(--foreground);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .site-footer {
+    background: var(--background);
+    color: var(--muted-foreground);
+    border-top: 1px solid var(--border);
+  }
+
+  .site-card {
+    background: var(--card);
+    border-radius: calc(var(--radius));
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+  }
+
+  .site-card .card-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    background: transparent;
+  }
+
+  .site-card .card-body {
+    padding: 1rem;
+    background: var(--card);
+    color: var(--card-foreground);
+  }
 }
 
 @keyframes float {

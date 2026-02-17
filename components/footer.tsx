@@ -1,8 +1,15 @@
+"use client";
+
 import { Instagram, Twitter, Music2, Youtube } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname() || "";
+  // Hide footer on the single-screen event detail view
+  if (/^\/events\/[^/]+$/.test(pathname)) return null;
+
   return (
-    <footer className="bg-slate-950 border-t border-slate-800 py-16">
+    <footer className="site-footer py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}

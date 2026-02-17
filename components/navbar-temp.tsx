@@ -138,7 +138,7 @@ const Navbar = ({ bgColor }: NavbarProps) => {
     <div className=" font-poppins">
       <Toaster />
       <div
-        className={` relative w-full  ${bgColor} pb-1  z-50`}
+        className={` relative w-full  site-header pb-1  z-50`}
         // style={{
         //   boxShadow: " rgba(0, 0, 0, 0.08) 0px 4px 12px",
         // }}
