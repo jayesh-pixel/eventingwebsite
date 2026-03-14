@@ -32,7 +32,7 @@ interface EventDetails {
   BestSuitedFor: string;
   EventStartDate: string;
   EventStartTime: string;
-  TicketPriceStartsFrom: number;
+  TicketPriceStartsFrom: number | null;
   AboutEvent: string;
   EventGalleryImages: any[];
   EventArtists: EventArtist[];
@@ -150,6 +150,13 @@ export default function EventDetailsPage() {
       ? imagePath 
       : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${imagePath}`;
   };
+
+  const startingTicketPrice =
+    typeof eventDetails.TicketPriceStartsFrom === "number" &&
+    Number.isFinite(eventDetails.TicketPriceStartsFrom) &&
+    eventDetails.TicketPriceStartsFrom > 0
+      ? eventDetails.TicketPriceStartsFrom
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20 pb-12">
@@ -325,11 +332,17 @@ export default function EventDetailsPage() {
               <div className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl overflow-hidden">
                 {/* Price Header */}
                 <div className="bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 border-b border-slate-700/50 p-6">
-                  <div className="text-sm text-slate-300 mb-2">Starting from</div>
-                  <div className="text-4xl font-bold text-white mb-1">
-                    ₹{eventDetails.TicketPriceStartsFrom.toLocaleString()}
+                  <div className="text-sm text-slate-300 mb-2">
+                    {startingTicketPrice !== null ? "Starting from" : "Booking status"}
                   </div>
-                  <div className="text-xs text-slate-400">per person</div>
+                  <div className="text-4xl font-bold text-white mb-1">
+                    {startingTicketPrice !== null
+                      ? `₹${startingTicketPrice.toLocaleString()}`
+                      : "Tickets unavailable"}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {startingTicketPrice !== null ? "per person" : "Booking will open when tickets are available"}
+                  </div>
                 </div>
 
                 {/* Event Details */}
@@ -371,12 +384,27 @@ export default function EventDetailsPage() {
                   </div>
 
                   {/* CTA Button */}
-                  <Link href={`/events/${eventId}/book`} className="block mt-6">
-                    <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg hover:shadow-[#00E1FC]/30 transition-all duration-300 group">
-                      <Ticket className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                      Book Tickets Now
-                    </Button>
-                  </Link>
+                  {startingTicketPrice !== null ? (
+                    <Link href={`/events/${eventId}/book`} className="block mt-6">
+                      <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg hover:shadow-[#00E1FC]/30 transition-all duration-300 group">
+                        <Ticket className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
+                        Book Tickets Now
+                      </Button>
+                    </Link>
+                  ) : (
+                    <div className="mt-6 space-y-3">
+                      <Button
+                        disabled
+                        className="w-full h-12 bg-slate-700 text-slate-300 font-semibold text-base cursor-not-allowed opacity-70"
+                      >
+                        <Ticket className="mr-2 h-5 w-5" />
+                        Tickets Not Available
+                      </Button>
+                      <p className="text-sm text-center text-amber-300">
+                        Tickets are not available for booking yet.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Social Proof */}
                   <div className="flex items-center justify-around text-xs text-slate-400 pt-4 border-t border-slate-700/50">
