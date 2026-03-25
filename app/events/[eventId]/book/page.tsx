@@ -32,7 +32,7 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import { TicketType } from "@/lib/types";
-import { bookTicketApi } from "@/utils/config";
+import { bookTicketApi, customer as customerApi, promocode } from "@/utils/config";
 import { encryptData, decryptData } from "@/utils/constants";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -99,10 +99,33 @@ interface BookingForm {
   lastName: string;
   email: string;
   phone: string;
+  address: string;
+  pincode: string;
+  country: string;
+  countryIsoCode: string;
+  state: string;
+  stateIsoCode: string;
+  city: string;
+  cityIsoCode: string;
   age: string;
   whatsappNumber: string;
   isWhatsApp: 0 | 1;
   note: string;
+}
+
+interface CustomerProfileResponse {
+  error?: boolean;
+  message?: string;
+  data?: {
+    CustomerName?: string;
+    Email?: string;
+    MobileNumber?: string;
+    Address?: string;
+    Pincode?: string;
+    Country?: string;
+    State?: string;
+    City?: string;
+  };
 }
 
 interface PromocodeData {
@@ -131,12 +154,33 @@ interface ApplyPromocodeResponse {
   data: PromocodeData;
 }
 
+interface BookingPayload {
+  customer_id: string;
+  event_id: string;
+  EventTicket_id: string;
+  TicketQuantity: number;
+  Promocode_id?: string;
+  customer_Address: string;
+  customer_Pincode: string;
+  customer_Country: string;
+  customer_CountryIsoCode: string;
+  customer_State: string;
+  customer_StateIsoCode: string;
+  customer_City: string;
+  customer_CityIsoCode: string;
+}
+
 // Mock user for demo
 const mockUser = {
   user_id: "user_123",
   email: "user@example.com",
   name: "Demo User",
   role: "customer"
+};
+
+const asString = (value: unknown) => {
+  if (value === null || value === undefined) return "";
+  return String(value);
 };
 
 export default function BookEventPage() {
@@ -210,6 +254,14 @@ export default function BookEventPage() {
     lastName: "",
     phone: "",
     email: "",
+    address: "",
+    pincode: "",
+    country: "India",
+    countryIsoCode: "IN",
+    state: "",
+    stateIsoCode: "",
+    city: "",
+    cityIsoCode: "",
     age: "",
     note: "",
     whatsappNumber: "",
@@ -248,9 +300,8 @@ export default function BookEventPage() {
       if (!eventId || !customerId) return;
       
       try {
-        const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const response = await axios.post<PromocodeListResponse>(
-          `${apiBase}/webiste/promocodes/getPromocodesforWebsite`,
+          promocode.GET_ALL,
           {
             event_id: eventId,
             customer_id: customerId
@@ -267,6 +318,51 @@ export default function BookEventPage() {
     
     fetchPromocodes();
   }, [eventId, customerId]);
+
+  React.useEffect(() => {
+    const fetchCustomerProfile = async () => {
+      if (!customerId) return;
+
+      try {
+        const response = await axios.post<CustomerProfileResponse>(customerApi.GET_BY_ID, {
+          customer_id: customerId,
+        });
+
+        const data = response.data?.data;
+        if (!data) return;
+
+        const customerName = asString(data.CustomerName).trim();
+        const [firstName = "", ...lastNameParts] = customerName.split(/\s+/).filter(Boolean);
+        const state = asString(data.State).trim();
+        const city = asString(data.City).trim();
+        const country = asString(data.Country).trim() || "India";
+        const email = asString(data.Email).trim();
+        const phone = asString(data.MobileNumber).trim();
+        const address = asString(data.Address).trim();
+        const pincode = asString(data.Pincode).trim();
+
+        setCustomer((prev) => ({
+          ...prev,
+          firstName: prev.firstName || firstName,
+          lastName: prev.lastName || lastNameParts.join(" "),
+          email: prev.email || email,
+          phone: prev.phone || phone,
+          address: prev.address || address,
+          pincode: prev.pincode || pincode,
+          country: prev.country || country,
+          countryIsoCode: prev.countryIsoCode || (country.toLowerCase() === "india" ? "IN" : country.toUpperCase()),
+          state: prev.state || state,
+          stateIsoCode: prev.stateIsoCode || state.toUpperCase(),
+          city: prev.city || city,
+          cityIsoCode: prev.cityIsoCode || city.toUpperCase(),
+        }));
+      } catch (error) {
+        console.error("Failed to fetch customer profile:", error);
+      }
+    };
+
+    fetchCustomerProfile();
+  }, [customerId]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // Fetch event details and dates on mount
@@ -467,24 +563,60 @@ export default function BookEventPage() {
   // Customer form & validation
   // ────────────────────────────────────────────────────────────────────────────
   const handleCustChange = (field: keyof BookingForm, value: string | number) => {
-    setCustomer((prev) => ({ ...prev, [field]: value }));
+    setCustomer((prev) => {
+      const normalizedValue = typeof value === "number" ? String(value) : value;
+      const nextCustomer = { ...prev, [field]: normalizedValue } as BookingForm;
+
+      if (field === "country") {
+        const countryValue = normalizedValue.trim();
+        nextCustomer.countryIsoCode = countryValue.toLowerCase() === "india" ? "IN" : countryValue.toUpperCase();
+      }
+
+      if (field === "state") {
+        nextCustomer.stateIsoCode = normalizedValue.trim().toUpperCase();
+      }
+
+      if (field === "city") {
+        nextCustomer.cityIsoCode = normalizedValue.trim().toUpperCase();
+      }
+
+      return nextCustomer;
+    });
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const validateCustomerForm = () => {
     const errors: Record<string, string> = {};
-    if (!customer.firstName.trim()) errors.firstName = "First name is required";
-    if (!customer.lastName.trim()) errors.lastName = "Last name is required";
-    if (!customer.phone.trim()) errors.phone = "Phone number is required";
-    else if (customer.phone.length !== 10) errors.phone = "Phone number must be 10 digits";
-    if (!customer.email.trim()) errors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) errors.email = "Enter a valid email";
-    if (customer.age.trim()) {
-      const age = parseInt(customer.age, 10);
+    const firstName = asString(customer.firstName).trim();
+    const lastName = asString(customer.lastName).trim();
+    const phone = asString(customer.phone).trim();
+    const email = asString(customer.email).trim();
+    const address = asString(customer.address).trim();
+    const pincode = asString(customer.pincode).trim();
+    const country = asString(customer.country).trim();
+    const state = asString(customer.state).trim();
+    const city = asString(customer.city).trim();
+    const ageValue = asString(customer.age).trim();
+    const whatsappNumber = asString(customer.whatsappNumber).trim();
+
+    if (!firstName) errors.firstName = "First name is required";
+    if (!lastName) errors.lastName = "Last name is required";
+    if (!phone) errors.phone = "Phone number is required";
+    else if (phone.length !== 10) errors.phone = "Phone number must be 10 digits";
+    if (!email) errors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email";
+    if (!address) errors.address = "Address is required";
+    if (!pincode) errors.pincode = "Pincode is required";
+    else if (!/^\d{4,10}$/.test(pincode)) errors.pincode = "Enter a valid pincode";
+    if (!country) errors.country = "Country is required";
+    if (!state) errors.state = "State is required";
+    if (!city) errors.city = "City is required";
+    if (ageValue) {
+      const age = parseInt(ageValue, 10);
       if (isNaN(age) || age < 1 || age > 120) errors.age = "Age should be 1–120";
     }
-    if (customer.isWhatsApp === 0 && !customer.whatsappNumber.trim()) errors.whatsappNumber = "WhatsApp no. required";
-    else if (customer.isWhatsApp === 0 && customer.whatsappNumber.length !== 10) errors.whatsappNumber = "WhatsApp no. must be 10 digits";
+    if (customer.isWhatsApp === 0 && !whatsappNumber) errors.whatsappNumber = "WhatsApp no. required";
+    else if (customer.isWhatsApp === 0 && whatsappNumber.length !== 10) errors.whatsappNumber = "WhatsApp no. must be 10 digits";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -519,12 +651,12 @@ export default function BookEventPage() {
     }
 
     // Customer validation
-    if (!customer.firstName.trim() || !customer.lastName.trim()) {
+    if (!asString(customer.firstName).trim() || !asString(customer.lastName).trim()) {
       toast.error("Please fill in your name");
       return;
     }
 
-    if (!customer.email.trim() || !customer.phone.trim()) {
+    if (!asString(customer.email).trim() || !asString(customer.phone).trim()) {
       toast.error("Please provide email and phone number");
       return;
     }
@@ -553,31 +685,23 @@ export default function BookEventPage() {
       const selectedTicket = selectedTickets[0];
       const ticketQuantity = counts[selectedTicket.Ticket_Id];
 
-      const bookingPayload: any = {
-        customer_id: customerId, // Use authenticated customer ID or fallback to mock
+      const bookingPayload: BookingPayload = {
+        customer_id: String(customerId),
         event_id: eventId,
-        EventTicket_id: selectedTicket.Ticket_Id, // Backend expects single ticket ID
-        TicketQuantity: ticketQuantity, // Quantity for this specific ticket type
-        // Send payable amount to ensure gateway reflects promocode discount
-        amount: Number(finalAmount.toFixed(2)),
-        subTotalAmount: Number(totalPrice.toFixed(2)),
+        EventTicket_id: selectedTicket.Ticket_Id,
+        TicketQuantity: ticketQuantity,
+        customer_Address: customer.address.trim(),
+        customer_Pincode: customer.pincode.trim(),
+        customer_Country: customer.country.trim(),
+        customer_CountryIsoCode: customer.countryIsoCode.trim() || customer.country.trim().toUpperCase(),
+        customer_State: customer.state.trim(),
+        customer_StateIsoCode: customer.stateIsoCode.trim() || customer.state.trim().toUpperCase(),
+        customer_City: customer.city.trim(),
+        customer_CityIsoCode: customer.cityIsoCode.trim() || customer.city.trim().toUpperCase(),
       };
 
-      // Include applied promocode details (normalized) so backend can validate/charge correctly
-      if (appliedPromocode) {
-        bookingPayload.appliedPromocode = {
-          promocode_id: appliedPromocode.promocode_id ?? appliedPromocode._id,
-          PromoCodeName: appliedPromocode.PromoCodeName,
-          PromType: appliedPromocode.PromType,
-          Value: Number(appliedPromocode.Value ?? 0),
-          discountAmount: Number(discountAmount.toFixed(2)),
-          finalAmount: Number(finalAmount.toFixed(2)),
-        };
-
-        // Common root-level keys some backends expect
-        bookingPayload.promocode_id = appliedPromocode.promocode_id ?? appliedPromocode._id;
-        bookingPayload.promocode_name = appliedPromocode.PromoCodeName;
-        bookingPayload.discountAmount = Number(discountAmount.toFixed(2));
+      if (appliedPromocode?.promocode_id || appliedPromocode?._id) {
+        bookingPayload.Promocode_id = appliedPromocode.promocode_id ?? appliedPromocode._id;
       }
       
       console.log('Booking payload:', bookingPayload);
@@ -1074,6 +1198,64 @@ export default function BookEventPage() {
                     onChange={(e) => handleCustChange("email", e.target.value)}
                   />
                   {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-200 font-medium">Address *</Label>
+                  <Input
+                    value={customer.address}
+                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                    placeholder="Enter street address"
+                    onChange={(e) => handleCustChange("address", e.target.value)}
+                  />
+                  {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">Pincode *</Label>
+                    <Input
+                      value={customer.pincode}
+                      maxLength={10}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter pincode"
+                      onChange={(e) => handleCustChange("pincode", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    />
+                    {formErrors.pincode && <p className="text-red-400 text-xs mt-1">{formErrors.pincode}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">Country *</Label>
+                    <Input
+                      value={customer.country}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter country"
+                      onChange={(e) => handleCustChange("country", e.target.value)}
+                    />
+                    {formErrors.country && <p className="text-red-400 text-xs mt-1">{formErrors.country}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">State *</Label>
+                    <Input
+                      value={customer.state}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter state"
+                      onChange={(e) => handleCustChange("state", e.target.value)}
+                    />
+                    {formErrors.state && <p className="text-red-400 text-xs mt-1">{formErrors.state}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-200 font-medium">City *</Label>
+                    <Input
+                      value={customer.city}
+                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
+                      placeholder="Enter city"
+                      onChange={(e) => handleCustChange("city", e.target.value)}
+                    />
+                    {formErrors.city && <p className="text-red-400 text-xs mt-1">{formErrors.city}</p>}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
