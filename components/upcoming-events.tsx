@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import {
@@ -176,91 +176,55 @@ export default function UpcomingEvents() {
                 <Link
                   key={event.event_id}
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] snap-center"
+                  className="block flex-shrink-0 w-[220px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-center"
                 >
                   <div
-                    className="relative h-[360px] sm:h-[380px] bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-lg"
+                    className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Image Section */}
-                    <div className="relative h-[190px] sm:h-[210px] overflow-hidden">
+                    <div className="relative h-52 overflow-hidden">
                       <img
                         src={getImageUrl(event.EventCardImages?.[0]?.image_path || "")}
                         alt={event.EventName}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
+
+                      {/* Date Badge - Top Right */}
+                      <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-1.5 rounded-lg">
+                        <div className="text-xs font-semibold text-[#00E1FC]">{formatShortDate(event.EventStartDate)}</div>
+                      </div>
 
                       {/* Featured Badge - Top Left */}
                       {event.isFeatured === 1 && (
-                        <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                          <span className="text-sm">⭐</span>
-                          <span className="ml-1">Featured</span>
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                          Featured
                         </div>
                       )}
-
-                      {/* Date Badge - Top Right */}
-                      <div className="absolute top-3 right-3 bg-white/95 border border-blue-200/60 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
-                        {formatShortDate(event.EventStartDate)}
-                      </div>
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-4 h-[170px] sm:h-[170px] flex flex-col bg-slate-950/70">
-                      <div className="flex items-start justify-between gap-3 min-h-0">
-                        <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
-                          <h4 className="text-base font-semibold mb-2 text-white line-clamp-2">{event.EventName}</h4>
+                    <div className="p-5">
+                      <h4 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">{event.EventName}</h4>
 
-                          <div className="flex items-center gap-3 mb-3">
-                            {/* Category pill (if available) */}
-                            {event.CategoryName && (
-                              <span className="text-blue-300 text-xs font-medium px-2 py-1 rounded-full border border-blue-500/30 bg-blue-500/10">{event.CategoryName}</span>
-                            )}
-
-                            {/* Attendee avatars + count (only when provided by API) */}
-                            {event.AttendeeAvatars && event.AttendeeAvatars.length > 0 && (
-                              <div className="flex items-center gap-2">
-                                <div className="flex -space-x-2">
-                                  {event.AttendeeAvatars.slice(0,3).map((a, i) => (
-                                    <img
-                                      key={i}
-                                      src={getImageUrl(a.image_path)}
-                                      className="h-6 w-6 rounded-full border border-white"
-                                      alt={`avatar-${i}`}
-                                    />
-                                  ))}
-                                </div>
-                                {typeof event.AttendeeCount === 'number' && (
-                                  <span className="text-slate-300 text-xs">{event.AttendeeCount.toLocaleString()} going</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          <p className="text-slate-300 text-sm flex items-center gap-2 min-w-0">
-                            <svg className="h-4 w-4 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            <span className="opacity-90 truncate">{event.VenueName}{event.VenueCity ? `, ${event.VenueCity}` : ''}</span>
-                          </p>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-slate-400 text-sm">
+                          <Clock className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
+                          <span className="truncate">{event.EventStartTime}</span>
                         </div>
-
-                        {/* Bookmark icon */}
-                        <div className="flex-shrink-0">
-                          <svg className="h-5 w-5 text-slate-500 hover:text-slate-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h8a2 2 0 0 1 2 2v17l-6-3-6 3V4a2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <div className="flex items-center text-slate-400 text-sm">
+                          <MapPin className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
+                          <span className="truncate">{event.VenueName}{event.VenueCity ? `, ${event.VenueCity}` : ''}</span>
                         </div>
                       </div>
 
-                      <div className="mt-auto pt-2">
-                        <div className="flex items-center justify-between">
-                          <div className="text-blue-300 font-bold text-lg">{typeof event.LowestticketPrice === 'number' ? `₹${event.LowestticketPrice}` : ''}</div>
-                          <div className="text-slate-400 text-xs">{event.EventStartTime || ''}</div>
+                      <div className="flex justify-between items-center pt-3 border-t border-slate-800">
+                        <div>
+                          <div className="text-xl font-bold text-[#00E1FC]">{typeof event.LowestticketPrice === 'number' ? `₹${event.LowestticketPrice}` : ''}</div>
+                          <div className="text-xs text-slate-500">onwards</div>
                         </div>
-
-                        <div className="mt-3 flex items-center justify-between">
-                          <div className="text-slate-500 text-xs">{/* optional metadata */}</div>
-                          <div>
-                            <button className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-medium">Book Now</button>
-                          </div>
-                        </div>
+                        <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-5 py-2 rounded-lg font-medium shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300">Book Now</button>
                       </div>
                     </div>
                   </div>

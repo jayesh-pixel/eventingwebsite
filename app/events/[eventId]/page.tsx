@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,9 @@ export default function EventDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [aboutClamped, setAboutClamped] = useState(false);
+  const aboutRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
@@ -178,7 +181,7 @@ export default function EventDetailsPage() {
             {/* Hero Image Section */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
               {/* Main Image */}
-              <div className="relative h-[450px] sm:h-[550px]">
+              <div className="relative h-[300px] sm:h-[450px] md:h-[550px]">
                 {eventDetails.EventCarouselImages.length > 0 && (
                   <img
                     src={getImageUrl(eventDetails.EventCarouselImages[activeImageIndex]?.image_path)}
@@ -210,23 +213,23 @@ export default function EventDetailsPage() {
 
                 {/* Title and Meta Info Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                  <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
                     {eventDetails.EventName}
                   </h1>
                   
                   {/* Meta Info Cards */}
-                  <div className="flex flex-wrap gap-3 mb-4">
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
-                      <Calendar className="h-5 w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium">{eventDetails.EventStartDate}</span>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium text-sm">{eventDetails.EventStartDate}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
-                      <Clock className="h-5 w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium">{eventDetails.EventStartTime}</span>
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium text-sm">{eventDetails.EventStartTime}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-4 py-2.5 rounded-xl">
-                      <MapPin className="h-5 w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium">{eventDetails.VenueCity}</span>
+                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                      <span className="text-white font-medium text-sm">{eventDetails.VenueCity}</span>
                     </div>
                   </div>
 
@@ -273,10 +276,35 @@ export default function EventDetailsPage() {
                 <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
                 About This Event
               </h2>
-              <div
-                className="text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2"
-                dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
-              />
+              <div className="relative">
+                <div
+                  ref={aboutRef}
+                  className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
+                    !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
+                  }`}
+                  dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
+                  onLoad={() => {
+                    if (aboutRef.current && aboutRef.current.scrollHeight > aboutRef.current.clientHeight) {
+                      setAboutClamped(true);
+                    }
+                  }}
+                />
+                {!aboutExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                )}
+              </div>
+              <button
+                onClick={() => setAboutExpanded(!aboutExpanded)}
+                className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
+              >
+                {aboutExpanded ? "Show Less" : "Read More"}
+                <svg
+                  className={`h-4 w-4 transition-transform duration-300 ${aboutExpanded ? "rotate-180" : ""}`}
+                  fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
 
             {/* Featured Artists Section */}

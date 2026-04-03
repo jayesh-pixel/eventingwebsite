@@ -97,7 +97,7 @@ export default function EventsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">
             <span className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] bg-clip-text text-transparent">All</span>
             {" "}<span className="text-white">Events</span>
           </h1>
@@ -168,10 +168,10 @@ export default function EventsPage() {
             {filteredEvents.map((event) => (
               <Link key={event.event_id} href={`/events/${event.event_id}`}>
                 <Card className={`bg-slate-900/50 backdrop-blur-sm border-slate-800 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1 ${
-                  viewMode === "list" ? "flex" : ""
+                  viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}>
                   <div className={`relative overflow-hidden ${
-                    viewMode === "list" ? "w-80 h-52" : "h-52"
+                    viewMode === "list" ? "w-full sm:w-60 md:w-80 h-48 sm:h-52" : "h-48 sm:h-52"
                   }`}>
                     <img
                       src={

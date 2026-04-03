@@ -222,6 +222,7 @@ export default function BookEventPage() {
   const [tickets, setTickets] = React.useState<TicketData[]>([]);
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [showCount, setShowCount] = React.useState<Record<string, boolean>>({});
+  const [expandedDescriptions, setExpandedDescriptions] = React.useState<Record<string, boolean>>({});
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
 
   // Promocode state ------------------------------------------------------------
@@ -605,12 +606,7 @@ export default function BookEventPage() {
     else if (phone.length !== 10) errors.phone = "Phone number must be 10 digits";
     if (!email) errors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email";
-    if (!address) errors.address = "Address is required";
-    if (!pincode) errors.pincode = "Pincode is required";
-    else if (!/^\d{4,10}$/.test(pincode)) errors.pincode = "Enter a valid pincode";
-    if (!country) errors.country = "Country is required";
-    if (!state) errors.state = "State is required";
-    if (!city) errors.city = "City is required";
+
     if (ageValue) {
       const age = parseInt(ageValue, 10);
       if (isNaN(age) || age < 1 || age > 120) errors.age = "Age should be 1–120";
@@ -903,31 +899,33 @@ export default function BookEventPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
       <div className="container mx-auto px-4 sm:px-8 py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <Link href={`/events/${eventId}`}>
               <Button variant="ghost" className="text-white hover:bg-white/10 border border-slate-700/50">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Event
               </Button>
             </Link>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">Book Event Tickets</h1>
+            <h1 className="text-xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">Book Event Tickets</h1>
           </div>
-          <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-2 rounded-lg border border-slate-700/50">
-            <ShieldCheck className="h-5 w-5 text-green-400" />
-            <span className="text-sm text-slate-300">Secure & Encrypted</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-2 rounded-lg border border-slate-700/50">
+              <ShieldCheck className="h-5 w-5 text-green-400" />
+              <span className="text-sm text-slate-300">Secure & Encrypted</span>
+            </div>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2 bg-green-900/20 px-3 py-2 rounded-lg border border-green-500/50">
+                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-400">Logged In</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-orange-900/20 px-3 py-2 rounded-lg border border-orange-500/50">
+                <div className="h-2 w-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-orange-400">Guest Mode</span>
+              </div>
+            )}
           </div>
-          {isAuthenticated ? (
-            <div className="flex items-center gap-2 bg-green-900/20 px-3 py-2 rounded-lg border border-green-500/50">
-              <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-400">Logged In</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 bg-orange-900/20 px-3 py-2 rounded-lg border border-orange-500/50">
-              <div className="h-2 w-2 bg-orange-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-orange-400">Guest Mode</span>
-            </div>
-          )}
         </div>
 
         {/* Event Info Card */}
@@ -1068,9 +1066,33 @@ export default function BookEventPage() {
                               </Badge>
                             </div>
                             {t.TicketDescprition && (
-                              <p className="text-sm text-slate-300 leading-relaxed bg-slate-800/50 p-3 rounded-lg border border-slate-700/30">
-                                {t.TicketDescprition}
-                              </p>
+                              <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700/30">
+                                <p className={`text-sm text-slate-300 leading-relaxed ${
+                                  !expandedDescriptions[t.Ticket_Id] ? "line-clamp-2" : ""
+                                }`}>
+                                  {t.TicketDescprition}
+                                </p>
+                                {t.TicketDescprition.length > 100 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedDescriptions(prev => ({
+                                        ...prev,
+                                        [t.Ticket_Id]: !prev[t.Ticket_Id]
+                                      }));
+                                    }}
+                                    className="mt-1 text-[#00E1FC] hover:text-[#00E1FC]/80 text-xs font-semibold transition-colors duration-200 flex items-center gap-1"
+                                  >
+                                    {expandedDescriptions[t.Ticket_Id] ? "Show Less" : "Read More"}
+                                    <svg
+                                      className={`h-3 w-3 transition-transform duration-300 ${expandedDescriptions[t.Ticket_Id] ? "rotate-180" : ""}`}
+                                      fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
                             )}
                             <div className="flex flex-wrap gap-3 text-xs text-slate-400">
                               <span className="bg-slate-800/50 px-2 py-1 rounded">Max {maxAllowed} per order</span>
@@ -1200,63 +1222,7 @@ export default function BookEventPage() {
                   {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-slate-200 font-medium">Address *</Label>
-                  <Input
-                    value={customer.address}
-                    className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
-                    placeholder="Enter street address"
-                    onChange={(e) => handleCustChange("address", e.target.value)}
-                  />
-                  {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">Pincode *</Label>
-                    <Input
-                      value={customer.pincode}
-                      maxLength={10}
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
-                      placeholder="Enter pincode"
-                      onChange={(e) => handleCustChange("pincode", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    />
-                    {formErrors.pincode && <p className="text-red-400 text-xs mt-1">{formErrors.pincode}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">Country *</Label>
-                    <Input
-                      value={customer.country}
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
-                      placeholder="Enter country"
-                      onChange={(e) => handleCustChange("country", e.target.value)}
-                    />
-                    {formErrors.country && <p className="text-red-400 text-xs mt-1">{formErrors.country}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">State *</Label>
-                    <Input
-                      value={customer.state}
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
-                      placeholder="Enter state"
-                      onChange={(e) => handleCustChange("state", e.target.value)}
-                    />
-                    {formErrors.state && <p className="text-red-400 text-xs mt-1">{formErrors.state}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-200 font-medium">City *</Label>
-                    <Input
-                      value={customer.city}
-                      className="bg-slate-800/60 border-slate-600/50 text-white placeholder-slate-400 focus:border-[#00E1FC] focus:ring-[#00E1FC]/20 transition-colors"
-                      placeholder="Enter city"
-                      onChange={(e) => handleCustChange("city", e.target.value)}
-                    />
-                    {formErrors.city && <p className="text-red-400 text-xs mt-1">{formErrors.city}</p>}
-                  </div>
-                </div>
 
                 <div className="space-y-2">
                   <Label className="text-slate-200 font-medium">Age (Optional)</Label>
@@ -1369,7 +1335,6 @@ export default function BookEventPage() {
                                   {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-slate-400 mt-1">{promo.TermsCondition}</p>
                             </button>
                           ))}
                         </div>

@@ -15,11 +15,23 @@ export default function Home() {
 
       <div className="relative z-10 w-full bg-black">
         <div>
-          {/* Circular Artists Row - Small circles below hero */}
+          {/* Categories Section */}
           <section className="py-4 border-b border-blue-900/20">
-            <div className="px-4 sm:px-6 lg:px-8">
-              <ArtistsSection />
+            <div className="px-4 sm:px-6 lg:px-8 mb-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+                  Browse All <span className="text-blue-500">Categories</span>
+                </h2>
+                <Link
+                  href="/categories"
+                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                >
+                  <span>View all</span>
+                  <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </div>
             </div>
+            <EventCategories />
           </section>
 
           {/* Updated Section for Events - Remove header, show inline */}
@@ -46,23 +58,11 @@ export default function Home() {
             <UpcomingEvents />
           </section>
 
-          {/* Categories Section */}
+          {/* Circular Artists Row */}
           <section className="py-6 border-t border-blue-900/20">
-            <div className="px-4 sm:px-6 lg:px-8 mb-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
-                  Browse All <span className="text-blue-500">Categories</span>
-                </h2>
-                <Link
-                  href="/categories"
-                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
-                >
-                  <span>View all</span>
-                  <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </div>
+            <div className="px-4 sm:px-6 lg:px-8">
+              <ArtistsSection />
             </div>
-            <EventCategories />
           </section>
 
           {/* Venues Section */}
