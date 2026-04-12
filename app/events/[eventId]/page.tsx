@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, MapPin, Users, Star, Share2, Heart, Ticket } from "lucide-react";
+import { Calendar, Clock, MapPin, Share2, Heart, Ticket } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 
@@ -64,8 +64,7 @@ export default function EventDetailsPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [aboutExpanded, setAboutExpanded] = useState(false);
-  const [aboutClamped, setAboutClamped] = useState(false);
-  const aboutRef = useRef<HTMLDivElement>(null);
+  const [termsExpanded, setTermsExpanded] = useState(false);
 
 
   useEffect(() => {
@@ -161,11 +160,30 @@ export default function EventDetailsPage() {
       ? eventDetails.TicketPriceStartsFrom
       : null;
 
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const aboutText = stripHtml(eventDetails.AboutEvent || "");
+  const termsText = stripHtml(eventDetails.EventTermsConditions || "");
+  const showAboutToggle = aboutText.length > 140;
+  const showTermsToggle = termsText.length > 140;
+  const getVenueMapUrl = (raw: string) => {
+    if (!raw) return "";
+    if (raw.startsWith("http")) return raw;
+
+    const srcMatch = raw.match(/src=["']([^"']+)["']/i);
+    if (srcMatch?.[1]) return srcMatch[1];
+
+    const hrefMatch = raw.match(/href=["']([^"']+)["']/i);
+    if (hrefMatch?.[1]) return hrefMatch[1];
+
+    return "";
+  };
+  const venueMapUrl = getVenueMapUrl(eventDetails.VenueMapLocationLink || "");
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-2 sm:pt-4 pb-24 lg:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Link href="/events">
             <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all group">
               <svg className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -175,11 +193,11 @@ export default function EventDetailsPage() {
         </div>
 
         {/* Main Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-8">
             {/* Hero Image Section */}
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl group">
               {/* Main Image */}
               <div className="relative h-[300px] sm:h-[450px] md:h-[550px]">
                 {eventDetails.EventCarouselImages.length > 0 && (
@@ -192,27 +210,27 @@ export default function EventDetailsPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40"></div>
 
                 {/* Category Badge */}
-                <div className="absolute top-6 left-6">
+                <div className="absolute top-3 left-3 sm:top-6 sm:left-6">
                   <Badge className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white border-0 px-4 py-2 text-sm font-semibold shadow-lg">
                     {eventDetails.categoryName}
                   </Badge>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="absolute top-6 right-6 flex space-x-3">
+                <div className="absolute top-3 right-3 sm:top-6 sm:right-6 flex space-x-2 sm:space-x-3">
                   <button
                     onClick={() => setIsLiked(!isLiked)}
-                    className="bg-slate-900/80 backdrop-blur-md p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50"
+                    className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50"
                   >
-                    <Heart className={`h-5 w-5 transition-all ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-white'}`} />
+                    <Heart className={`h-4 w-4 sm:h-5 sm:w-5 transition-all ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-white'}`} />
                   </button>
-                  <button className="bg-slate-900/80 backdrop-blur-md p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50">
-                    <Share2 className="h-5 w-5 text-white" />
+                  <button className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50">
+                    <Share2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </button>
                 </div>
 
                 {/* Title and Meta Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8">
                   <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
                     {eventDetails.EventName}
                   </h1>
@@ -270,86 +288,107 @@ export default function EventDetailsPage() {
               )}
             </div>
 
-            {/* About Event Section */}
-            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
-                About This Event
-              </h2>
-              <div className="relative">
-                <div
-                  ref={aboutRef}
-                  className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
-                    !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
-                  onLoad={() => {
-                    if (aboutRef.current && aboutRef.current.scrollHeight > aboutRef.current.clientHeight) {
-                      setAboutClamped(true);
-                    }
-                  }}
-                />
-                {!aboutExpanded && (
-                  <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
-                )}
-              </div>
-              <button
-                onClick={() => setAboutExpanded(!aboutExpanded)}
-                className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
-              >
-                {aboutExpanded ? "Show Less" : "Read More"}
-                <svg
-                  className={`h-4 w-4 transition-transform duration-300 ${aboutExpanded ? "rotate-180" : ""}`}
-                  fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Featured Artists Section */}
-            {eventDetails.EventArtists.length > 0 && (
-              <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            {/* Event Info Panel */}
+            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6">
+              <section>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
                   <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
-                  Featured Artists
+                  About This Event
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {eventDetails.EventArtists.map((artist, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/40 hover:bg-slate-800/70 hover:border-[#00E1FC]/30 transition-all duration-300 group"
-                    >
-                      <div className="relative">
-                        <img
-                          src={getImageUrl(artist.ArtistImage)}
-                          alt={artist.ArtistName}
-                          className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-700/50 group-hover:ring-[#00E1FC]/50 transition-all"
-                        />
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00E1FC]/0 to-[#0F33D1]/0 group-hover:from-[#00E1FC]/20 group-hover:to-[#0F33D1]/20 transition-all"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-white mb-1 truncate group-hover:text-[#00E1FC] transition-colors">
-                          {artist.ArtistName}
-                        </h3>
-                        <p className="text-sm text-slate-400">Featured Artist</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="relative">
+                  <div
+                    className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
+                      !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
+                  />
+                  {!aboutExpanded && (
+                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                  )}
                 </div>
-              </div>
-            )}
+                {showAboutToggle && (
+                  <button
+                    onClick={() => setAboutExpanded(!aboutExpanded)}
+                    className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
+                  >
+                    {aboutExpanded ? "Show Less" : "Read More"}
+                    <svg
+                      className={`h-4 w-4 transition-transform duration-300 ${aboutExpanded ? "rotate-180" : ""}`}
+                      fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
+              </section>
 
-            {/* Terms & Conditions Section */}
-            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
-                Terms & Conditions
-              </h2>
-              <div
-                className="text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 max-h-96 overflow-y-auto custom-scrollbar"
-                dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
-              />
+              {eventDetails.EventArtists.length > 0 && (
+                <>
+                  <Separator className="bg-slate-700/50" />
+                  <section>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-5 flex items-center gap-2">
+                      <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                      Featured Artists
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {eventDetails.EventArtists.map((artist, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 rounded-xl border border-slate-700/40 hover:bg-slate-800/70 hover:border-[#00E1FC]/30 transition-all duration-300 group"
+                        >
+                          <div className="relative">
+                            <img
+                              src={getImageUrl(artist.ArtistImage)}
+                              alt={artist.ArtistName}
+                              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover ring-2 ring-slate-700/50 group-hover:ring-[#00E1FC]/50 transition-all"
+                            />
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00E1FC]/0 to-[#0F33D1]/0 group-hover:from-[#00E1FC]/20 group-hover:to-[#0F33D1]/20 transition-all"></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm sm:text-base font-semibold text-white mb-1 truncate group-hover:text-[#00E1FC] transition-colors">
+                              {artist.ArtistName}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-slate-400">Featured Artist</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+
+              <Separator className="bg-slate-700/50" />
+              <section>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                  Terms & Conditions
+                </h2>
+                <div className="relative">
+                  <div
+                    className={`text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
+                      !termsExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
+                  />
+                  {!termsExpanded && (
+                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                  )}
+                </div>
+                {showTermsToggle && (
+                  <button
+                    onClick={() => setTermsExpanded(!termsExpanded)}
+                    className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
+                  >
+                    {termsExpanded ? "Show Less" : "Read More"}
+                    <svg
+                      className={`h-4 w-4 transition-transform duration-300 ${termsExpanded ? "rotate-180" : ""}`}
+                      fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
+              </section>
             </div>
           </div>
 
@@ -399,9 +438,20 @@ export default function EventDetailsPage() {
                         <MapPin className="h-4 w-4 text-[#00E1FC]" />
                         Venue
                       </span>
-                      <span className="text-sm text-white font-medium text-right max-w-[200px]">
-                        {eventDetails.VenueName}
-                      </span>
+                      {venueMapUrl ? (
+                        <a
+                          href={venueMapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium text-right max-w-[200px] underline underline-offset-2"
+                        >
+                          {eventDetails.VenueName}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-white font-medium text-right max-w-[200px]">
+                          {eventDetails.VenueName}
+                        </span>
+                      )}
                     </div>
                     <Separator className="bg-slate-700/50" />
                     
@@ -413,7 +463,7 @@ export default function EventDetailsPage() {
 
                   {/* CTA Button */}
                   {startingTicketPrice !== null ? (
-                    <Link href={`/events/${eventId}/book`} className="block mt-6">
+                    <Link href={`/events/${eventId}/book`} className="hidden lg:block mt-6">
                       <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg hover:shadow-[#00E1FC]/30 transition-all duration-300 group">
                         <Ticket className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
                         Book Tickets Now
@@ -434,42 +484,24 @@ export default function EventDetailsPage() {
                     </div>
                   )}
 
-                  {/* Social Proof */}
-                  <div className="flex items-center justify-around text-xs text-slate-400 pt-4 border-t border-slate-700/50">
-                    <div className="flex flex-col items-center gap-1">
-                      <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                      <span className="font-medium text-white">4.8</span>
-                      <span>Rating</span>
-                    </div>
-                    <div className="h-12 w-px bg-slate-700/50"></div>
-                    <div className="flex flex-col items-center gap-1">
-                      <Users className="h-5 w-5 text-green-400" />
-                      <span className="font-medium text-white">150+</span>
-                      <span>Going</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* Venue Location Map */}
-              {eventDetails.VenueMapLocationLink && (
-                <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="p-6">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-[#00E1FC]" />
-                      Venue Location
-                    </h2>
-                  </div>
-                  <div
-                    className="w-full h-[300px] border-t border-slate-700/50 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:min-h-[300px]"
-                    dangerouslySetInnerHTML={{ __html: eventDetails.VenueMapLocationLink }}
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
+
+      {startingTicketPrice !== null && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3">
+          <Link href={`/events/${eventId}/book`} className="block">
+            <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg">
+              <Ticket className="mr-2 h-5 w-5" />
+              Book Tickets Now
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,9 +2,38 @@
 
 import { Instagram, Twitter, Music2, Youtube } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Footer() {
   const pathname = usePathname() || "";
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Eventing Club";
+  const appDescription =
+    process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+    "Discover events, explore artists, and book tickets seamlessly.";
+
+  const socialLinks = [
+    {
+      href: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+      icon: Instagram,
+      label: "Instagram",
+    },
+    {
+      href: process.env.NEXT_PUBLIC_TWITTER_URL,
+      icon: Twitter,
+      label: "Twitter",
+    },
+    {
+      href: process.env.NEXT_PUBLIC_TIKTOK_URL,
+      icon: Music2,
+      label: "TikTok",
+    },
+    {
+      href: process.env.NEXT_PUBLIC_YOUTUBE_URL,
+      icon: Youtube,
+      label: "YouTube",
+    },
+  ].filter((item) => Boolean(item.href));
+
   // Hide footer on the single-screen event detail view
   if (/^\/events\/[^/]+$/.test(pathname)) return null;
 
@@ -15,36 +44,36 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Midnight Mirage
+              {appName}
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Connecting music lovers with unforgettable experiences worldwide. Your gateway to the best live events.
+              {appDescription}
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors duration-300">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors duration-300">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors duration-300">
-                <Music2 className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors duration-300">
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex space-x-4">
+                {socialLinks.map(({ href, icon: Icon, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors duration-300"
+                  >
+                    <Icon className="h-5 w-5" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Events */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Events</h3>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Upcoming Events</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Featured Events</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Music Festivals</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Concerts</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Venues</a></li>
+              <li><Link href="/events" className="hover:text-primary transition-colors duration-300">All Events</Link></li>
+              <li><Link href="/categories" className="hover:text-primary transition-colors duration-300">Categories</Link></li>
+              <li><Link href="/venues" className="hover:text-primary transition-colors duration-300">Venues</Link></li>
             </ul>
           </div>
 
@@ -52,11 +81,8 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Artists</h3>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Electronic</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Rock & Alternative</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Pop & Mainstream</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Jazz & Classical</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Discover Artists</a></li>
+              <li><Link href="/artists" className="hover:text-primary transition-colors duration-300">All Artists</Link></li>
+              <li><Link href="/events" className="hover:text-primary transition-colors duration-300">Upcoming Performances</Link></li>
             </ul>
           </div>
 
@@ -64,25 +90,23 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Support</h3>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Help Center</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Ticket Support</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Contact Us</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">FAQ</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-300">Terms & Privacy</a></li>
+              <li><Link href="/listwithus" className="hover:text-primary transition-colors duration-300">List With Us</Link></li>
+              <li><Link href="/signup" className="hover:text-primary transition-colors duration-300">Account</Link></li>
+              <li><Link href="/failure" className="hover:text-primary transition-colors duration-300">Need Help</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-slate-400 text-sm mb-4 md:mb-0">
-            © 2024 Midnight Mirage. All rights reserved. Crafted with passion for music lovers.
+            © {new Date().getFullYear()} {appName}. All rights reserved.
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-400">
-            <a href="#" className="hover:text-primary transition-colors duration-300">Privacy Policy</a>
+            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Privacy Policy</Link>
             <span>•</span>
-            <a href="#" className="hover:text-primary transition-colors duration-300">Terms of Service</a>
+            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Terms of Service</Link>
             <span>•</span>
-            <a href="#" className="hover:text-primary transition-colors duration-300">Cookies</a>
+            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Cookies</Link>
           </div>
         </div>
       </div>

@@ -195,7 +195,7 @@ export default function EventsPage() {
                     )}
                   </div>
                   
-                  <div className={`p-5 flex-1 ${viewMode === "list" ? "flex flex-col justify-between" : ""}`}>
+                  <div className={`p-4 sm:p-5 flex-1 ${viewMode === "list" ? "flex flex-col justify-between" : ""}`}>
                     <div>
                       <h3 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">
                         {event.EventName}
@@ -213,12 +213,12 @@ export default function EventsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center pt-3 border-t border-slate-800">
+                    <div className="flex flex-col items-start gap-2 pt-3 border-t border-slate-800 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <div className="text-xl font-bold text-[#00E1FC]">₹{event.LowestticketPrice}</div>
                         <div className="text-xs text-slate-500">onwards</div>
                       </div>
-                      <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-5 py-2 shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300">
+                      <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-4 sm:px-5 py-2 shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300 whitespace-nowrap">
                         Book Now
                       </Button>
                     </div>

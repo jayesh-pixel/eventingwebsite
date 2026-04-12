@@ -190,14 +190,14 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             </div>
             
             {isLoggedIn ? (
-              <Link href={`/userDetails/${cust_id}`} className="flex items-center gap-2 group">
+              <Link href={`/userDetails/${cust_id}`} className="hidden lg:flex items-center gap-2 group">
                 <div className="flex items-center gap-2 px-2 lg:px-4 py-2 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
                   <FaUserCircle className="size-7 lg:size-10 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
                   <span className="hidden xl:block text-white font-semibold">Profile</span>
                 </div>
               </Link>
             ) : (
-              <Link href="/signup">
+              <Link href="/signup" className="hidden lg:block">
                 <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-6 lg:px-10 py-2 lg:py-3.5 rounded-lg text-white font-bold text-sm lg:text-lg">
                   Sign Up
                 </button>
@@ -216,58 +216,60 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
         {/* Mobile menu */}
         {open && (
-          <div className="lg:hidden bg-slate-900/95 backdrop-blur-lg border-t border-slate-800">
-            <div className="px-4 pt-2 pb-3 space-y-1">
-              <Link
-                href="/"
-                onClick={handleClose}
-                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
-              >
-                Home
-              </Link>
-              <Link
-                href="/venues"
-                onClick={handleClose}
-                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
-              >
-                Venues
-              </Link>
-              <Link
-                href="/artists"
-                onClick={handleClose}
-                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
-              >
-                Artists
-              </Link>
-              <Link
-                href="/about"
-                onClick={handleClose}
-                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
-              >
-                About Us
-              </Link>
-              <Link
-                href="/listwithus"
-                onClick={handleClose}
-                className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
-              >
-                List With Us
-              </Link>
-              
-              <div className="px-3 py-2">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={handleChange}
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
-                    placeholder="Search events, venues..."
-                  />
+          <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800">
+            <div className="flex h-full flex-col">
+              <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4 space-y-1">
+                <Link
+                  href="/"
+                  onClick={handleClose}
+                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/venues"
+                  onClick={handleClose}
+                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                >
+                  Venues
+                </Link>
+                <Link
+                  href="/artists"
+                  onClick={handleClose}
+                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                >
+                  Artists
+                </Link>
+                <Link
+                  href="/about"
+                  onClick={handleClose}
+                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                >
+                  About Us
+                </Link>
+                <Link
+                  href="/listwithus"
+                  onClick={handleClose}
+                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                >
+                  List With Us
+                </Link>
+
+                <div className="px-3 py-2">
+                  <div className="relative">
+                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={handleChange}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                      placeholder="Search events, venues..."
+                    />
+                  </div>
                 </div>
               </div>
-              
-              <div className="px-3 py-2">
+
+              <div className="border-t border-slate-800 px-7 py-4 bg-slate-900/95">
                 {isLoggedIn ? (
                   <Link href={`/userDetails/${cust_id}`} onClick={handleClose}>
                     <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center gap-2">

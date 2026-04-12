@@ -18,13 +18,13 @@ export default function Home() {
           {/* Categories Section */}
           <section className="py-4 border-b border-blue-900/20">
             <div className="px-4 sm:px-6 lg:px-8 mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
                   Browse All <span className="text-blue-500">Categories</span>
                 </h2>
                 <Link
                   href="/categories"
-                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 shrink-0"
                 >
                   <span>View all</span>
                   <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
@@ -37,7 +37,7 @@ export default function Home() {
           {/* Updated Section for Events - Remove header, show inline */}
           <section className="py-6">
             <div className="px-4 sm:px-6 lg:px-8 mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
                     Upcoming <span className="text-blue-500">Events</span>
@@ -48,7 +48,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/events"
-                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 shrink-0"
                 >
                   <span>View all</span>
                   <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
@@ -68,13 +68,13 @@ export default function Home() {
           {/* Venues Section */}
           <section className="py-6 border-t border-blue-900/20">
             <div className="px-4 sm:px-6 lg:px-8 mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
                   Explore <span className="text-blue-500">Venues</span>
                 </h2>
                 <Link
                   href="/venues"
-                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                  className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-all duration-300 rounded-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 shrink-0"
                 >
                   <span>Explore</span>
                   <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
