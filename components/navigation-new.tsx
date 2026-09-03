@@ -216,70 +216,75 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
         {/* Mobile menu */}
         {open && (
-          <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800">
+          <div className="lg:hidden fixed inset-x-0 top-16 lg:top-24 bottom-0 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 z-40">
             <div className="flex h-full flex-col">
-              <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4 space-y-1">
+              <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-2">
                 <Link
                   href="/"
                   onClick={handleClose}
-                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                   Home
                 </Link>
                 <Link
                   href="/venues"
                   onClick={handleClose}
-                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
                 >
+                  <LuMapPin className="w-5 h-5" />
                   Venues
                 </Link>
                 <Link
                   href="/artists"
                   onClick={handleClose}
-                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
                 >
+                  <MdEventAvailable className="w-5 h-5" />
                   Artists
                 </Link>
                 <Link
                   href="/about"
                   onClick={handleClose}
-                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   About Us
                 </Link>
                 <Link
                   href="/listwithus"
                   onClick={handleClose}
-                  className="block px-3 py-2 text-white hover:text-[#00E1FC] transition-colors duration-300"
+                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                   List With Us
                 </Link>
 
-                <div className="px-3 py-2">
+                <div className="px-1 py-3">
                   <div className="relative">
                     <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={handleChange}
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
                       placeholder="Search events, venues..."
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-slate-800 px-7 py-4 bg-slate-900/95">
+              <div className="border-t border-slate-800 px-6 py-4 bg-slate-900/95">
                 {isLoggedIn ? (
                   <Link href={`/userDetails/${cust_id}`} onClick={handleClose}>
-                    <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center gap-2">
-                      <FaUserCircle className="text-[#00E1FC]" size={20} />
+                    <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-lg">
+                      <FaUserCircle className="text-[#00E1FC]" size={22} />
                       My Profile
                     </button>
                   </Link>
                 ) : (
                   <Link href="/signup" onClick={handleClose}>
-                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-2 rounded-lg text-white font-semibold">
+                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-3 rounded-xl text-white font-bold text-lg">
                       Sign Up
                     </button>
                   </Link>

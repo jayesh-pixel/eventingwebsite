@@ -163,10 +163,11 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
   }
 
   // Get image URL from API response or use default
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
   const imageUrl = venue.venueImages && venue.venueImages.length > 0 
     ? venue.venueImages[0].image_path.startsWith('http')
       ? venue.venueImages[0].image_path
-      : `https://devapi.eventingclub.in/${venue.venueImages[0].image_path}`
+      : `${BACKEND_URL}/${venue.venueImages[0].image_path}`
     : `https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=600&fit=crop&sig=${params.id}`;
 
   // Get location string

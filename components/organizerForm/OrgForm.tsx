@@ -37,8 +37,13 @@ const OrgForm = () => {
       return;
     }
 
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     if (form.phone.length < 10 || form.phone.length > 10) {
-      toast.error("Please enter a valid phone number");
+      toast.error("Please enter a valid 10-digit phone number");
       return;
     }
     if (form.orgName.length <= 2) {
@@ -76,19 +81,23 @@ const OrgForm = () => {
         city: "",
       });
     } catch (error: any) {
-      const { status, data } = error.response;
+      if (error?.response) {
+        const { status, data } = error.response;
 
-      if (
-        status === 404 ||
-        status === 403 ||
-        status === 500 ||
-        status === 302 ||
-        status === 409 ||
-        status === 401 ||
-        status === 400
-      ) {
-        console.log(error.response);
-        toast.error(data.message);
+        if (
+          status === 404 ||
+          status === 403 ||
+          status === 500 ||
+          status === 302 ||
+          status === 409 ||
+          status === 401 ||
+          status === 400
+        ) {
+          console.log(error.response);
+          toast.error(data.message);
+        }
+      } else {
+        toast.error("Something went wrong. Please try again.");
       }
     }
   };

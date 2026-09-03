@@ -80,11 +80,29 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
         const payload = { customer_id: cust_id };
         const response = await axios.post(`${customer.GET_TICKETS_BY_ID}`, payload);
         if ((response.data as any)?.data) {
-          setTicketsData((response.data as any).data);
+          const data = (response.data as any).data;
+          // Handle various response shapes — API may return UpcomingEventTickets/PastEventTickets
+          // or a flat array, or additional promoter-booked tickets
+          const upcoming = data.UpcomingEventTickets || data.upcoming || [];
+          const past = data.PastEventTickets || data.past || [];
+          // Also check for promoter-booked tickets if the API returns them separately
+          const promoterBooked = data.PromoterBookedTickets || data.promoter_tickets || [];
+          const combined = [...upcoming, ...past, ...promoterBooked];
+
+          if (combined.length > 0) {
+            setTicketsData({
+              UpcomingEventTickets: upcoming,
+              PastEventTickets: past,
+              PromoterBookedTickets: promoterBooked,
+            });
+          } else {
+            setTicketsData(null);
+          }
         } else {
           setTicketsData(null);
         }
       } catch (err) {
+        console.error("Failed to fetch tickets:", err);
         setTicketsData(null);
       }
     };
@@ -220,7 +238,8 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
               (() => {
                 const upcoming = (ticketsData as any)?.UpcomingEventTickets || [];
                 const past = (ticketsData as any)?.PastEventTickets || [];
-                const combined = [...upcoming, ...past];
+                const promoterBooked = (ticketsData as any)?.PromoterBookedTickets || [];
+                const combined = [...upcoming, ...past, ...promoterBooked];
 
                 if (combined.length === 0) {
                   return (

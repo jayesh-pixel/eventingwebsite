@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-const VENUES_API_URL = BACKEND_URL ? `${BACKEND_URL}/website/venue/getAllVenueData` : '';
+import { venues as venuesConfig } from "@/utils/config";
 
 interface Venue {
   _id: string;
@@ -42,10 +41,7 @@ export default function VenuesPage() {
     const fetchVenues = async () => {
       try {
         setIsLoading(true);
-        if (!VENUES_API_URL) {
-          throw new Error('Venues API URL is not defined in environment variables.');
-        }
-        const response = await axios.get<VenuesApiResponse>(VENUES_API_URL);
+        const response = await axios.get<VenuesApiResponse>(venuesConfig.GET_ALL);
         
         if (response.data && !response.data.error) {
           // Sort by priority

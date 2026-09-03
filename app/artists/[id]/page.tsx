@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { artists as artistsConfig } from "@/utils/config";
 
 interface Artist {
   _id: string;
@@ -49,7 +50,7 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
         console.log('Fetching artist with ID:', params.id);
 
         const response = await axios.post<EventsByArtistResponse>(
-          'https://devapi.eventingclub.in/webiste/artist/getEventsByArtist',
+          artistsConfig.ARTIST_BY_ID,
           { artist_id: params.id }
         );
         console.log('API Response:', response.data);
@@ -109,10 +110,11 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
   }
 
   // Get image URL from API response or use default
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
   const imageUrl = artist.Images && artist.Images.length > 0 
     ? artist.Images[0].image_path.startsWith('http')
       ? artist.Images[0].image_path
-      : `https://devapi.eventingclub.in/${artist.Images[0].image_path}`
+      : `${BACKEND_URL}/${artist.Images[0].image_path}`
     : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop&sig=${artist._id}`;
 
   return (

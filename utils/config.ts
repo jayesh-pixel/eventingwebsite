@@ -62,7 +62,8 @@ export const eventTour = {
 };
 
 export const promocode = {
-  GET_ALL: `${URL}/webiste/promocodes/getPromocodesForEventsWebsite`,
+  GET_ALL: `${URL}/webiste/promocodes/getPromocodesforWebsite`,
+  APPLY: `${URL}/webiste/promocodes/applyPromocodeForWebsite`,
 };
 
 export const bookTicketApi = {

@@ -20,9 +20,14 @@ function PaymentResponseHandler() {
     const error = searchParams.get('error');
     const error_Message = searchParams.get('error_Message');
     
-    // Extract event ID from productinfo or URL
+    // Extract event ID from productinfo, URL, or sessionStorage
     const eventIdMatch = productinfo?.match(/event_(\w+)/) || window.location.pathname.match(/events\/([^\/]+)/);
-    const eventId = eventIdMatch ? eventIdMatch[1] : 'unknown';
+    let eventId = eventIdMatch ? eventIdMatch[1] : '';
+    
+    // Fallback to sessionStorage (set by booking page before PayU redirect)
+    if (!eventId) {
+      eventId = sessionStorage.getItem('lastEventId') || 'unknown';
+    }
 
     console.log('Payment Response:', {
       status,
@@ -46,7 +51,7 @@ function PaymentResponseHandler() {
         eventName: productinfo || 'Event'
       });
       
-      router.push(`/events/${eventId}/booking-success?${successParams.toString()}`);
+      router.replace(`/events/${eventId}/booking-success?${successParams.toString()}`);
     } else if (status === 'failure' || status === 'cancel') {
       // Redirect to failed page with details
       const failParams = new URLSearchParams({
@@ -57,7 +62,7 @@ function PaymentResponseHandler() {
         eventName: productinfo || 'Event'
       });
       
-      router.push(`/events/${eventId}/booking-failed?${failParams.toString()}`);
+      router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);
     } else {
       // Unknown status, redirect to failed page
       const failParams = new URLSearchParams({
@@ -68,7 +73,7 @@ function PaymentResponseHandler() {
         eventName: productinfo || 'Event'
       });
       
-      router.push(`/events/${eventId}/booking-failed?${failParams.toString()}`);
+      router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);
     }
   }, [router, searchParams]);
 

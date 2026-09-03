@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "axios";
+import { getBanner } from "@/utils/config";
 
 interface BannerData {
   _id: string;
@@ -50,13 +51,7 @@ export default function HeroSection() {
     const fetchBanners = async () => {
       try {
         setIsLoading(true);
-        if (!BACKEND_URL) {
-          throw new Error('Backend URL is not defined in environment variables.');
-        }
-        
-        const response = await axios.get<BannerApiResponse>(
-          `${BACKEND_URL}/webiste/homepage/getAllBannerSliderData`
-        );
+        const response = await axios.get<BannerApiResponse>(getBanner);
         
         if (response.data && !response.data.error) {
           const activeBanners = response.data.data.filter(banner => banner.status === 1);

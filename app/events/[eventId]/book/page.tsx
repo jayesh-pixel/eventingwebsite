@@ -24,15 +24,13 @@ import {
   Minus,
   Plus,
   Users,
-  MapPin,
-  Ticket,
   CreditCard,
   ShieldCheck,
 } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { TicketType } from "@/lib/types";
-import { bookTicketApi, customer as customerApi, promocode } from "@/utils/config";
+import { bookTicketApi, customer as customerApi, events as eventsConfig, promocode as promocodeConfig } from "@/utils/config";
 import { encryptData, decryptData } from "@/utils/constants";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -249,6 +247,28 @@ export default function BookEventPage() {
     return ticket ? sum + qty * ticket.TicketPrice : sum;
   }, 0);
   
+  // Calculate convenience fees based on selected ticket's ConfeeUnit and ConValue
+  // ConfeeUnit: 1 = fixed amount per ticket, 2 = percentage per ticket, 3 = fixed per order
+  const convenienceFee = Object.entries(counts).reduce((sum, [ticketId, qty]) => {
+    const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+    if (!ticket || qty <= 0) return sum;
+
+    const feeUnit = Number(ticket.ConfeeUnit) || 0;
+    const feeValue = Number(ticket.ConValue) || 0;
+
+    if (feeUnit === 1) {
+      // Fixed amount per ticket
+      return sum + feeValue * qty;
+    } else if (feeUnit === 2) {
+      // Percentage per ticket
+      return sum + (ticket.TicketPrice * qty * feeValue) / 100;
+    } else if (feeUnit === 3) {
+      // Fixed amount per order (only add once)
+      return sum + feeValue;
+    }
+    return sum;
+  }, 0);
+
   // Calculate discount from promocode
   let discountAmount = 0;
   if (appliedPromocode) {
@@ -261,7 +281,7 @@ export default function BookEventPage() {
     }
   }
   
-  const finalAmount = Math.max(0, totalPrice - discountAmount);
+  const finalAmount = Math.max(0, totalPrice + convenienceFee - discountAmount);
   const selectedTickets = tickets.filter((ticket) => counts[ticket.Ticket_Id] > 0);
   const selectedTicket = selectedTickets[0] ?? null;
 
@@ -270,19 +290,20 @@ export default function BookEventPage() {
   // Fetch available promocodes
   React.useEffect(() => {
     const fetchPromocodes = async () => {
-      if (!eventId || !customerId) return;
+      if (!eventId) return;
       
       try {
         const response = await axios.post<PromocodeListResponse>(
-          promocode.GET_ALL,
+          promocodeConfig.GET_ALL,
           {
             event_id: eventId,
-            customer_id: customerId
+            ...(customerId ? { customer_id: customerId } : {}),
           }
         );
         
         if (response.data && !response.data.error) {
-          setAvailablePromocodes((response.data.data || []).map((p: any) => normalizePromocode(p)));
+          const promocodes = (response.data.data || []).map((p: any) => normalizePromocode(p));
+          setAvailablePromocodes(promocodes);
         }
       } catch (error) {
         console.error('Failed to fetch promocodes:', error);
@@ -335,9 +356,8 @@ export default function BookEventPage() {
         setLoading(true);
         
         // Fetch event details
-        const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const eventDetailsResponse = await axios.post<ApiResponse>(
-          `${apiBase}/webiste/events/getEventDetailsById`,
+          eventsConfig.GET_ALL,
           { event_id: eventId }
         );
 
@@ -347,7 +367,7 @@ export default function BookEventPage() {
 
         // Fetch event dates and times
         const datesResponse = await axios.post<EventDateTimeResponse>(
-          `${apiBase}/webiste/events/getEventDateTimeById`,
+          eventsConfig.GET_TICKETS_DATA,
           { event_id: eventId }
         );
 
@@ -377,9 +397,8 @@ export default function BookEventPage() {
   // Load tickets for selected date
   const loadTickets = async (eventDateTimeId: string) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       const response = await axios.post<TicketResponse>(
-        `${apiBase}/webiste/eventtickets/getWebsiteTicketsbyEventDate`,
+        eventsConfig.GET_TICKETS_BY_ID,
         {
           event_id: eventId,
           eventDateTime_id: eventDateTimeId
@@ -427,6 +446,13 @@ export default function BookEventPage() {
         toast.error(`Maximum ${maxAllowed} ticket${maxAllowed > 1 ? 's' : ''} allowed per booking.`);
         return prev;
       }
+
+      // Warn if total exceeds 10
+      const newTotal = Object.values(prev).reduce((s, n) => s + n, 0) + 1;
+      if (newTotal > 10) {
+        toast.error("You can book a maximum of 10 tickets per order.");
+        return prev;
+      }
       
       return { ...prev, [ticketId]: (prev[ticketId] || 0) + 1 };
     });
@@ -467,9 +493,8 @@ export default function BookEventPage() {
     setPromocodeError("");
     
     try {
-      const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       const response = await axios.post<ApplyPromocodeResponse>(
-        `${apiBase}/webiste/promocodes/applyPromocodeForWebsite`,
+        promocodeConfig.APPLY,
         {
           event_id: eventId,
           customer_id: customerId,
@@ -646,8 +671,10 @@ export default function BookEventPage() {
         TicketQuantity: ticketQuantity,
       };
 
-      if (appliedPromocode?.promocode_id || appliedPromocode?._id) {
-        bookingPayload.Promocode_id = appliedPromocode.promocode_id ?? appliedPromocode._id;
+      // Only include promocode_id if we have a valid ID from the apply response
+      const promoId = appliedPromocode?.promocode_id || appliedPromocode?._id;
+      if (promoId && appliedPromocode) {
+        bookingPayload.Promocode_id = promoId;
       }
       
       console.log('Booking payload:', bookingPayload);
@@ -656,9 +683,25 @@ export default function BookEventPage() {
       const encryptedPayload = encryptData(JSON.stringify(bookingPayload), passphrase);
 
       // Call booking API with encrypted payload
-      const response = await axios.post(`${bookTicketApi.POST_DATA}`, {
-        string: encryptedPayload,
-      });
+      let response;
+      try {
+        response = await axios.post(`${bookTicketApi.POST_DATA}`, {
+          string: encryptedPayload,
+        });
+      } catch (bookError: any) {
+        // If booking with promocode fails, retry without promocode
+        if (bookingPayload.Promocode_id) {
+          console.warn('Booking with promocode failed, retrying without promocode...', bookError);
+          const fallbackPayload: BookingPayload = { ...bookingPayload };
+          delete fallbackPayload.Promocode_id;
+          const fallbackEncrypted = encryptData(JSON.stringify(fallbackPayload), passphrase);
+          response = await axios.post(`${bookTicketApi.POST_DATA}`, {
+            string: fallbackEncrypted,
+          });
+        } else {
+          throw bookError;
+        }
+      }
 
       toast.dismiss();
 
@@ -847,7 +890,7 @@ export default function BookEventPage() {
     <>
       <LoginModal />
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black">
-      <div className="container mx-auto px-4 sm:px-8 pt-2 pb-5 sm:py-8 max-w-3xl">
+      <div className="container mx-auto px-4 sm:px-8 pt-2 pb-24 sm:pb-28 max-w-3xl">
         <div className="flex flex-col gap-3 mb-5 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-col gap-2">
@@ -908,34 +951,14 @@ export default function BookEventPage() {
 
         <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
           <CardContent className="p-4 sm:p-5">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-2">{eventDetails.EventName}</h2>
-                  <Badge variant="secondary" className="mt-2 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white px-3 py-1">
-                    {eventDetails.categoryName}
-                  </Badge>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xs text-slate-400">Starting from</p>
-                  <p className="text-2xl font-bold text-[#00E1FC] flex items-center justify-end">
-                    <IndianRupee className="h-5 w-5" />
-                    {eventDetails.TicketPriceStartsFrom}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 text-slate-300">
-                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg min-w-0">
-                  <CalendarDays className="h-4 w-4 mr-2 text-[#00E1FC]" />
-                  <span className="text-sm truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Date || eventDetails.EventStartDate : eventDetails.EventStartDate}</span>
-                </div>
-                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg min-w-0">
-                  <Clock className="h-4 w-4 mr-2 text-[#00E1FC]" />
-                  <span className="text-sm truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Time || eventDetails.EventStartTime : eventDetails.EventStartTime}</span>
-                </div>
-                <div className="flex items-center bg-slate-800/50 px-3 py-2 rounded-lg min-w-0 w-full">
-                  <MapPin className="h-4 w-4 mr-2 text-[#00E1FC]" />
-                  <span className="text-sm truncate">{eventDetails.VenueName}, {eventDetails.VenueCity}</span>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-1">{eventDetails.EventName}</h2>
+                <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
+                  <CalendarDays className="h-4 w-4 text-[#00E1FC]" />
+                  <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Date || eventDetails.EventStartDate : eventDetails.EventStartDate}</span>
+                  <Clock className="h-4 w-4 text-[#00E1FC] ml-2" />
+                  <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Time || eventDetails.EventStartTime : eventDetails.EventStartTime}</span>
                 </div>
               </div>
             </div>
@@ -1005,138 +1028,88 @@ export default function BookEventPage() {
                   const count = counts[ticket.Ticket_Id] || 0;
                   const selected = showCount[ticket.Ticket_Id];
                   const soldOut = ticket.TicketAvailibilty === 0;
-                  const maxAllowed = ticket.BookingMaxLimit;
                   const ticketDescription = normalizeTicketDescription(ticket.TicketDescprition);
 
                   return (
-                    <Card
+                    <div
                       key={ticket.Ticket_Id}
-                      className={`border-2 transition-all duration-300 ${
+                      className={`rounded-xl border transition-all duration-200 ${
                         selected
-                          ? "border-[#00E1FC] bg-slate-900/90 shadow-lg shadow-[#00E1FC]/20"
-                          : "border-slate-600/50 bg-slate-800/30 hover:border-[#00E1FC]/50 hover:bg-slate-800/50"
-                      } ${soldOut ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          ? "border-[#00E1FC] bg-slate-900/70"
+                          : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40"
+                      } ${soldOut ? "opacity-50" : ""}`}
                     >
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h3 className="font-bold text-lg text-white leading-tight">{ticket.TicketName}</h3>
-                              <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
-                                <span className="bg-slate-800/50 px-2 py-1 rounded">Max {maxAllowed} per order</span>
-                                <span className="bg-slate-800/50 px-2 py-1 rounded">{ticket.TicketType === 1 ? "Standard" : "Special"}</span>
-                              </div>
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className={`shrink-0 ${
-                                soldOut ? "border-red-400/50 text-red-300 bg-red-900/20" : "border-green-400/50 text-green-300 bg-green-900/20"
-                              }`}
-                            >
-                              {soldOut ? "Sold Out" : "Available"}
-                            </Badge>
+                      <div className="p-3 sm:p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          {/* Left: Ticket name, price, description */}
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
+                            <p className="text-[#00E1FC] font-bold text-base sm:text-lg mt-1 flex items-center">
+                              <IndianRupee className="h-4 w-4" />
+                              {ticket.TicketPrice}
+                            </p>
+                            {ticketDescription && (
+                              <p className={`text-xs text-slate-400 mt-1 ${expandedDescriptions[ticket.Ticket_Id] ? "" : "line-clamp-1"}`}>
+                                {ticketDescription}
+                                {ticketDescription.length > 60 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedDescriptions((prev) => ({
+                                        ...prev,
+                                        [ticket.Ticket_Id]: !prev[ticket.Ticket_Id],
+                                      }));
+                                    }}
+                                    className="ml-1 text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium"
+                                  >
+                                    {expandedDescriptions[ticket.Ticket_Id] ? "less" : "more"}
+                                  </button>
+                                )}
+                              </p>
+                            )}
                           </div>
 
-                          {ticketDescription && (
-                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700/30">
-                              <div className="relative">
-                                <p className={`text-sm text-slate-300 leading-relaxed overflow-hidden transition-all duration-300 ${
-                                  !expandedDescriptions[ticket.Ticket_Id] ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
-                                }`}>
-                                  {ticketDescription}
-                                </p>
-                                {!expandedDescriptions[ticket.Ticket_Id] && (
-                                  <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-slate-800/70 to-transparent pointer-events-none"></div>
-                                )}
-                              </div>
-                              {ticketDescription.length > 100 && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setExpandedDescriptions((prev) => ({
-                                      ...prev,
-                                      [ticket.Ticket_Id]: !prev[ticket.Ticket_Id],
-                                    }));
-                                  }}
-                                  className="mt-2 text-[#00E1FC] hover:text-[#00E1FC]/80 text-xs font-semibold transition-colors duration-200 flex items-center gap-1"
-                                >
-                                  {expandedDescriptions[ticket.Ticket_Id] ? "Show Less" : "Read More"}
-                                  <svg
-                                    className={`h-4 w-4 transition-transform duration-300 ${expandedDescriptions[ticket.Ticket_Id] ? "rotate-180" : ""}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="text-left bg-slate-800/50 p-3 rounded-xl border border-slate-700/30 w-full sm:w-auto">
-                              <p className="text-xs text-slate-400 mb-1">Price</p>
-                              <p className="text-2xl font-bold text-[#00E1FC] flex items-center">
-                                <IndianRupee className="h-5 w-5" />
-                                {ticket.TicketPrice}
-                              </p>
-                            </div>
-
-                            {selected ? (
-                              <div className="flex items-center justify-center gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-700/30 w-full sm:w-auto">
+                          {/* Right: Qty selector or Select button */}
+                          <div className="shrink-0">
+                            {soldOut ? (
+                              <span className="text-xs text-red-400 font-medium px-3 py-2">Sold Out</span>
+                            ) : selected ? (
+                              <div className="flex items-center gap-2 bg-slate-900/80 rounded-lg border border-slate-700/50 px-2 py-1">
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleDecrease(ticket.Ticket_Id)}
-                                  className="h-10 w-10 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white"
+                                  className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <Minus className="h-3.5 w-3.5" />
                                 </Button>
-                                <span className="w-10 text-center font-bold text-[#00E1FC] text-xl">{count}</span>
+                                <span className="w-6 text-center font-bold text-[#00E1FC] text-base">{count}</span>
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleIncrease(ticket.Ticket_Id)}
-                                  disabled={count >= maxAllowed}
-                                  className="h-10 w-10 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
+                                  disabled={count >= (ticket.BookingMaxLimit || 10)}
+                                  className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
                                 >
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
                             ) : (
                               <Button
                                 onClick={() => handleShowCount(ticket.Ticket_Id)}
-                                disabled={soldOut}
-                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm font-medium rounded-lg"
                               >
-                                {soldOut ? "Sold Out" : "Select Ticket"}
+                                Add
                               </Button>
                             )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })
               )}
 
-              <div className="flex items-center justify-between gap-3 border-t border-slate-700/50 pt-4">
-                <div>
-                  <p className="text-sm text-slate-400">Selected</p>
-                  <p className="text-base font-semibold text-white">
-                    {selectedTicket ? `${selectedTicket.TicketName} x ${counts[selectedTicket.Ticket_Id]}` : "No ticket selected"}
-                  </p>
-                </div>
-                <Button
-                  onClick={handleContinueToDetails}
-                  disabled={!selectedTicket}
-                  className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
-                >
-                  Continue
-                </Button>
-              </div>
             </CardContent>
           </Card>
         )}
@@ -1310,9 +1283,9 @@ export default function BookEventPage() {
                     </div>
                     {promocodeError && <p className="text-red-400 text-xs">{promocodeError}</p>}
                     {showPromocodeSuggestions && availablePromocodes.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
                         <p className="text-xs text-slate-400">Available promocodes:</p>
-                        {availablePromocodes.slice(0, 3).map((promo) => (
+                        {availablePromocodes.map((promo) => (
                           <button
                             key={promo.promocode_id}
                             onClick={() => {
@@ -1363,6 +1336,12 @@ export default function BookEventPage() {
                   <span className="text-slate-300">Subtotal</span>
                   <span className="text-white">₹{totalPrice}</span>
                 </div>
+                {convenienceFee > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Convenience Fee</span>
+                    <span className="text-white">₹{convenienceFee.toFixed(2)}</span>
+                  </div>
+                )}
                 {appliedPromocode && discountAmount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
@@ -1375,7 +1354,7 @@ export default function BookEventPage() {
 
               <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 rounded-lg border border-[#00E1FC]/20">
                 <span className="text-white font-semibold">Total</span>
-                <span className="text-[#00E1FC] font-bold text-lg">₹{finalAmount}</span>
+                <span className="text-[#00E1FC] font-bold text-lg">₹{finalAmount.toFixed(2)}</span>
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-2">
@@ -1395,7 +1374,7 @@ export default function BookEventPage() {
                   ) : (
                     <>
                       <CreditCard className="h-5 w-5 mr-2" />
-                      Pay ₹{finalAmount}
+                      Pay ₹{finalAmount.toFixed(2)}
                     </>
                   )}
                 </Button>
@@ -1403,8 +1382,31 @@ export default function BookEventPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Sticky footer for ticket selection (step 1 & 2) */}
+        {((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 sm:p-4">
+            <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs text-slate-400">
+                  {totalTickets > 0 ? `${totalTickets} ticket${totalTickets > 1 ? 's' : ''} selected` : 'No tickets selected'}
+                </p>
+                <p className="text-lg font-bold text-white">
+                  {totalTickets > 0 ? `₹${totalPrice}` : '—'}
+                </p>
+              </div>
+              <Button
+                onClick={handleContinueToDetails}
+                disabled={!selectedTicket}
+                className="flex-1 sm:flex-none sm:px-12 h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold shadow-lg"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,

@@ -55,7 +55,7 @@ function SuccessHandler() {
       firstname: firstname || ''
     });
 
-    router.push(`/events/${finalEventId}/booking-success?${successParams.toString()}`);
+    router.replace(`/events/${finalEventId}/booking-success?${successParams.toString()}`);
   }, [router, searchParams]);
 
   return (

@@ -52,7 +52,7 @@ function FailureHandler() {
       paymentmode: paymentmode || ''
     });
 
-    router.push(`/events/${finalEventId}/booking-failed?${failParams.toString()}`);
+    router.replace(`/events/${finalEventId}/booking-failed?${failParams.toString()}`);
   }, [router, searchParams]);
 
   return (

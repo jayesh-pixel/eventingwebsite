@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, MapPin, Share2, Heart, Ticket } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
+import { events as eventsConfig } from "@/utils/config";
 
 interface EventCarouselImage {
   image_path: string;
@@ -74,7 +75,7 @@ export default function EventDetailsPage() {
       try {
         setIsLoading(true);
         const response = await axios.post<ApiResponse>(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/webiste/events/getEventDetailsById`,
+          eventsConfig.GET_ALL,
           { event_id: eventId }
         );
 
@@ -161,23 +162,75 @@ export default function EventDetailsPage() {
       : null;
 
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+  // Convert plain-text newlines to <br> tags so line breaks from the backend are preserved.
+  // Also wraps plain text in <p> tags for consistent rendering.
+  const formatHtmlContent = (html: string) => {
+    if (!html) return "";
+    // If the content already contains HTML block tags (p, div, br, ul, ol, h1-h6),
+    // only convert bare \n to <br> where there aren't already block elements
+    const hasBlockTags = /<(p|div|br|ul|ol|h[1-6]|li|table)[\s>]/i.test(html);
+    if (hasBlockTags) {
+      // Replace bare newlines that aren't adjacent to existing HTML tags
+      return html.replace(/\n(?!\s*<)/g, "<br />");
+    }
+    // Plain text: convert \n to <br>
+    return html
+      .split(/\n/)
+      .map((line) => `<p>${line.replace(/\s+/g, " ").trim()}</p>`)
+      .filter((p) => p !== "<p></p>")
+      .join("");
+  };
+
   const aboutText = stripHtml(eventDetails.AboutEvent || "");
   const termsText = stripHtml(eventDetails.EventTermsConditions || "");
   const showAboutToggle = aboutText.length > 140;
   const showTermsToggle = termsText.length > 140;
+  const decodeHtmlEntities = (str: string) => {
+    return str
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  };
+
   const getVenueMapUrl = (raw: string) => {
     if (!raw) return "";
-    if (raw.startsWith("http")) return raw;
+    const decoded = decodeHtmlEntities(raw.trim());
 
-    const srcMatch = raw.match(/src=["']([^"']+)["']/i);
+    if (decoded.startsWith("http")) return decoded;
+    if (decoded.startsWith("www.")) return `https://${decoded}`;
+
+    const srcMatch = decoded.match(/src=["']([^"']+)["']/i);
     if (srcMatch?.[1]) return srcMatch[1];
 
-    const hrefMatch = raw.match(/href=["']([^"']+)["']/i);
+    const hrefMatch = decoded.match(/href=["']([^"']+)["']/i);
     if (hrefMatch?.[1]) return hrefMatch[1];
+
+    // Coordinates pattern (lat,lng)
+    if (/^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(decoded)) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(decoded)}`;
+    }
+
+    // Plain text (not HTML) — use as Google Maps search query
+    if (decoded && !decoded.includes("<")) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(decoded)}`;
+    }
 
     return "";
   };
+
   const venueMapUrl = getVenueMapUrl(eventDetails.VenueMapLocationLink || "");
+
+  // Fallback: if no map URL from the link, build a search query from venue name + city
+  const venueSearchUrl =
+    venueMapUrl ||
+    (eventDetails.VenueName || eventDetails.VenueCity
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          `${eventDetails.VenueName} ${eventDetails.VenueCity}`.trim()
+        )}`
+      : "");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-2 sm:pt-4 pb-24 lg:pb-12">
@@ -197,17 +250,16 @@ export default function EventDetailsPage() {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8">
             {/* Hero Image Section */}
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl group">
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
               {/* Main Image */}
-              <div className="relative h-[300px] sm:h-[450px] md:h-[550px]">
+              <div className="relative h-[300px] sm:h-[400px] md:h-[500px]">
                 {eventDetails.EventCarouselImages.length > 0 && (
                   <img
                     src={getImageUrl(eventDetails.EventCarouselImages[activeImageIndex]?.image_path)}
                     alt={eventDetails.EventName}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40"></div>
 
                 {/* Category Badge */}
                 <div className="absolute top-3 left-3 sm:top-6 sm:left-6">
@@ -229,63 +281,63 @@ export default function EventDetailsPage() {
                   </button>
                 </div>
 
-                {/* Title and Meta Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8">
-                  <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
-                    {eventDetails.EventName}
-                  </h1>
-                  
-                  {/* Meta Info Cards */}
-                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
-                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium text-sm">{eventDetails.EventStartDate}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
-                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium text-sm">{eventDetails.EventStartTime}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
-                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
-                      <span className="text-white font-medium text-sm">{eventDetails.VenueCity}</span>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {eventDetails.Language.map((lang, index) => (
-                      <Badge
+                {/* Image Carousel Navigation */}
+                {eventDetails.EventCarouselImages.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                    {eventDetails.EventCarouselImages.map((_, index) => (
+                      <button
                         key={index}
-                        className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 hover:bg-[#00E1FC]/30 backdrop-blur-md"
-                      >
-                        {lang}
-                      </Badge>
+                        onClick={() => setActiveImageIndex(index)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          index === activeImageIndex 
+                            ? 'bg-white w-8' 
+                            : 'bg-white/40 w-2 hover:bg-white/60'
+                        }`}
+                      />
                     ))}
-                    {eventDetails.BestSuitedFor && (
-                      <Badge className="bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/30 hover:bg-[#4ADE80]/30 backdrop-blur-md">
-                        {eventDetails.BestSuitedFor}
-                      </Badge>
-                    )}
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Image Carousel Navigation */}
-              {eventDetails.EventCarouselImages.length > 1 && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-                  {eventDetails.EventCarouselImages.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setActiveImageIndex(index)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        index === activeImageIndex 
-                          ? 'bg-white w-8' 
-                          : 'bg-white/40 w-2 hover:bg-white/60'
-                      }`}
-                    />
-                  ))}
+              {/* Event details below the flier — clean, no overlap */}
+              <div className="bg-slate-900/80 p-4 sm:p-6">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight">
+                  {eventDetails.EventName}
+                </h1>
+
+                {/* Meta Info Cards */}
+                <div className="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                    <span className="text-white font-medium text-sm">{eventDetails.EventStartDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                    <span className="text-white font-medium text-sm">{eventDetails.EventStartTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-[#00E1FC]" />
+                    <span className="text-white font-medium text-sm">{eventDetails.VenueCity}</span>
+                  </div>
                 </div>
-              )}
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {eventDetails.Language.map((lang, index) => (
+                    <Badge
+                      key={index}
+                      className="bg-[#00E1FC]/20 text-[#00E1FC] border border-[#00E1FC]/30 hover:bg-[#00E1FC]/30"
+                    >
+                      {lang}
+                    </Badge>
+                  ))}
+                  {eventDetails.BestSuitedFor && (
+                    <Badge className="bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/30 hover:bg-[#4ADE80]/30">
+                      {eventDetails.BestSuitedFor}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Event Info Panel */}
@@ -300,7 +352,7 @@ export default function EventDetailsPage() {
                     className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
                       !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                     }`}
-                    dangerouslySetInnerHTML={{ __html: eventDetails.AboutEvent }}
+                    dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.AboutEvent) }}
                   />
                   {!aboutExpanded && (
                     <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
@@ -368,7 +420,7 @@ export default function EventDetailsPage() {
                     className={`text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
                       !termsExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                     }`}
-                    dangerouslySetInnerHTML={{ __html: eventDetails.EventTermsConditions }}
+                    dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.EventTermsConditions) }}
                   />
                   {!termsExpanded && (
                     <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
@@ -438,9 +490,9 @@ export default function EventDetailsPage() {
                         <MapPin className="h-4 w-4 text-[#00E1FC]" />
                         Venue
                       </span>
-                      {venueMapUrl ? (
+                      {venueSearchUrl ? (
                         <a
-                          href={venueMapUrl}
+                          href={venueSearchUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium text-right max-w-[200px] underline underline-offset-2"

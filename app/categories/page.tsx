@@ -82,7 +82,11 @@ export default function AllCategoriesPage() {
                 <div className="relative h-40 sm:h-48 overflow-hidden bg-slate-800">
                   {category.Images && category.Images.length > 0 ? (
                     <img
-                      src={category.Images[0].image_path}
+                      src={
+                        category.Images[0].image_path.startsWith("http")
+                          ? category.Images[0].image_path
+                          : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${category.Images[0].image_path}`
+                      }
                       alt={category.Name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />

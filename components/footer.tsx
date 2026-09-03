@@ -34,8 +34,8 @@ export default function Footer() {
     },
   ].filter((item) => Boolean(item.href));
 
-  // Hide footer on the single-screen event detail view
-  if (/^\/events\/[^/]+$/.test(pathname)) return null;
+  // Hide footer on event detail pages, booking flow pages, and payment flow pages
+  if (/^\/events\/[^/]+(\/(book|booking-success|booking-failed))?$/.test(pathname)) return null;
 
   return (
     <footer className="site-footer py-16">
