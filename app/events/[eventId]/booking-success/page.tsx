@@ -27,6 +27,20 @@ function BookingSuccessContent() {
     console.log('Payment successful:', paymentDetails);
   }, [paymentDetails]);
 
+  // Prevent back navigation to payment gateway — send user to event details instead
+  useEffect(() => {
+    const onPop = () => {
+      window.location.href = `/events/${eventId}`;
+    };
+
+    window.addEventListener('popstate', onPop);
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('popstate', onPop);
+    };
+  }, [eventId]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">

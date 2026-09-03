@@ -216,8 +216,9 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
         {/* Mobile menu */}
         {open && (
-          <div className="lg:hidden fixed inset-x-0 top-16 lg:top-24 bottom-0 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 z-40">
-            <div className="flex h-full flex-col">
+          // Keep overlay full-screen but add top padding so content sits below header
+          <div className="lg:hidden fixed inset-0 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 z-40">
+            <div className="flex h-full flex-col pt-24 lg:pt-28">
               <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-2">
                 <Link
                   href="/"

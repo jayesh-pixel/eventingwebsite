@@ -79,28 +79,55 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
       try {
         const payload = { customer_id: cust_id };
         const response = await axios.post(`${customer.GET_TICKETS_BY_ID}`, payload);
-        if ((response.data as any)?.data) {
-          const data = (response.data as any).data;
-          // Handle various response shapes — API may return UpcomingEventTickets/PastEventTickets
-          // or a flat array, or additional promoter-booked tickets
-          const upcoming = data.UpcomingEventTickets || data.upcoming || [];
-          const past = data.PastEventTickets || data.past || [];
-          // Also check for promoter-booked tickets if the API returns them separately
-          const promoterBooked = data.PromoterBookedTickets || data.promoter_tickets || [];
-          const combined = [...upcoming, ...past, ...promoterBooked];
+        const data = (response.data as any)?.data;
 
-          if (combined.length > 0) {
-            setTicketsData({
-              UpcomingEventTickets: upcoming,
-              PastEventTickets: past,
-              PromoterBookedTickets: promoterBooked,
-            });
-          } else {
-            setTicketsData(null);
-          }
-        } else {
+        if (!data) {
           setTicketsData(null);
+          return;
         }
+
+        // Normalize multiple possible response shapes
+        // 1) Object with UpcomingEventTickets / PastEventTickets / PromoterBookedTickets
+        if (data.UpcomingEventTickets || data.PastEventTickets || data.PromoterBookedTickets) {
+          setTicketsData({
+            UpcomingEventTickets: data.UpcomingEventTickets || [],
+            PastEventTickets: data.PastEventTickets || [],
+            PromoterBookedTickets: data.PromoterBookedTickets || [],
+          });
+          return;
+        }
+
+        // 2) Object with lowercase keys
+        if (data.upcoming || data.past || data.promoter_tickets) {
+          setTicketsData({
+            UpcomingEventTickets: data.upcoming || [],
+            PastEventTickets: data.past || [],
+            PromoterBookedTickets: data.promoter_tickets || [],
+          });
+          return;
+        }
+
+        // 3) Flat array of bookings — treat as upcoming
+        if (Array.isArray(data)) {
+          setTicketsData({
+            UpcomingEventTickets: data,
+            PastEventTickets: [],
+            PromoterBookedTickets: [],
+          });
+          return;
+        }
+
+        // 4) Single booking object
+        if (typeof data === 'object') {
+          setTicketsData({
+            UpcomingEventTickets: [data],
+            PastEventTickets: [],
+            PromoterBookedTickets: [],
+          });
+          return;
+        }
+
+        setTicketsData(null);
       } catch (err) {
         console.error("Failed to fetch tickets:", err);
         setTicketsData(null);

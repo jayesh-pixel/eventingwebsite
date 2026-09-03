@@ -27,6 +27,23 @@ function BookingFailedContent() {
     console.log('Payment failed:', paymentDetails);
   }, [paymentDetails]);
 
+  // Prevent user navigating back to payment gateway — redirect to event page instead
+  useEffect(() => {
+    const onPop = () => {
+      // Replace history and go to event page
+      window.location.href = `/events/${eventId}`;
+    };
+
+    window.addEventListener('popstate', onPop);
+
+    // Push an extra state so the first back goes to this handler
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('popstate', onPop);
+    };
+  }, [eventId]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">

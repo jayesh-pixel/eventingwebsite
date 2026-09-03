@@ -5,6 +5,7 @@ import './globals.css'
 import ReduxProvider from '@/components/ReduxProvider'
 import Navigation from '@/components/navigation-new'
 import Footer from '@/components/footer'
+import MaybeFooter from '@/components/MaybeFooter'
 
 export const metadata: Metadata = {
   title: 'Eventing Website',
@@ -27,7 +28,7 @@ export default function RootLayout({
             <main className="flex-1 pt-20 lg:pt-24">
               {children}
             </main>
-            <Footer />
+            <MaybeFooter />
           </div>
         </ReduxProvider>
       </body>

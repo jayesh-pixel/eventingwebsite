@@ -269,6 +269,23 @@ export default function BookEventPage() {
     return sum;
   }, 0);
 
+  // Detailed convenience fee per ticket for breakdown display
+  const convenienceDetails = Object.entries(counts).map(([ticketId, qty]) => {
+    const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+    if (!ticket || qty <= 0) return null;
+    const feeUnit = Number(ticket.ConfeeUnit) || 0;
+    const feeValue = Number(ticket.ConValue) || 0;
+    let amount = 0;
+    if (feeUnit === 1) amount = feeValue * qty;
+    else if (feeUnit === 2) amount = (ticket.TicketPrice * qty * feeValue) / 100;
+    else if (feeUnit === 3) amount = feeValue;
+    return {
+      ticketName: ticket.TicketName,
+      qty,
+      amount,
+    };
+  }).filter(Boolean) as { ticketName: string; qty: number; amount: number }[];
+
   // Calculate discount from promocode
   let discountAmount = 0;
   if (appliedPromocode) {
@@ -291,25 +308,33 @@ export default function BookEventPage() {
   React.useEffect(() => {
     const fetchPromocodes = async () => {
       if (!eventId) return;
-      
+
       try {
-        const response = await axios.post<PromocodeListResponse>(
-          promocodeConfig.GET_ALL,
-          {
-            event_id: eventId,
-            ...(customerId ? { customer_id: customerId } : {}),
-          }
-        );
-        
-        if (response.data && !response.data.error) {
-          const promocodes = (response.data.data || []).map((p: any) => normalizePromocode(p));
-          setAvailablePromocodes(promocodes);
-        }
+        // Fetch customer-specific (private) promocodes if logged in
+        const privatePayload: any = { event_id: eventId };
+        if (customerId) privatePayload.customer_id = customerId;
+
+        const [privateResp, publicResp] = await Promise.all([
+          axios.post<PromocodeListResponse>(promocodeConfig.GET_ALL, privatePayload).catch(() => ({ data: { data: [] } } as any)),
+          axios.post<PromocodeListResponse>(promocodeConfig.GET_ALL, { event_id: eventId }).catch(() => ({ data: { data: [] } } as any)),
+        ]);
+
+        const privateCodes = (privateResp.data?.data || []).map((p: any) => normalizePromocode(p));
+        const publicCodes = (publicResp.data?.data || []).map((p: any) => normalizePromocode(p));
+
+        // Merge unique by PromoCodeName
+        const merged: Record<string, PromocodeData> = {};
+        [...publicCodes, ...privateCodes].forEach((p) => {
+          if (!p || !p.PromoCodeName) return;
+          merged[p.PromoCodeName] = p;
+        });
+
+        setAvailablePromocodes(Object.values(merged));
       } catch (error) {
         console.error('Failed to fetch promocodes:', error);
       }
     };
-    
+
     fetchPromocodes();
   }, [eventId, customerId]);
 
@@ -493,27 +518,29 @@ export default function BookEventPage() {
     setPromocodeError("");
     
     try {
-      const response = await axios.post<ApplyPromocodeResponse>(
-        promocodeConfig.APPLY,
-        {
-          event_id: eventId,
-          customer_id: customerId,
-          promocode_name: promocodeInput.trim(),
-          amount: totalPrice.toString()
-        }
-      );
-      
-      if (response.data && !response.data.error) {
-        setAppliedPromocode(normalizePromocode(response.data.data));
+      const payload: any = {
+        event_id: eventId,
+        promocode_name: promocodeInput.trim(),
+        amount: totalPrice.toString(),
+      };
+      if (customerId) payload.customer_id = customerId;
+
+      const response = await axios.post<ApplyPromocodeResponse>(promocodeConfig.APPLY, payload);
+
+      if (response.data && !response.data.error && response.data.data) {
+        const promo = normalizePromocode(response.data.data);
+        setAppliedPromocode(promo);
         toast.success(`Promocode "${promocodeInput}" applied successfully!`);
         setPromocodeInput("");
         setShowPromocodeSuggestions(false);
+        setPromocodeError("");
       } else {
-        setPromocodeError(response.data.message || "Invalid promocode");
-        toast.error(response.data.message || "Invalid promocode");
+        const msg = (response.data && response.data.message) || "Invalid promocode";
+        setPromocodeError(msg);
+        toast.error(msg);
       }
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Failed to apply promocode";
+      const errorMsg = error?.response?.data?.message || error?.message || "Failed to apply promocode";
       setPromocodeError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -671,10 +698,14 @@ export default function BookEventPage() {
         TicketQuantity: ticketQuantity,
       };
 
-      // Only include promocode_id if we have a valid ID from the apply response
+      // Include promocode id if available; otherwise include promocode name as fallback
       const promoId = appliedPromocode?.promocode_id || appliedPromocode?._id;
-      if (promoId && appliedPromocode) {
+      const promoName = appliedPromocode?.PromoCodeName || appliedPromocode?.PromoCodeName;
+      if (promoId) {
         bookingPayload.Promocode_id = promoId;
+      } else if (promoName) {
+        // Backend may accept promocode name when id is not available
+        (bookingPayload as any).PromocodeName = promoName;
       }
       
       console.log('Booking payload:', bookingPayload);
@@ -690,10 +721,12 @@ export default function BookEventPage() {
         });
       } catch (bookError: any) {
         // If booking with promocode fails, retry without promocode
-        if (bookingPayload.Promocode_id) {
+        const hadPromo = Boolean(bookingPayload.Promocode_id || (bookingPayload as any).PromocodeName);
+        if (hadPromo) {
           console.warn('Booking with promocode failed, retrying without promocode...', bookError);
           const fallbackPayload: BookingPayload = { ...bookingPayload };
-          delete fallbackPayload.Promocode_id;
+          delete (fallbackPayload as any).Promocode_id;
+          delete (fallbackPayload as any).PromocodeName;
           const fallbackEncrypted = encryptData(JSON.stringify(fallbackPayload), passphrase);
           response = await axios.post(`${bookTicketApi.POST_DATA}`, {
             string: fallbackEncrypted,
@@ -1024,7 +1057,8 @@ export default function BookEventPage() {
                   <p className="text-slate-500 text-sm mt-2">Please try another date.</p>
                 </div>
               ) : (
-                tickets.map((ticket) => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {tickets.map((ticket) => {
                   const count = counts[ticket.Ticket_Id] || 0;
                   const selected = showCount[ticket.Ticket_Id];
                   const soldOut = ticket.TicketAvailibilty === 0;
@@ -1039,7 +1073,7 @@ export default function BookEventPage() {
                           : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40"
                       } ${soldOut ? "opacity-50" : ""}`}
                     >
-                      <div className="p-3 sm:p-4">
+                      <div className="p-2 sm:p-3">
                         <div className="flex items-center justify-between gap-3">
                           {/* Left: Ticket name, price, description */}
                           <div className="min-w-0 flex-1">
@@ -1107,7 +1141,8 @@ export default function BookEventPage() {
                       </div>
                     </div>
                   );
-                })
+                })}
+                </div>
               )}
 
             </CardContent>
@@ -1340,6 +1375,17 @@ export default function BookEventPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-300">Convenience Fee</span>
                     <span className="text-white">₹{convenienceFee.toFixed(2)}</span>
+                  </div>
+                )}
+                {convenienceDetails.length > 0 && (
+                  <div className="text-xs text-slate-400 mt-2">
+                    <div className="mb-1">Fee breakdown:</div>
+                    {convenienceDetails.map((d, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span>{d.ticketName} x{d.qty}</span>
+                        <span>₹{d.amount.toFixed(2)}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
                 {appliedPromocode && discountAmount > 0 && (

@@ -491,10 +491,22 @@ export default function EventDetailsPage() {
                         Venue
                       </span>
                       {venueSearchUrl ? (
+                        // Use a safe client-side open to avoid navigation errors for malformed hrefs
                         <a
                           href={venueSearchUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(e) => {
+                            try {
+                              // Prefer window.open to avoid issues in some embedded contexts
+                              if (typeof window !== 'undefined') {
+                                e.preventDefault();
+                                window.open(venueSearchUrl, '_blank', 'noopener,noreferrer');
+                              }
+                            } catch (err) {
+                              // Fallback to default behavior
+                            }
+                          }}
                           className="text-sm text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium text-right max-w-[200px] underline underline-offset-2"
                         >
                           {eventDetails.VenueName}
