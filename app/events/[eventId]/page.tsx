@@ -327,13 +327,13 @@ export default function EventDetailsPage() {
             </div>
 
             {/* Event Info Panel */}
-            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6">
+            <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6 overflow-hidden">
               <section>
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
                   <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
                   About This Event
                 </h2>
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   <div
                     className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
                       !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
@@ -341,7 +341,7 @@ export default function EventDetailsPage() {
                     dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.AboutEvent) }}
                   />
                   {!aboutExpanded && (
-                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#111827] to-transparent pointer-events-none"></div>
                   )}
                 </div>
                 {showAboutToggle && (
@@ -396,12 +396,12 @@ export default function EventDetailsPage() {
               )}
 
               <Separator className="bg-slate-700/50" />
-              <section>
+              <section className="relative z-10">
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
                   <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
                   Terms & Conditions
                 </h2>
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   <div
                     className={`text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
                       !termsExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
@@ -409,7 +409,7 @@ export default function EventDetailsPage() {
                     dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.EventTermsConditions) }}
                   />
                   {!termsExpanded && (
-                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#111827] to-transparent pointer-events-none"></div>
                   )}
                 </div>
                 {showTermsToggle && (
