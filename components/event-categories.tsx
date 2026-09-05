@@ -1,18 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowRight, Music, Guitar, Mic, Piano } from "lucide-react";
+import { Music } from "lucide-react";
 
 import Link from "next/link";
-import { mockCategories } from "@/data/mockData";
 import { categories as categoriesConfig } from "@/utils/config";
 import axios from "axios";
-
-const iconMap = {
-  "fas fa-music": Music,
-  "fas fa-guitar": Guitar,
-  "fas fa-microphone": Mic,
-  "fas fa-piano": Piano,
-};
 
 interface Category {
   _id: string;
@@ -125,31 +117,6 @@ export default function EventCategories() {
           >
             {categories && categories.length > 0 ? (
               categories.map((category, index) => {
-              // Since API doesn't provide icon/color, we'll use defaults based on category name or index
-              const getIconAndColor = (name: string, index: number) => {
-                const lowerName = name.toLowerCase();
-                if (lowerName.includes('music')) return { icon: Music, color: 'primary' };
-                if (lowerName.includes('concert') || lowerName.includes('live')) return { icon: Guitar, color: 'secondary' };
-                if (lowerName.includes('holi') || lowerName.includes('nye')) return { icon: Mic, color: 'accent' };
-                
-                // Default rotation based on index
-                const colors = ['primary', 'secondary', 'accent', 'danger'];
-                const icons = [Music, Guitar, Mic, Piano];
-                return { 
-                  icon: icons[index % icons.length], 
-                  color: colors[index % colors.length] 
-                };
-              };
-
-              const { icon: IconComponent, color } = getIconAndColor(category.Name, index);
-              
-              const colorClass = {
-                primary: "hover:shadow-primary/25",
-                secondary: "hover:shadow-secondary/25",
-                accent: "hover:shadow-accent/25",
-                danger: "hover:shadow-destructive/25",
-              }[color] || "hover:shadow-primary/25";
-
               // Get image URL from API response or use default
 
               const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";

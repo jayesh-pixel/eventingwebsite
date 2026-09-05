@@ -1,7 +1,7 @@
 import React from 'react';
 import { testimonials } from '@/utils/constants';
 import Image from 'next/image';
-import { Carousel, IconButton } from '@material-tailwind/react';
+import { IconButton } from '@material-tailwind/react';
 
 const Testimonials = () => {
   return (

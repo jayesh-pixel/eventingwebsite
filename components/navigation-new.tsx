@@ -182,24 +182,18 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <div className="relative hidden sm:block">
-              <button className="p-3 hover:bg-slate-800/50 rounded-lg transition-all duration-300 group">
-                <MagnifyingGlassIcon className="w-6 h-6 text-slate-400 group-hover:text-[#00E1FC] transition-colors duration-300" />
-              </button>
-            </div>
-            
+          <div className="flex items-center space-x-3 sm:space-x-6">
             {isLoggedIn ? (
-              <Link href={`/userDetails/${cust_id}`} className="hidden lg:flex items-center gap-2 group">
-                <div className="flex items-center gap-2 px-2 lg:px-4 py-2 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
-                  <FaUserCircle className="size-7 lg:size-10 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
-                  <span className="hidden xl:block text-white font-semibold">Profile</span>
+              <Link href={`/userDetails/${cust_id}`} className="flex items-center gap-2 group">
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
+                  <FaUserCircle className="size-5 lg:size-6 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
+                  <span className="hidden lg:inline text-white font-medium text-sm">Profile</span>
                 </div>
               </Link>
             ) : (
-              <Link href="/signup" className="hidden lg:block">
-                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-6 lg:px-10 py-2 lg:py-3.5 rounded-lg text-white font-bold text-sm lg:text-lg">
-                  Sign Up
+              <Link href="/signup" className="block">
+                <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 lg:py-2 rounded-lg text-white font-semibold text-xs sm:text-sm">
+                  Login / Sign Up
                 </button>
               </Link>
             )}
@@ -216,9 +210,28 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
         {/* Mobile menu */}
         {open && (
-          // Keep overlay full-screen but add top padding so content sits below header
-          <div className="lg:hidden fixed inset-0 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 z-40">
-            <div className="flex h-full flex-col pt-24 lg:pt-28">
+          <div className="lg:hidden fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-[60]">
+            {/* Close button inside overlay */}
+            <div className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-4 sm:px-6 h-16 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
+              <Link href="/" className="flex-shrink-0" onClick={handleClose}>
+                <div className="cursor-pointer relative h-12 w-24 md:h-14 md:w-32">
+                  <Image
+                    src="/EC%20Logo.png"
+                    alt="Eventing Club Logo"
+                    fill
+                    className="object-contain object-left"
+                    priority
+                  />
+                </div>
+              </Link>
+              <button
+                onClick={handleClose}
+                className="text-white p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex h-full flex-col pt-20">
               <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-2">
                 <Link
                   href="/"
@@ -278,15 +291,15 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
               <div className="border-t border-slate-800 px-6 py-4 bg-slate-900/95">
                 {isLoggedIn ? (
                   <Link href={`/userDetails/${cust_id}`} onClick={handleClose}>
-                    <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-lg">
-                      <FaUserCircle className="text-[#00E1FC]" size={22} />
+                    <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-base">
+                      <FaUserCircle className="text-[#00E1FC]" size={20} />
                       My Profile
                     </button>
                   </Link>
                 ) : (
                   <Link href="/signup" onClick={handleClose}>
-                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-3 rounded-xl text-white font-bold text-lg">
-                      Sign Up
+                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-3 rounded-xl text-white font-bold text-base">
+                      Login / Sign Up
                     </button>
                   </Link>
                 )}

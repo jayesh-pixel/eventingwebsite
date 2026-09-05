@@ -82,8 +82,17 @@ interface TicketData {
   EventDateTime_id: string;
   TicketAvailibilty: number;
   BookingMaxLimit: number;
-  ConfeeUnit: number;
-  ConValue: number;
+  // Convenience fee fields — backend may send several spellings; we normalize on load
+  ConvenienceFeeUnit?: number;
+  ConvenienceFeeValue?: number;
+  ConvinienceFeeUnit?: number;
+  ConvinienceFeeValue?: number;
+  ConFeeUnit?: number;
+  ConFeeValue?: number;
+  ConvFeeUnit?: number;
+  ConvFeeValue?: number;
+  ConvienceFeeUnit?: number;
+  ConvienceFeeValue?: number;
 }
 
 interface TicketResponse {
@@ -170,6 +179,15 @@ const normalizeTicketDescription = (value: string | null) => {
   return deduped.join(" ");
 };
 
+// Normalize backend convenience fee fields (backend sends several possible spellings)
+const normalizeTicketFee = (ticket: any): Pick<TicketData, 'ConvinienceFeeUnit' | 'ConvinienceFeeValue'> => {
+  const unit =
+    Number(ticket.ConvenienceFeeUnit ?? ticket.ConvinienceFeeUnit ?? ticket.ConFeeUnit ?? ticket.ConvFeeUnit ?? ticket.ConvienceFeeUnit ?? 0) || 0;
+  const value =
+    Number(ticket.ConvenienceFeeValue ?? ticket.ConvinienceFeeValue ?? ticket.ConFeeValue ?? ticket.ConvFeeValue ?? ticket.ConvienceFeeValue ?? 0) || 0;
+  return { ConvinienceFeeUnit: unit, ConvinienceFeeValue: value };
+};
+
 export default function BookEventPage() {
   const params = useParams();
   const router = useRouter();
@@ -247,24 +265,21 @@ export default function BookEventPage() {
     return ticket ? sum + qty * ticket.TicketPrice : sum;
   }, 0);
   
-  // Calculate convenience fees based on selected ticket's ConfeeUnit and ConValue
-  // ConfeeUnit: 1 = fixed amount per ticket, 2 = percentage per ticket, 3 = fixed per order
+  // Calculate convenience fees based on selected ticket's ConvinienceFeeUnit and ConvinienceFeeValue
+  // ConvinienceFeeUnit: 1 = Amount (fixed per ticket), 2 = Percentage (of ticket price)
   const convenienceFee = Object.entries(counts).reduce((sum, [ticketId, qty]) => {
     const ticket = tickets.find(t => t.Ticket_Id === ticketId);
     if (!ticket || qty <= 0) return sum;
 
-    const feeUnit = Number(ticket.ConfeeUnit) || 0;
-    const feeValue = Number(ticket.ConValue) || 0;
+    const feeUnit = Number(ticket.ConvinienceFeeUnit) || 0;
+    const feeValue = Number(ticket.ConvinienceFeeValue) || 0;
 
     if (feeUnit === 1) {
-      // Fixed amount per ticket
+      // Amount: fixed convenience fee per ticket
       return sum + feeValue * qty;
     } else if (feeUnit === 2) {
-      // Percentage per ticket
+      // Percentage: convenience fee as percentage of ticket price
       return sum + (ticket.TicketPrice * qty * feeValue) / 100;
-    } else if (feeUnit === 3) {
-      // Fixed amount per order (only add once)
-      return sum + feeValue;
     }
     return sum;
   }, 0);
@@ -273,12 +288,11 @@ export default function BookEventPage() {
   const convenienceDetails = Object.entries(counts).map(([ticketId, qty]) => {
     const ticket = tickets.find(t => t.Ticket_Id === ticketId);
     if (!ticket || qty <= 0) return null;
-    const feeUnit = Number(ticket.ConfeeUnit) || 0;
-    const feeValue = Number(ticket.ConValue) || 0;
+    const feeUnit = Number(ticket.ConvinienceFeeUnit) || 0;
+    const feeValue = Number(ticket.ConvinienceFeeValue) || 0;
     let amount = 0;
     if (feeUnit === 1) amount = feeValue * qty;
     else if (feeUnit === 2) amount = (ticket.TicketPrice * qty * feeValue) / 100;
-    else if (feeUnit === 3) amount = feeValue;
     return {
       ticketName: ticket.TicketName,
       qty,
@@ -431,7 +445,21 @@ export default function BookEventPage() {
       );
 
       if (response.data && !response.data.error) {
-        setTickets(response.data.data);
+        // Normalize convenience fee fields and ensure numeric types
+        const normalizedTickets = response.data.data.map((ticket: any) => {
+          const feeNorm = normalizeTicketFee(ticket);
+          return {
+            ...ticket,
+            // Ensure price is a number (backend may return string)
+            TicketPrice: Number(ticket.TicketPrice ?? ticket.Price ?? 0) || 0,
+            TicketAvailibilty: Number(ticket.TicketAvailibilty ?? ticket.AvailableQuantity ?? 0) || 0,
+            BookingMaxLimit: Number(ticket.BookingMaxLimit ?? ticket.MaxQuantityAllowedPerOrder ?? 1) || 1,
+            // Normalized fee fields override any raw values from the spread
+            ConvinienceFeeUnit: feeNorm.ConvinienceFeeUnit,
+            ConvinienceFeeValue: feeNorm.ConvinienceFeeValue,
+          };
+        });
+        setTickets(normalizedTickets);
       }
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
@@ -1377,10 +1405,10 @@ export default function BookEventPage() {
                     <span className="text-white">₹{convenienceFee.toFixed(2)}</span>
                   </div>
                 )}
-                {convenienceDetails.length > 0 && (
+                {convenienceDetails.filter(d => d.amount > 0).length > 0 && (
                   <div className="text-xs text-slate-400 mt-2">
                     <div className="mb-1">Fee breakdown:</div>
-                    {convenienceDetails.map((d, idx) => (
+                    {convenienceDetails.filter(d => d.amount > 0).map((d, idx) => (
                       <div key={idx} className="flex justify-between">
                         <span>{d.ticketName} x{d.qty}</span>
                         <span>₹{d.amount.toFixed(2)}</span>

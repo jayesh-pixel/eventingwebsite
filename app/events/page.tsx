@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Search, Filter, Grid, List } from "lucide-react";
+import { Calendar, Clock, MapPin, Search, Grid, List } from "lucide-react";
 import { upcomingEvents as upcomingEventsConfig } from "@/utils/config";
 import axios from "axios";
 import Link from "next/link";
@@ -119,11 +119,6 @@ export default function EventsPage() {
           </div>
           
           <div className="flex gap-3">
-            <Button variant="outline" className="h-11 border-slate-700 bg-slate-800/30 text-slate-300 hover:bg-slate-700/50 hover:text-white hover:border-slate-600 transition-all">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-            
             <div className="flex border border-slate-700 rounded-lg bg-slate-800/30 p-1">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Users, MapPin } from "lucide-react";
+import { Users } from "lucide-react";
 import { mockVenues } from "@/data/mockData";
 
 export default function VenuesSection() {

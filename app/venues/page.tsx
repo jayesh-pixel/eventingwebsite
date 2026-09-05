@@ -196,7 +196,7 @@ export default function VenuesPage() {
                         <p className="text-slate-500 text-sm mb-4 leading-relaxed">
                           {venue.Description ? 
                             venue.Description.slice(0, 120) + (venue.Description.length > 120 ? '...' : '') : 
-                            'A premium venue perfect for hosting memorable events and celebrations.'
+                            'A venue perfect for hosting memorable events and celebrations.'
                           }
                         </p>
                         

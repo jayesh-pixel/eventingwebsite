@@ -188,7 +188,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
               <span>{location}</span>
             </div>
             <p className="text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
-              {venue.venueDescription || `${venue.venueName} is a premium venue perfect for hosting amazing events.`}
+              {venue.venueDescription || `${venue.venueName} is a venue perfect for hosting amazing events.`}
             </p>
           </div>
 
@@ -209,21 +209,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                {/* Image overlay info */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Users className="text-[#00E1FC] h-5 w-5" />
-                        <span className="text-white font-medium">Premium Venue</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-green-400 text-sm">Available</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Image overlay info removed per request */}
               </div>
 
               {/* Image thumbnails */}
@@ -289,14 +275,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-4 mt-8">
-                  <button className="px-6 py-4 border border-slate-600 text-slate-300 rounded-xl hover:bg-slate-800 hover:border-[#00E1FC] transition-all duration-300">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-                </div>
+                {/* Action buttons removed per request */}
               </div>
 
               {/* Map Section */}

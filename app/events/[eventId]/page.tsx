@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, MapPin, Share2, Heart, Ticket } from "lucide-react";
+import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { events as eventsConfig } from "@/utils/config";
@@ -62,7 +62,6 @@ export default function EventDetailsPage() {
   const eventId = params?.eventId as string;
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [termsExpanded, setTermsExpanded] = useState(false);
@@ -266,19 +265,6 @@ export default function EventDetailsPage() {
                   <Badge className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white border-0 px-4 py-2 text-sm font-semibold shadow-lg">
                     {eventDetails.categoryName}
                   </Badge>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="absolute top-3 right-3 sm:top-6 sm:right-6 flex space-x-2 sm:space-x-3">
-                  <button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50"
-                  >
-                    <Heart className={`h-4 w-4 sm:h-5 sm:w-5 transition-all ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-white'}`} />
-                  </button>
-                  <button className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-full hover:bg-slate-800/90 transition-all duration-300 border border-slate-700/50">
-                    <Share2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                  </button>
                 </div>
 
                 {/* Image Carousel Navigation */}
@@ -490,32 +476,9 @@ export default function EventDetailsPage() {
                         <MapPin className="h-4 w-4 text-[#00E1FC]" />
                         Venue
                       </span>
-                      {venueSearchUrl ? (
-                        // Use a safe client-side open to avoid navigation errors for malformed hrefs
-                        <a
-                          href={venueSearchUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            try {
-                              // Prefer window.open to avoid issues in some embedded contexts
-                              if (typeof window !== 'undefined') {
-                                e.preventDefault();
-                                window.open(venueSearchUrl, '_blank', 'noopener,noreferrer');
-                              }
-                            } catch (err) {
-                              // Fallback to default behavior
-                            }
-                          }}
-                          className="text-sm text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium text-right max-w-[200px] underline underline-offset-2"
-                        >
-                          {eventDetails.VenueName}
-                        </a>
-                      ) : (
-                        <span className="text-sm text-white font-medium text-right max-w-[200px]">
-                          {eventDetails.VenueName}
-                        </span>
-                      )}
+                      <span className="text-sm text-white font-medium text-right max-w-[200px]">
+                        {eventDetails.VenueName}
+                      </span>
                     </div>
                     <Separator className="bg-slate-700/50" />
                     

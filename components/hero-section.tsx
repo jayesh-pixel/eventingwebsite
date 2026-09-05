@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "axios";
 import { getBanner } from "@/utils/config";
 
@@ -21,24 +21,6 @@ interface BannerApiResponse {
   message: string;
   data: BannerData[];
 }
-
-const heroHighlights = [
-  {
-    label: "Cities Covered",
-    value: "25+",
-    icon: MapPin,
-  },
-  {
-    label: "Upcoming Events",
-    value: "120+",
-    icon: Calendar,
-  },
-  {
-    label: "Artists Onboard",
-    value: "80+",
-    icon: Play,
-  },
-];
 
 export default function HeroSection() {
   const [banners, setBanners] = useState<BannerData[]>([]);

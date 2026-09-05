@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { mockArtists } from "@/data/mockData";
 import { artists as artistsConfig } from "@/utils/config";
 import axios from "axios";
 import Link from "next/link";

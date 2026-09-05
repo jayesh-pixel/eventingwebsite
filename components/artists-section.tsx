@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Users, Music, Mic, Guitar, Piano, Keyboard } from "lucide-react";
-import { mockArtists } from "@/data/mockData";
+import { Users } from "lucide-react";
 import { artists as artistsConfig } from "@/utils/config";
 import axios from "axios";
 
@@ -84,25 +83,6 @@ export default function ArtistsSection() {
 
   // Calculate total number of dots needed (groups of 6 cards)
   const totalDots = Math.ceil(artists.length / 6);
-
-  const getGenreIcon = (name: string) => {
-    const lowerName = name.toLowerCase();
-    if (lowerName.includes("dj") || lowerName.includes("music")) return Music;
-    if (lowerName.includes("king") || lowerName.includes("verma")) return Mic;
-    if (lowerName.includes("walker") || lowerName.includes("ritviz")) return Guitar;
-    if (lowerName.includes("karan") || lowerName.includes("madhur")) return Piano;
-    if (lowerName.includes("rain") || lowerName.includes("keinemusik")) return Keyboard;
-    return Guitar;
-  };
-
-  const getGenreColor = (name: string) => {
-    const lowerName = name.toLowerCase();
-    if (lowerName.includes("dj") || lowerName.includes("music")) return "primary";
-    if (lowerName.includes("king") || lowerName.includes("verma")) return "secondary";
-    if (lowerName.includes("walker") || lowerName.includes("ritviz")) return "accent";
-    if (lowerName.includes("karan") || lowerName.includes("madhur")) return "destructive";
-    return "primary";
-  };
 
   if (isLoading) {
     return (

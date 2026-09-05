@@ -168,7 +168,7 @@ export default function UpcomingEvents() {
         <div className="relative">
           <div 
             id="events-scroll-container"
-            className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide items-stretch"
             onScroll={handleScroll}
           >
             {displayEvents.length > 0 ? (
@@ -176,14 +176,14 @@ export default function UpcomingEvents() {
                 <Link
                   key={event.event_id}
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[74vw] max-w-[270px] min-w-[230px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
+                  className="block flex-shrink-0 w-[74vw] max-w-[270px] min-w-[230px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start h-full"
                 >
                   <div
-                    className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1"
+                    className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1 flex flex-col h-full"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Image Section */}
-                    <div className="relative h-40 sm:h-52 overflow-hidden">
+                    <div className="relative h-40 sm:h-52 overflow-hidden flex-shrink-0">
                       <img
                         src={getImageUrl(event.EventCardImages?.[0]?.image_path || "")}
                         alt={event.EventName}
@@ -205,7 +205,7 @@ export default function UpcomingEvents() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-3.5 sm:p-5">
+                    <div className="p-3.5 sm:p-5 flex flex-col flex-1">
                       <h4 className="text-[18px] sm:text-lg font-bold text-white mb-2.5 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">{event.EventName}</h4>
 
                       <div className="space-y-1.5 mb-3">
@@ -219,7 +219,7 @@ export default function UpcomingEvents() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-start gap-2 pt-3 border-t border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-col items-start gap-2 pt-3 border-t border-slate-800 sm:flex-row sm:items-center sm:justify-between mt-auto">
                         <div>
                           <div className="text-xl font-bold text-[#00E1FC]">{typeof event.LowestticketPrice === 'number' ? `₹${event.LowestticketPrice}` : ''}</div>
                           <div className="text-xs text-slate-500">onwards</div>

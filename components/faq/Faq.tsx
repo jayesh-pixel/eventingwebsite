@@ -6,8 +6,6 @@ import {
   AccordionHeader,
   AccordionBody,
 } from "@material-tailwind/react";
-import { FaPlus } from "react-icons/fa6";
-import { FiMinus } from "react-icons/fi";
 
 const Faq = () => {
   const [open, setOpen] = useState<number | null>(0);
