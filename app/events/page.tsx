@@ -161,9 +161,9 @@ export default function EventsPage() {
               : "space-y-4"
           }>
             {filteredEvents.map((event) => (
-              <Link key={event.event_id} href={`/events/${event.event_id}`}>
+              <Link key={event.event_id} href={`/events/${event.event_id}`} className={viewMode === "grid" ? "block h-full" : ""}>
                 <Card className={`bg-slate-900/50 backdrop-blur-sm border-slate-800 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1 ${
-                  viewMode === "list" ? "flex flex-col sm:flex-row" : ""
+                  viewMode === "list" ? "flex flex-col sm:flex-row" : "h-full flex flex-col"
                 }`}>
                   <div className={`relative overflow-hidden ${
                     viewMode === "list" ? "w-full sm:w-60 md:w-80 h-48 sm:h-52" : "h-48 sm:h-52"
@@ -190,7 +190,7 @@ export default function EventsPage() {
                     )}
                   </div>
                   
-                  <div className={`p-4 sm:p-5 flex-1 ${viewMode === "list" ? "flex flex-col justify-between" : ""}`}>
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">
                         {event.EventName}
