@@ -45,6 +45,11 @@ interface EventDetails {
   VenueName: string;
   VenueCity: string;
   categoryName: string;
+  // Event-level convenience fee (fallback when ticket doesn't define its own)
+  ConvinienceFeeUnit?: number;
+  ConvinienceFeeValue?: number;
+  ConvenienceFeeUnit?: number;
+  ConvenienceFeeValue?: number;
 }
 
 interface ApiResponse {
@@ -52,7 +57,12 @@ interface ApiResponse {
   message: string;
   data: {
     EventDetailsObj: EventDetails;
-  };
+    // Event-level convenience fee may be on the root data object
+    ConvinienceFeeUnit?: number;
+    ConvinienceFeeValue?: number;
+    ConvenienceFeeUnit?: number;
+    ConvenienceFeeValue?: number;
+  } & Partial<EventDetails>;
 }
 
 interface EventDateTime {
@@ -93,6 +103,9 @@ interface TicketData {
   ConvFeeValue?: number;
   ConvienceFeeUnit?: number;
   ConvienceFeeValue?: number;
+  // Additional spellings returned by the ticket API
+  ConfeeUnit?: number;
+  ConValue?: number;
 }
 
 interface TicketResponse {
@@ -182,9 +195,9 @@ const normalizeTicketDescription = (value: string | null) => {
 // Normalize backend convenience fee fields (backend sends several possible spellings)
 const normalizeTicketFee = (ticket: any): Pick<TicketData, 'ConvinienceFeeUnit' | 'ConvinienceFeeValue'> => {
   const unit =
-    Number(ticket.ConvenienceFeeUnit ?? ticket.ConvinienceFeeUnit ?? ticket.ConFeeUnit ?? ticket.ConvFeeUnit ?? ticket.ConvienceFeeUnit ?? 0) || 0;
+    Number(ticket.ConfeeUnit ?? ticket.ConvenienceFeeUnit ?? ticket.ConvinienceFeeUnit ?? ticket.ConFeeUnit ?? ticket.ConvFeeUnit ?? ticket.ConvienceFeeUnit ?? 0) || 0;
   const value =
-    Number(ticket.ConvenienceFeeValue ?? ticket.ConvinienceFeeValue ?? ticket.ConFeeValue ?? ticket.ConvFeeValue ?? ticket.ConvienceFeeValue ?? 0) || 0;
+    Number(ticket.ConValue ?? ticket.ConvenienceFeeValue ?? ticket.ConvinienceFeeValue ?? ticket.ConFeeValue ?? ticket.ConvFeeValue ?? ticket.ConvienceFeeValue ?? 0) || 0;
   return { ConvinienceFeeUnit: unit, ConvinienceFeeValue: value };
 };
 
@@ -218,6 +231,7 @@ export default function BookEventPage() {
   const [showCount, setShowCount] = React.useState<Record<string, boolean>>({});
   const [expandedDescriptions, setExpandedDescriptions] = React.useState<Record<string, boolean>>({});
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
+  const [eventConvenienceFee, setEventConvenienceFee] = React.useState<{ unit: number; value: number }>({ unit: 0, value: 0 });
   const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4>(1);
 
   // Promocode state ------------------------------------------------------------
@@ -300,6 +314,11 @@ export default function BookEventPage() {
     };
   }).filter(Boolean) as { ticketName: string; qty: number; amount: number }[];
 
+  // Add 18% GST directly into the convenience fee (not shown separately)
+  const CONVENIENCE_FEE_GST_RATE = 0.18;
+  const convenienceFeeWithGst =
+    Math.round(convenienceFee * (1 + CONVENIENCE_FEE_GST_RATE) * 100) / 100;
+
   // Calculate discount from promocode
   let discountAmount = 0;
   if (appliedPromocode) {
@@ -312,7 +331,7 @@ export default function BookEventPage() {
     }
   }
   
-  const finalAmount = Math.max(0, totalPrice + convenienceFee - discountAmount);
+  const finalAmount = Math.max(0, totalPrice + convenienceFeeWithGst - discountAmount);
   const selectedTickets = tickets.filter((ticket) => counts[ticket.Ticket_Id] > 0);
   const selectedTicket = selectedTickets[0] ?? null;
 
@@ -390,6 +409,7 @@ export default function BookEventPage() {
   React.useEffect(() => {
     const loadEventData = async () => {
       if (!eventId) return;
+      let pendingEventFee: { unit: number; value: number } | undefined;
       
       try {
         setLoading(true);
@@ -401,7 +421,22 @@ export default function BookEventPage() {
         );
 
         if (eventDetailsResponse.data && !eventDetailsResponse.data.error) {
-          setEventDetails(eventDetailsResponse.data.data.EventDetailsObj);
+          const rootData = eventDetailsResponse.data.data;
+          // The API may return event details in EventDetailsObj OR directly on data
+          const ed = rootData.EventDetailsObj ?? rootData;
+          // Normalize event-level convenience fee — check both EventDetailsObj and root data
+          const eventFeeUnit =
+            Number(ed.ConvinienceFeeUnit ?? ed.ConvenienceFeeUnit ?? rootData.ConvinienceFeeUnit ?? rootData.ConvenienceFeeUnit ?? 0) || 0;
+          const eventFeeValue =
+            Number(ed.ConvinienceFeeValue ?? ed.ConvenienceFeeValue ?? rootData.ConvinienceFeeValue ?? rootData.ConvenienceFeeValue ?? 0) || 0;
+          setEventDetails({
+            ...ed,
+            ConvinienceFeeUnit: eventFeeUnit,
+            ConvinienceFeeValue: eventFeeValue,
+          });
+          setEventConvenienceFee({ unit: eventFeeUnit, value: eventFeeValue });
+          // Store locally so we can pass to loadTickets in the same render cycle
+          pendingEventFee = { unit: eventFeeUnit, value: eventFeeValue };
         }
 
         // Fetch event dates and times
@@ -418,7 +453,8 @@ export default function BookEventPage() {
           if (eventDates.length > 0) {
             const dateToSelect = eventDates[0].eventDateTime_id;
             setSelectedDateId(dateToSelect);
-            await loadTickets(dateToSelect);
+            // Pass the event-level fee directly to avoid stale state during initial load
+            await loadTickets(dateToSelect, pendingEventFee);
             setCurrentStep(eventDates.length === 1 ? 2 : 1);
           }
         }
@@ -434,7 +470,9 @@ export default function BookEventPage() {
   }, [eventId]);
 
   // Load tickets for selected date
-  const loadTickets = async (eventDateTimeId: string) => {
+  const loadTickets = async (eventDateTimeId: string, eventFeeOverride?: { unit: number; value: number }) => {
+    // Determine the event-level fee to use as fallback for tickets without their own fee
+    const eventFee = eventFeeOverride ?? eventConvenienceFee;
     try {
       const response = await axios.post<TicketResponse>(
         eventsConfig.GET_TICKETS_BY_ID,
@@ -448,6 +486,9 @@ export default function BookEventPage() {
         // Normalize convenience fee fields and ensure numeric types
         const normalizedTickets = response.data.data.map((ticket: any) => {
           const feeNorm = normalizeTicketFee(ticket);
+          // If ticket has no convenience fee, fall back to event-level fee
+          const finalFeeUnit = feeNorm.ConvinienceFeeUnit || eventFee.unit || 0;
+          const finalFeeValue = feeNorm.ConvinienceFeeValue || eventFee.value || 0;
           return {
             ...ticket,
             // Ensure price is a number (backend may return string)
@@ -455,8 +496,8 @@ export default function BookEventPage() {
             TicketAvailibilty: Number(ticket.TicketAvailibilty ?? ticket.AvailableQuantity ?? 0) || 0,
             BookingMaxLimit: Number(ticket.BookingMaxLimit ?? ticket.MaxQuantityAllowedPerOrder ?? 1) || 1,
             // Normalized fee fields override any raw values from the spread
-            ConvinienceFeeUnit: feeNorm.ConvinienceFeeUnit,
-            ConvinienceFeeValue: feeNorm.ConvinienceFeeValue,
+            ConvinienceFeeUnit: finalFeeUnit,
+            ConvinienceFeeValue: finalFeeValue,
           };
         });
         setTickets(normalizedTickets);
@@ -769,43 +810,44 @@ export default function BookEventPage() {
       if (response.data && (response.data as any).data) {
         // Decrypt payment gateway data as backend sends encrypted response
         const paymentData = decryptData((response.data as any).data, passphrase);
+        console.log('Decrypted payment gateway data:', paymentData);
+        // if (paymentData && typeof paymentData === 'object') {
+        //   console.log('Payment gateway data received:', Object.keys(paymentData));
+          
+        //   // Store event ID in sessionStorage for success/failure page redirect
+        //   sessionStorage.setItem('lastEventId', eventId);
+          
+        //   // // Show success message before redirect
+        //   // toast.success("Redirecting to secure payment gateway...");
+          
+        //   // // Create and submit PayU form
+        //   // const form = document.createElement("form");
+        //   // form.setAttribute("method", "POST");
+        //   // form.setAttribute("action", process.env.NEXT_PUBLIC_PAYU_URL || "https://test.payu.in/_payment");
+        //   // form.setAttribute("target", "_self");
+
+        //   // // Add all payment parameters to form
+        //   // Object.keys(paymentData).forEach((key) => {
+        //   //   const hiddenField = document.createElement("input");
+        //   //   hiddenField.setAttribute("type", "hidden");
+        //   //   hiddenField.setAttribute("name", key);
+        //   //   hiddenField.setAttribute("value", String(paymentData[key]));
+        //   //   form.appendChild(hiddenField);
+        //   // });
+
+        //   // document.body.appendChild(form);
+          
+        //   // // Submit form to PayU payment gateway
+        //   // form.submit();
+          
+        //   // Clean up form after submission
         
-        if (paymentData && typeof paymentData === 'object') {
-          console.log('Payment gateway data received:', Object.keys(paymentData));
-          
-          // Store event ID in sessionStorage for success/failure page redirect
-          sessionStorage.setItem('lastEventId', eventId);
-          
-          // Show success message before redirect
-          toast.success("Redirecting to secure payment gateway...");
-          
-          // Create and submit PayU form
-          const form = document.createElement("form");
-          form.setAttribute("method", "POST");
-          form.setAttribute("action", process.env.NEXT_PUBLIC_PAYU_URL || "https://test.payu.in/_payment");
-          form.setAttribute("target", "_self");
-
-          // Add all payment parameters to form
-          Object.keys(paymentData).forEach((key) => {
-            const hiddenField = document.createElement("input");
-            hiddenField.setAttribute("type", "hidden");
-            hiddenField.setAttribute("name", key);
-            hiddenField.setAttribute("value", String(paymentData[key]));
-            form.appendChild(hiddenField);
-          });
-
-          document.body.appendChild(form);
-          
-          // Submit form to PayU payment gateway
-          form.submit();
-          
-          // Clean up form after submission
-          setTimeout(() => {
-            document.body.removeChild(form);
-          }, 1000);
-        } else {
-          throw new Error("Invalid payment gateway response format");
-        }
+        //   // setTimeout(() => {
+        //   //   document.body.removeChild(form);
+        //   // }, 1000);
+        // } else {
+        //   throw new Error("Invalid payment gateway response format");
+        // }
       } else {
         throw new Error("No payment data received from server");
       }
@@ -1402,18 +1444,7 @@ export default function BookEventPage() {
                 {convenienceFee > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-300">Convenience Fee</span>
-                    <span className="text-white">₹{convenienceFee.toFixed(2)}</span>
-                  </div>
-                )}
-                {convenienceDetails.filter(d => d.amount > 0).length > 0 && (
-                  <div className="text-xs text-slate-400 mt-2">
-                    <div className="mb-1">Fee breakdown:</div>
-                    {convenienceDetails.filter(d => d.amount > 0).map((d, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>{d.ticketName} x{d.qty}</span>
-                        <span>₹{d.amount.toFixed(2)}</span>
-                      </div>
-                    ))}
+                    <span className="text-white">₹{convenienceFeeWithGst.toFixed(2)}</span>
                   </div>
                 )}
                 {appliedPromocode && discountAmount > 0 && (
