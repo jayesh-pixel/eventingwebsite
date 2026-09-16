@@ -26,6 +26,7 @@ import {
   Users,
   CreditCard,
   ShieldCheck,
+  Ticket,
 } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
@@ -89,9 +90,12 @@ interface TicketData {
   TicketType: number;
   TicketDescprition: string | null;
   TicketPrice: number;
-  EventDateTime_id: string;
+  // Season pass tickets are not tied to a single show date
+  EventDateTime_id?: string;
   TicketAvailibilty: number;
   BookingMaxLimit: number;
+  // Set on load — true for passes valid across every day of a multi-day event
+  isSeasonPass?: boolean;
   // Convenience fee fields — backend may send several spellings; we normalize on load
   ConvenienceFeeUnit?: number;
   ConvenienceFeeValue?: number;
@@ -112,6 +116,12 @@ interface TicketResponse {
   error: boolean;
   message: string;
   data: TicketData[];
+}
+
+interface SeasonPassResponse {
+  error: boolean;
+  message: string;
+  data: TicketData[] | null;
 }
 
 interface BookingForm {
@@ -201,6 +211,29 @@ const normalizeTicketFee = (ticket: any): Pick<TicketData, 'ConvinienceFeeUnit' 
   return { ConvinienceFeeUnit: unit, ConvinienceFeeValue: value };
 };
 
+// Backend marks season pass tickets with TicketType 3
+const SEASON_PASS_TICKET_TYPE = 3;
+
+// Shared normalizer for day tickets and season passes (backend returns strings for some fields)
+const normalizeTicket = (
+  ticket: any,
+  eventFee: { unit: number; value: number },
+  isSeasonPass = false
+): TicketData => {
+  const feeNorm = normalizeTicketFee(ticket);
+  return {
+    ...ticket,
+    // Ensure price is a number (backend may return string)
+    TicketPrice: Number(ticket.TicketPrice ?? ticket.Price ?? 0) || 0,
+    TicketAvailibilty: Number(ticket.TicketAvailibilty ?? ticket.AvailableQuantity ?? 0) || 0,
+    BookingMaxLimit: Number(ticket.BookingMaxLimit ?? ticket.MaxQuantityAllowedPerOrder ?? 1) || 1,
+    // If ticket has no convenience fee, fall back to event-level fee
+    ConvinienceFeeUnit: feeNorm.ConvinienceFeeUnit || eventFee.unit || 0,
+    ConvinienceFeeValue: feeNorm.ConvinienceFeeValue || eventFee.value || 0,
+    isSeasonPass: isSeasonPass || Number(ticket.TicketType) === SEASON_PASS_TICKET_TYPE,
+  };
+};
+
 export default function BookEventPage() {
   const params = useParams();
   const router = useRouter();
@@ -227,6 +260,7 @@ export default function BookEventPage() {
   const [selectedDateId, setSelectedDateId] = React.useState<string | null>(null);
   const [dates, setDates] = React.useState<EventDateTime[]>([]);
   const [tickets, setTickets] = React.useState<TicketData[]>([]);
+  const [seasonPasses, setSeasonPasses] = React.useState<TicketData[]>([]);
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [showCount, setShowCount] = React.useState<Record<string, boolean>>({});
   const [expandedDescriptions, setExpandedDescriptions] = React.useState<Record<string, boolean>>({});
@@ -272,17 +306,19 @@ export default function BookEventPage() {
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
 
   // Derived totals -------------------------------------------------------------
+  // Day tickets and season passes are both bookable, so totals look at the union
+  const allTickets = React.useMemo(() => [...seasonPasses, ...tickets], [seasonPasses, tickets]);
   const totalTickets = Object.values(counts).reduce((s, n) => s + n, 0);
   // Calculate total price based only on selected tickets
   const totalPrice = Object.entries(counts).reduce((sum, [ticketId, qty]) => {
-    const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+    const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
     return ticket ? sum + qty * ticket.TicketPrice : sum;
   }, 0);
   
   // Calculate convenience fees based on selected ticket's ConvinienceFeeUnit and ConvinienceFeeValue
   // ConvinienceFeeUnit: 1 = Amount (fixed per ticket), 2 = Percentage (of ticket price)
   const convenienceFee = Object.entries(counts).reduce((sum, [ticketId, qty]) => {
-    const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+    const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
     if (!ticket || qty <= 0) return sum;
 
     const feeUnit = Number(ticket.ConvinienceFeeUnit) || 0;
@@ -300,7 +336,7 @@ export default function BookEventPage() {
 
   // Detailed convenience fee per ticket for breakdown display
   const convenienceDetails = Object.entries(counts).map(([ticketId, qty]) => {
-    const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+    const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
     if (!ticket || qty <= 0) return null;
     const feeUnit = Number(ticket.ConvinienceFeeUnit) || 0;
     const feeValue = Number(ticket.ConvinienceFeeValue) || 0;
@@ -332,8 +368,10 @@ export default function BookEventPage() {
   }
   
   const finalAmount = Math.max(0, totalPrice + convenienceFeeWithGst - discountAmount);
-  const selectedTickets = tickets.filter((ticket) => counts[ticket.Ticket_Id] > 0);
+  const selectedTickets = allTickets.filter((ticket) => counts[ticket.Ticket_Id] > 0);
   const selectedTicket = selectedTickets[0] ?? null;
+  const selectedSeasonPass = selectedTickets.find((ticket) => ticket.isSeasonPass) ?? null;
+  const isMultiDayEvent = dates.length > 1;
 
   // (Single-page booking flow) If user returns after login, keep selections and continue inline.
 
@@ -449,6 +487,13 @@ export default function BookEventPage() {
           const eventDates = datesResponse.data.data.DateTimeDate;
           setDates(eventDates);
           
+          // Season passes cover every day, so they only apply to multi-day events
+          if (eventDates.length > 1) {
+            await loadSeasonPasses(pendingEventFee);
+          } else {
+            setSeasonPasses([]);
+          }
+
           // Auto-select the date if there's only one, or first date if multiple
           if (eventDates.length > 0) {
             const dateToSelect = eventDates[0].eventDateTime_id;
@@ -484,22 +529,7 @@ export default function BookEventPage() {
 
       if (response.data && !response.data.error) {
         // Normalize convenience fee fields and ensure numeric types
-        const normalizedTickets = response.data.data.map((ticket: any) => {
-          const feeNorm = normalizeTicketFee(ticket);
-          // If ticket has no convenience fee, fall back to event-level fee
-          const finalFeeUnit = feeNorm.ConvinienceFeeUnit || eventFee.unit || 0;
-          const finalFeeValue = feeNorm.ConvinienceFeeValue || eventFee.value || 0;
-          return {
-            ...ticket,
-            // Ensure price is a number (backend may return string)
-            TicketPrice: Number(ticket.TicketPrice ?? ticket.Price ?? 0) || 0,
-            TicketAvailibilty: Number(ticket.TicketAvailibilty ?? ticket.AvailableQuantity ?? 0) || 0,
-            BookingMaxLimit: Number(ticket.BookingMaxLimit ?? ticket.MaxQuantityAllowedPerOrder ?? 1) || 1,
-            // Normalized fee fields override any raw values from the spread
-            ConvinienceFeeUnit: finalFeeUnit,
-            ConvinienceFeeValue: finalFeeValue,
-          };
-        });
+        const normalizedTickets = response.data.data.map((ticket: any) => normalizeTicket(ticket, eventFee));
         setTickets(normalizedTickets);
       }
     } catch (error) {
@@ -507,13 +537,39 @@ export default function BookEventPage() {
     }
   };
 
+  // Load season passes — one pass valid for every day of a multi-day event
+  const loadSeasonPasses = async (eventFeeOverride?: { unit: number; value: number }) => {
+    const eventFee = eventFeeOverride ?? eventConvenienceFee;
+    try {
+      const response = await axios.post<SeasonPassResponse>(
+        eventsConfig.GET_SEASON_PASS,
+        { event_id: eventId }
+      );
+
+      if (response.data && !response.data.error && Array.isArray(response.data.data)) {
+        setSeasonPasses(response.data.data.map((pass: any) => normalizeTicket(pass, eventFee, true)));
+      } else {
+        setSeasonPasses([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch season passes:', error);
+      setSeasonPasses([]);
+    }
+  };
+
   // ────────────────────────────────────────────────────────────────────────────
   // Handlers – date click, qty controls, navigation
   // ────────────────────────────────────────────────────────────────────────────
   const handleDateClick = async (eventDateTimeId: string) => {
+    // Season passes are not tied to a date, so keep them selected when the date changes
+    const keepSeasonPassOnly = (prev: Record<string, any>) =>
+      Object.fromEntries(
+        Object.entries(prev).filter(([ticketId]) => seasonPasses.some((pass) => pass.Ticket_Id === ticketId))
+      );
+
     setSelectedDateId(eventDateTimeId);
-    setCounts({});
-    setShowCount({});
+    setCounts(keepSeasonPassOnly);
+    setShowCount(keepSeasonPassOnly);
     setAppliedPromocode(null);
     setPromocodeInput("");
     setPromocodeError("");
@@ -525,14 +581,21 @@ export default function BookEventPage() {
     setCounts(prev => {
       // Check if there are any other tickets selected
       const hasOtherTickets = Object.keys(prev).some(id => id !== ticketId && prev[id] > 0);
-      
+
       if (hasOtherTickets) {
-        toast.error("Please select only one ticket type per booking. Remove other tickets first.");
+        const seasonPassSelected = Object.keys(prev).some(
+          id => id !== ticketId && prev[id] > 0 && seasonPasses.some(pass => pass.Ticket_Id === id)
+        );
+        toast.error(
+          seasonPassSelected
+            ? "Your season pass already covers every day. Remove it to book a single-day ticket."
+            : "Please select only one ticket type per booking. Remove other tickets first."
+        );
         return prev;
       }
-      
+
       // Get the booking max limit for this ticket
-      const ticket = tickets.find(t => t.Ticket_Id === ticketId);
+      const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
       const maxAllowed = ticket?.BookingMaxLimit || 1;
       const currentCount = prev[ticketId] || 0;
       
@@ -713,7 +776,7 @@ export default function BookEventPage() {
       return;
     }
 
-    const selectedTickets = tickets.filter(t => counts[t.Ticket_Id] > 0);
+    const selectedTickets = allTickets.filter(t => counts[t.Ticket_Id] > 0);
     if (selectedTickets.length === 0) {
       toast.error("Please select at least one ticket");
       return;
@@ -946,6 +1009,126 @@ export default function BookEventPage() {
   };
 
   // ────────────────────────────────────────────────────────────────────────────
+  // Ticket row (shared by day tickets and season passes)
+  // ────────────────────────────────────────────────────────────────────────────
+  const renderTicketRow = (ticket: TicketData) => {
+    const count = counts[ticket.Ticket_Id] || 0;
+    const selected = showCount[ticket.Ticket_Id];
+    const soldOut = ticket.TicketAvailibilty === 0;
+    const ticketDescription = normalizeTicketDescription(ticket.TicketDescprition);
+
+    return (
+      <div
+        key={ticket.Ticket_Id}
+        className={`rounded-xl border transition-all duration-200 ${
+          selected
+            ? "border-[#00E1FC] bg-slate-900/70"
+            : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40"
+        } ${soldOut ? "opacity-50" : ""}`}
+      >
+        <div className="p-2 sm:p-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Ticket name, price, description */}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
+              <p className="text-[#00E1FC] font-bold text-base sm:text-lg mt-1 flex items-center">
+                <IndianRupee className="h-4 w-4" />
+                {ticket.TicketPrice}
+              </p>
+              {ticketDescription && (
+                <p className={`text-xs text-slate-400 mt-1 ${expandedDescriptions[ticket.Ticket_Id] ? "" : "line-clamp-1"}`}>
+                  {ticketDescription}
+                  {ticketDescription.length > 60 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedDescriptions((prev) => ({
+                          ...prev,
+                          [ticket.Ticket_Id]: !prev[ticket.Ticket_Id],
+                        }));
+                      }}
+                      className="ml-1 text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium"
+                    >
+                      {expandedDescriptions[ticket.Ticket_Id] ? "less" : "more"}
+                    </button>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Right: Qty selector or Select button */}
+            <div className="shrink-0">
+              {soldOut ? (
+                <span className="text-xs text-red-400 font-medium px-3 py-2">Sold Out</span>
+              ) : selected ? (
+                <div className="flex items-center gap-2 bg-slate-900/80 rounded-lg border border-slate-700/50 px-2 py-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDecrease(ticket.Ticket_Id)}
+                    className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="w-6 text-center font-bold text-[#00E1FC] text-base">{count}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleIncrease(ticket.Ticket_Id)}
+                    disabled={count >= (ticket.BookingMaxLimit || 10)}
+                    className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => handleShowCount(ticket.Ticket_Id)}
+                  className="px-4 py-2 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm font-medium rounded-lg"
+                >
+                  Add
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Season pass section — only shown for multi-day events that have passes
+  // ────────────────────────────────────────────────────────────────────────────
+  const renderSeasonPassSection = () => {
+    if (!isMultiDayEvent || seasonPasses.length === 0) return null;
+
+    return (
+      <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-amber-400/30 shadow-2xl mb-4 sm:mb-6">
+        <CardHeader className="bg-gradient-to-r from-amber-400/15 to-[#00E1FC]/10 border-b border-slate-700/50 px-4 py-3 sm:p-6">
+          <CardTitle className="flex flex-wrap items-center gap-2 text-lg sm:text-xl text-white font-semibold">
+            <Ticket className="h-5 w-5 text-amber-300" />
+            Season Pass
+            <Badge variant="outline" className="border-amber-400/50 text-amber-200 text-[11px]">
+              All {dates.length} days
+            </Badge>
+          </CardTitle>
+          <CardDescription className="text-slate-300">
+            One pass covers every day of this event — no need to book each date separately.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {seasonPasses.map((pass) => renderTicketRow(pass))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">
+            Valid for {dates.map((date) => `${date.Date} ${date.Month}`).join(", ")}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
   // Loading state
   // ────────────────────────────────────────────────────────────────────────────
   if (loading) {
@@ -1057,16 +1240,25 @@ export default function BookEventPage() {
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-1">{eventDetails.EventName}</h2>
-                <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
-                  <CalendarDays className="h-4 w-4 text-[#00E1FC]" />
-                  <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Date || eventDetails.EventStartDate : eventDetails.EventStartDate}</span>
-                  <Clock className="h-4 w-4 text-[#00E1FC] ml-2" />
-                  <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Time || eventDetails.EventStartTime : eventDetails.EventStartTime}</span>
-                </div>
+                {selectedSeasonPass ? (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
+                    <CalendarDays className="h-4 w-4 text-amber-300" />
+                    <span className="truncate">Season pass · all {dates.length} days</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
+                    <CalendarDays className="h-4 w-4 text-[#00E1FC]" />
+                    <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Date || eventDetails.EventStartDate : eventDetails.EventStartDate}</span>
+                    <Clock className="h-4 w-4 text-[#00E1FC] ml-2" />
+                    <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Time || eventDetails.EventStartTime : eventDetails.EventStartTime}</span>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {currentStep === 1 && renderSeasonPassSection()}
 
         {currentStep === 1 && dates.length > 1 && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
@@ -1098,25 +1290,29 @@ export default function BookEventPage() {
                   );
                 })}
               </div>
-              <div className="mt-5 flex justify-end">
-                <Button
-                  onClick={() => setCurrentStep(2)}
-                  disabled={!selectedDateId}
-                  className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
-                >
-                  Continue to Tickets
-                </Button>
-              </div>
+              {!selectedSeasonPass && (
+                <div className="mt-5 flex justify-end">
+                  <Button
+                    onClick={() => setCurrentStep(2)}
+                    disabled={!selectedDateId}
+                    className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                  >
+                    Continue to Tickets
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
+
+        {currentStep === 2 && renderSeasonPassSection()}
 
         {((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
             <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-white font-semibold">
                 <Users className="h-5 w-5 text-[#00E1FC]" />
-                Choose Your Ticket
+                {isMultiDayEvent && seasonPasses.length > 0 ? "Or Choose a Single-Day Ticket" : "Choose Your Ticket"}
               </CardTitle>
               <CardDescription className="text-slate-300">Pick one ticket type and quantity to continue.</CardDescription>
             </CardHeader>
@@ -1128,90 +1324,7 @@ export default function BookEventPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {tickets.map((ticket) => {
-                  const count = counts[ticket.Ticket_Id] || 0;
-                  const selected = showCount[ticket.Ticket_Id];
-                  const soldOut = ticket.TicketAvailibilty === 0;
-                  const ticketDescription = normalizeTicketDescription(ticket.TicketDescprition);
-
-                  return (
-                    <div
-                      key={ticket.Ticket_Id}
-                      className={`rounded-xl border transition-all duration-200 ${
-                        selected
-                          ? "border-[#00E1FC] bg-slate-900/70"
-                          : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40"
-                      } ${soldOut ? "opacity-50" : ""}`}
-                    >
-                      <div className="p-2 sm:p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          {/* Left: Ticket name, price, description */}
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
-                            <p className="text-[#00E1FC] font-bold text-base sm:text-lg mt-1 flex items-center">
-                              <IndianRupee className="h-4 w-4" />
-                              {ticket.TicketPrice}
-                            </p>
-                            {ticketDescription && (
-                              <p className={`text-xs text-slate-400 mt-1 ${expandedDescriptions[ticket.Ticket_Id] ? "" : "line-clamp-1"}`}>
-                                {ticketDescription}
-                                {ticketDescription.length > 60 && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setExpandedDescriptions((prev) => ({
-                                        ...prev,
-                                        [ticket.Ticket_Id]: !prev[ticket.Ticket_Id],
-                                      }));
-                                    }}
-                                    className="ml-1 text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium"
-                                  >
-                                    {expandedDescriptions[ticket.Ticket_Id] ? "less" : "more"}
-                                  </button>
-                                )}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Right: Qty selector or Select button */}
-                          <div className="shrink-0">
-                            {soldOut ? (
-                              <span className="text-xs text-red-400 font-medium px-3 py-2">Sold Out</span>
-                            ) : selected ? (
-                              <div className="flex items-center gap-2 bg-slate-900/80 rounded-lg border border-slate-700/50 px-2 py-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDecrease(ticket.Ticket_Id)}
-                                  className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white"
-                                >
-                                  <Minus className="h-3.5 w-3.5" />
-                                </Button>
-                                <span className="w-6 text-center font-bold text-[#00E1FC] text-base">{count}</span>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleIncrease(ticket.Ticket_Id)}
-                                  disabled={count >= (ticket.BookingMaxLimit || 10)}
-                                  className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
-                                >
-                                  <Plus className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                onClick={() => handleShowCount(ticket.Ticket_Id)}
-                                className="px-4 py-2 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm font-medium rounded-lg"
-                              >
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {tickets.map((ticket) => renderTicketRow(ticket))}
                 </div>
               )}
 
@@ -1229,6 +1342,9 @@ export default function BookEventPage() {
               <div className="rounded-xl border border-slate-700/40 bg-slate-800/40 p-3 text-sm text-slate-300">
                 <span className="font-semibold text-white">{selectedTicket.TicketName}</span>
                 <span className="text-slate-400"> · Qty {counts[selectedTicket.Ticket_Id]} · ₹{totalPrice}</span>
+                {selectedTicket.isSeasonPass && (
+                  <span className="text-amber-300"> · Valid for all {dates.length} days</span>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1354,7 +1470,10 @@ export default function BookEventPage() {
                 <div className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
                   <div className="flex-1">
                     <p className="text-white font-medium text-sm">{selectedTicket.TicketName}</p>
-                    <p className="text-slate-400 text-xs">Qty: {counts[selectedTicket.Ticket_Id]}</p>
+                    <p className="text-slate-400 text-xs">
+                      Qty: {counts[selectedTicket.Ticket_Id]}
+                      {selectedTicket.isSeasonPass ? ` · Season pass for all ${dates.length} days` : ""}
+                    </p>
                   </div>
                   <span className="font-semibold text-[#00E1FC]">₹{counts[selectedTicket.Ticket_Id] * selectedTicket.TicketPrice}</span>
                 </div>
@@ -1489,12 +1608,17 @@ export default function BookEventPage() {
         )}
 
         {/* Sticky footer for ticket selection (step 1 & 2) */}
-        {((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId && (
+        {(((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId) ||
+          (currentStep === 1 && Boolean(selectedSeasonPass)) ? (
           <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 sm:p-4">
             <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-400">
-                  {totalTickets > 0 ? `${totalTickets} ticket${totalTickets > 1 ? 's' : ''} selected` : 'No tickets selected'}
+                  {totalTickets > 0
+                    ? selectedSeasonPass
+                      ? `${totalTickets} season pass${totalTickets > 1 ? 'es' : ''} · all ${dates.length} days`
+                      : `${totalTickets} ticket${totalTickets > 1 ? 's' : ''} selected`
+                    : 'No tickets selected'}
                 </p>
                 <p className="text-lg font-bold text-white">
                   {totalTickets > 0 ? `₹${totalPrice}` : '—'}
@@ -1509,7 +1633,7 @@ export default function BookEventPage() {
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
       <Toaster
         position="top-right"
