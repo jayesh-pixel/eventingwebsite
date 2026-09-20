@@ -267,6 +267,8 @@ export default function BookEventPage() {
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
   const [eventConvenienceFee, setEventConvenienceFee] = React.useState<{ unit: number; value: number }>({ unit: 0, value: 0 });
   const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4>(1);
+  // Which tab the user is booking from: a single show date, or the season pass
+  const [selectionMode, setSelectionMode] = React.useState<"date" | "season">("date");
 
   // Promocode state ------------------------------------------------------------
   const [promocodeInput, setPromocodeInput] = React.useState("");
@@ -561,20 +563,32 @@ export default function BookEventPage() {
   // Handlers – date click, qty controls, navigation
   // ────────────────────────────────────────────────────────────────────────────
   const handleDateClick = async (eventDateTimeId: string) => {
-    // Season passes are not tied to a date, so keep them selected when the date changes
+    // A date booking and a season pass are different tabs — switching drops the other side
+    setSelectionMode("date");
+    setSelectedDateId(eventDateTimeId);
+    setCounts({});
+    setShowCount({});
+    setAppliedPromocode(null);
+    setPromocodeInput("");
+    setPromocodeError("");
+    setCurrentStep(2);
+    await loadTickets(eventDateTimeId);
+  };
+
+  // Season pass tab — shows the passes instead of a single day's tickets
+  const handleSeasonPassTabClick = () => {
+    setSelectionMode("season");
+    // Day tickets don't apply to a season pass booking
     const keepSeasonPassOnly = (prev: Record<string, any>) =>
       Object.fromEntries(
         Object.entries(prev).filter(([ticketId]) => seasonPasses.some((pass) => pass.Ticket_Id === ticketId))
       );
-
-    setSelectedDateId(eventDateTimeId);
     setCounts(keepSeasonPassOnly);
     setShowCount(keepSeasonPassOnly);
     setAppliedPromocode(null);
     setPromocodeInput("");
     setPromocodeError("");
     setCurrentStep(2);
-    await loadTickets(eventDateTimeId);
   };
 
   const handleIncrease = (ticketId: string) => {
@@ -874,43 +888,43 @@ export default function BookEventPage() {
         // Decrypt payment gateway data as backend sends encrypted response
         const paymentData = decryptData((response.data as any).data, passphrase);
         console.log('Decrypted payment gateway data:', paymentData);
-        // if (paymentData && typeof paymentData === 'object') {
-        //   console.log('Payment gateway data received:', Object.keys(paymentData));
+        if (paymentData && typeof paymentData === 'object') {
+          console.log('Payment gateway data received:', Object.keys(paymentData));
           
-        //   // Store event ID in sessionStorage for success/failure page redirect
-        //   sessionStorage.setItem('lastEventId', eventId);
+          // Store event ID in sessionStorage for success/failure page redirect
+          sessionStorage.setItem('lastEventId', eventId);
           
-        //   // // Show success message before redirect
-        //   // toast.success("Redirecting to secure payment gateway...");
+          // Show success message before redirect
+          toast.success("Redirecting to secure payment gateway...");
           
-        //   // // Create and submit PayU form
-        //   // const form = document.createElement("form");
-        //   // form.setAttribute("method", "POST");
-        //   // form.setAttribute("action", process.env.NEXT_PUBLIC_PAYU_URL || "https://test.payu.in/_payment");
-        //   // form.setAttribute("target", "_self");
+          // Create and submit PayU form
+          const form = document.createElement("form");
+          form.setAttribute("method", "POST");
+          form.setAttribute("action", process.env.NEXT_PUBLIC_PAYU_URL || "https://test.payu.in/_payment");
+          form.setAttribute("target", "_self");
 
-        //   // // Add all payment parameters to form
-        //   // Object.keys(paymentData).forEach((key) => {
-        //   //   const hiddenField = document.createElement("input");
-        //   //   hiddenField.setAttribute("type", "hidden");
-        //   //   hiddenField.setAttribute("name", key);
-        //   //   hiddenField.setAttribute("value", String(paymentData[key]));
-        //   //   form.appendChild(hiddenField);
-        //   // });
+          // Add all payment parameters to form
+          Object.keys(paymentData).forEach((key) => {
+            const hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", String(paymentData[key]));
+            form.appendChild(hiddenField);
+          });
 
-        //   // document.body.appendChild(form);
+          document.body.appendChild(form);
           
-        //   // // Submit form to PayU payment gateway
-        //   // form.submit();
+          // Submit form to PayU payment gateway
+          form.submit();
           
-        //   // Clean up form after submission
+   //       Clean up form after submission
         
-        //   // setTimeout(() => {
-        //   //   document.body.removeChild(form);
-        //   // }, 1000);
-        // } else {
-        //   throw new Error("Invalid payment gateway response format");
-        // }
+          setTimeout(() => {
+            document.body.removeChild(form);
+          }, 1000);
+        } else {
+          throw new Error("Invalid payment gateway response format");
+        }
       } else {
         throw new Error("No payment data received from server");
       }
@@ -1017,21 +1031,41 @@ export default function BookEventPage() {
     const soldOut = ticket.TicketAvailibilty === 0;
     const ticketDescription = normalizeTicketDescription(ticket.TicketDescprition);
 
+    // Season passes highlight in amber (matching their section) so the selected
+    // item is the pass itself, not a date
+    const selectedClasses = ticket.isSeasonPass
+      ? "border-amber-400 bg-amber-400/10 ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/10"
+      : "border-[#00E1FC] bg-slate-900/70 ring-2 ring-[#00E1FC]/30 shadow-lg shadow-[#00E1FC]/10";
+    const idleClasses = ticket.isSeasonPass
+      ? "border-amber-400/30 bg-slate-800/30 hover:border-amber-400/60"
+      : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40";
+
     return (
       <div
         key={ticket.Ticket_Id}
         className={`rounded-xl border transition-all duration-200 ${
-          selected
-            ? "border-[#00E1FC] bg-slate-900/70"
-            : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40"
+          selected ? selectedClasses : idleClasses
         } ${soldOut ? "opacity-50" : ""}`}
       >
         <div className="p-2 sm:p-3">
           <div className="flex items-center justify-between gap-3">
             {/* Left: Ticket name, price, description */}
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
-              <p className="text-[#00E1FC] font-bold text-base sm:text-lg mt-1 flex items-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
+                {selected && (
+                  <span
+                    className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                      ticket.isSeasonPass
+                        ? "border-amber-400/60 text-amber-200 bg-amber-400/10"
+                        : "border-[#00E1FC]/60 text-[#00E1FC] bg-[#00E1FC]/10"
+                    }`}
+                  >
+                    Selected
+                  </span>
+                )}
+              </div>
+              <p className={`font-bold text-base sm:text-lg mt-1 flex items-center ${ticket.isSeasonPass ? "text-amber-300" : "text-[#00E1FC]"}`}>
                 <IndianRupee className="h-4 w-4" />
                 {ticket.TicketPrice}
               </p>
@@ -1070,7 +1104,7 @@ export default function BookEventPage() {
                   >
                     <Minus className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="w-6 text-center font-bold text-[#00E1FC] text-base">{count}</span>
+                  <span className={`w-6 text-center font-bold text-base ${ticket.isSeasonPass ? "text-amber-300" : "text-[#00E1FC]"}`}>{count}</span>
                   <Button
                     size="sm"
                     variant="outline"
@@ -1084,7 +1118,11 @@ export default function BookEventPage() {
               ) : (
                 <Button
                   onClick={() => handleShowCount(ticket.Ticket_Id)}
-                  className="px-4 py-2 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm font-medium rounded-lg"
+                  className={`px-4 py-2 text-white text-sm font-medium rounded-lg ${
+                    ticket.isSeasonPass
+                      ? "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-400/90 hover:to-amber-500/90 text-slate-900"
+                      : "bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90"
+                  }`}
                 >
                   Add
                 </Button>
@@ -1103,7 +1141,11 @@ export default function BookEventPage() {
     if (!isMultiDayEvent || seasonPasses.length === 0) return null;
 
     return (
-      <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-amber-400/30 shadow-2xl mb-4 sm:mb-6">
+      <Card
+        className={`bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border shadow-2xl mb-4 sm:mb-6 transition-all duration-200 ${
+          selectedSeasonPass ? "border-amber-400 ring-2 ring-amber-400/30" : "border-amber-400/30"
+        }`}
+      >
         <CardHeader className="bg-gradient-to-r from-amber-400/15 to-[#00E1FC]/10 border-b border-slate-700/50 px-4 py-3 sm:p-6">
           <CardTitle className="flex flex-wrap items-center gap-2 text-lg sm:text-xl text-white font-semibold">
             <Ticket className="h-5 w-5 text-amber-300" />
@@ -1112,9 +1154,7 @@ export default function BookEventPage() {
               All {dates.length} days
             </Badge>
           </CardTitle>
-          <CardDescription className="text-slate-300">
-            One pass covers every day of this event — no need to book each date separately.
-          </CardDescription>
+
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1240,7 +1280,7 @@ export default function BookEventPage() {
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-1">{eventDetails.EventName}</h2>
-                {selectedSeasonPass ? (
+                {selectedSeasonPass || (selectionMode === "season" && seasonPasses.length > 0) ? (
                   <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
                     <CalendarDays className="h-4 w-4 text-amber-300" />
                     <span className="truncate">Season pass · all {dates.length} days</span>
@@ -1258,43 +1298,67 @@ export default function BookEventPage() {
           </CardContent>
         </Card>
 
-        {currentStep === 1 && renderSeasonPassSection()}
-
-        {currentStep === 1 && dates.length > 1 && (
+        {(currentStep === 1 || currentStep === 2) && dates.length > 1 && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
             <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-white font-semibold">
                 <CalendarDays className="h-5 w-5 text-[#00E1FC]" />
-                Choose Your Date
+                {seasonPasses.length > 0 ? "Choose Date or Season Pass" : "Choose Your Date"}
               </CardTitle>
-              <CardDescription className="text-slate-300">Start by selecting the show date you want to attend.</CardDescription>
+              <CardDescription className="text-slate-300">
+                {seasonPasses.length > 0
+                  ? "Pick a single show date, or switch to the Season Pass tab to cover every day."
+                  : "Start by selecting the show date you want to attend."}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-2 gap-3">
+              {/* Tab strip — every date plus the season pass, only one active at a time */}
+              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-1 px-1">
                 {dates.map((date) => {
-                  const selected = selectedDateId === date.eventDateTime_id;
+                  const active = selectionMode === "date" && selectedDateId === date.eventDateTime_id;
                   return (
                     <button
                       key={date.eventDateTime_id}
                       onClick={() => handleDateClick(date.eventDateTime_id)}
-                      className={`rounded-2xl border-2 px-4 py-4 text-left transition-all duration-300 ${
-                        selected
+                      className={`shrink-0 min-w-[120px] rounded-2xl border-2 px-4 py-3 text-left transition-all duration-300 ${
+                        active
                           ? "border-[#00E1FC] bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 shadow-lg shadow-[#00E1FC]/20"
                           : "border-slate-700 bg-slate-800/40 hover:border-[#00E1FC]/40"
                       }`}
                     >
                       <p className="text-sm font-semibold text-white">{date.Day}</p>
                       <p className="text-xs text-slate-400 mt-1">{date.Month} {date.Date}</p>
-                      <p className="text-sm text-[#00E1FC] mt-3 font-medium">{date.Time}</p>
+                      <p className={`text-xs mt-2 font-medium ${active ? "text-[#00E1FC]" : "text-slate-400"}`}>{date.Time}</p>
                     </button>
                   );
                 })}
+
+                {seasonPasses.length > 0 && (
+                  <button
+                    onClick={handleSeasonPassTabClick}
+                    className={`shrink-0 min-w-[140px] rounded-2xl border-2 px-4 py-3 text-left transition-all duration-300 ${
+                      selectionMode === "season"
+                        ? "border-amber-400 bg-amber-400/15 shadow-lg shadow-amber-400/20"
+                        : "border-amber-400/30 bg-slate-800/40 hover:border-amber-400/60"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-white flex items-center gap-1.5">
+                      <Ticket className="h-4 w-4 text-amber-300" />
+                      Season Pass
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">All {dates.length} days</p>
+                    <p className={`text-xs mt-2 font-medium ${selectionMode === "season" ? "text-amber-300" : "text-slate-400"}`}>
+                      One pass, every show
+                    </p>
+                  </button>
+                )}
               </div>
-              {!selectedSeasonPass && (
+
+              {currentStep === 1 && (
                 <div className="mt-5 flex justify-end">
                   <Button
                     onClick={() => setCurrentStep(2)}
-                    disabled={!selectedDateId}
+                    disabled={selectionMode === "date" && !selectedDateId}
                     className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
                   >
                     Continue to Tickets
@@ -1305,14 +1369,14 @@ export default function BookEventPage() {
           </Card>
         )}
 
-        {currentStep === 2 && renderSeasonPassSection()}
+        {currentStep === 2 && selectionMode === "season" && renderSeasonPassSection()}
 
-        {((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId && (
+        {((currentStep === 1 && dates.length === 1) || (currentStep === 2 && selectionMode === "date")) && selectedDateId && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
             <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-white font-semibold">
                 <Users className="h-5 w-5 text-[#00E1FC]" />
-                {isMultiDayEvent && seasonPasses.length > 0 ? "Or Choose a Single-Day Ticket" : "Choose Your Ticket"}
+                {isMultiDayEvent && seasonPasses.length > 0 ? "Choose a Single-Day Ticket" : "Choose Your Ticket"}
               </CardTitle>
               <CardDescription className="text-slate-300">Pick one ticket type and quantity to continue.</CardDescription>
             </CardHeader>
@@ -1608,8 +1672,8 @@ export default function BookEventPage() {
         )}
 
         {/* Sticky footer for ticket selection (step 1 & 2) */}
-        {(((currentStep === 1 && dates.length === 1) || currentStep === 2) && selectedDateId) ||
-          (currentStep === 1 && Boolean(selectedSeasonPass)) ? (
+        {((currentStep === 1 && dates.length === 1) || currentStep === 2) &&
+          (selectionMode === "season" ? seasonPasses.length > 0 : Boolean(selectedDateId)) ? (
           <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 sm:p-4">
             <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
               <div>
