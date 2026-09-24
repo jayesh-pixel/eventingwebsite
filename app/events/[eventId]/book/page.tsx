@@ -23,7 +23,6 @@ import {
   Loader2,
   Minus,
   Plus,
-  Users,
   CreditCard,
   ShieldCheck,
   Ticket,
@@ -1373,13 +1372,6 @@ export default function BookEventPage() {
 
         {((currentStep === 1 && dates.length === 1) || (currentStep === 2 && selectionMode === "date")) && selectedDateId && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
-            <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-white font-semibold">
-                <Users className="h-5 w-5 text-[#00E1FC]" />
-                {isMultiDayEvent && seasonPasses.length > 0 ? "Choose a Single-Day Ticket" : "Choose Your Ticket"}
-              </CardTitle>
-              <CardDescription className="text-slate-300">Pick one ticket type and quantity to continue.</CardDescription>
-            </CardHeader>
             <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               {tickets.length === 0 ? (
                 <div className="text-center py-10">
@@ -1387,7 +1379,7 @@ export default function BookEventPage() {
                   <p className="text-slate-500 text-sm mt-2">Please try another date.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                 {tickets.map((ticket) => renderTicketRow(ticket))}
                 </div>
               )}

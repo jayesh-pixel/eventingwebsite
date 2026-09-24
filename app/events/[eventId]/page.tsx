@@ -418,10 +418,10 @@ export default function EventDetailsPage() {
                     rel="noopener noreferrer"
                     className="text-base sm:text-lg underline decoration-[#00E1FC]/40 underline-offset-4 hover:text-[#00E1FC] transition-colors"
                   >
-                    {eventDetails.VenueCity || eventDetails.VenueName}
+                    {eventDetails.VenueName || eventDetails.VenueCity}
                   </a>
                 ) : (
-                  <span className="text-base sm:text-lg">{eventDetails.VenueCity || eventDetails.VenueName}</span>
+                  <span className="text-base sm:text-lg">{eventDetails.VenueName || eventDetails.VenueCity}</span>
                 )}
               </div>
             </div>
