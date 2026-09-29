@@ -17,15 +17,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
-  CalendarDays,
-  Clock,
-  IndianRupee,
   Loader2,
   Minus,
   Plus,
   CreditCard,
-  ShieldCheck,
-  Ticket,
 } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
@@ -210,6 +205,35 @@ const normalizeTicketFee = (ticket: any): Pick<TicketData, 'ConvinienceFeeUnit' 
   return { ConvinienceFeeUnit: unit, ConvinienceFeeValue: value };
 };
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Split a show date into the pieces the date strip shows (day number, weekday, month).
+// Backend fields vary in format, so fall back to parsing Date when Day/Month are missing.
+const getDateChipParts = (date: EventDateTime) => {
+  const rawDate = asString(date.Date).trim();
+  const parsed = /^\d{1,2}$/.test(rawDate) ? null : new Date(rawDate);
+  const validParsed = parsed && !isNaN(parsed.getTime()) ? parsed : null;
+
+  const rawMonth = asString(date.Month).trim();
+  const month = /^\d{1,2}$/.test(rawMonth)
+    ? MONTH_NAMES[Number(rawMonth) - 1] ?? rawMonth
+    : rawMonth || (validParsed ? MONTH_NAMES[validParsed.getMonth()] : "");
+  const weekday =
+    asString(date.Day).trim() ||
+    (validParsed ? validParsed.toLocaleDateString("en-IN", { weekday: "short" }) : "");
+
+  return {
+    day: validParsed ? String(validParsed.getDate()) : rawDate,
+    weekday: weekday.slice(0, 3),
+    month: month.slice(0, 3),
+  };
+};
+
+const formatShowDate = (date: EventDateTime) => {
+  const { day, weekday, month } = getDateChipParts(date);
+  return `${weekday ? `${weekday}, ` : ""}${day} ${month}${date.Time ? ` · ${date.Time}` : ""}`;
+};
+
 // Backend marks season pass tickets with TicketType 3
 const SEASON_PASS_TICKET_TYPE = 3;
 
@@ -260,14 +284,15 @@ export default function BookEventPage() {
   const [dates, setDates] = React.useState<EventDateTime[]>([]);
   const [tickets, setTickets] = React.useState<TicketData[]>([]);
   const [seasonPasses, setSeasonPasses] = React.useState<TicketData[]>([]);
+  const [ticketsLoading, setTicketsLoading] = React.useState(false);
+  // Date chip shows that day's tickets; the season pass chip shows passes valid for every day
+  const [selectionMode, setSelectionMode] = React.useState<"date" | "season">("date");
   const [counts, setCounts] = React.useState<Record<string, number>>({});
-  const [showCount, setShowCount] = React.useState<Record<string, boolean>>({});
   const [expandedDescriptions, setExpandedDescriptions] = React.useState<Record<string, boolean>>({});
   const [eventDetails, setEventDetails] = React.useState<EventDetails | null>(null);
   const [eventConvenienceFee, setEventConvenienceFee] = React.useState<{ unit: number; value: number }>({ unit: 0, value: 0 });
-  const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4>(1);
-  // Which tab the user is booking from: a single show date, or the season pass
-  const [selectionMode, setSelectionMode] = React.useState<"date" | "season">("date");
+  // 2 = pick date & tickets, 3 = customer details, 4 = review & pay
+  const [currentStep, setCurrentStep] = React.useState<2 | 3 | 4>(2);
 
   // Promocode state ------------------------------------------------------------
   const [promocodeInput, setPromocodeInput] = React.useState("");
@@ -373,6 +398,23 @@ export default function BookEventPage() {
   const selectedTicket = selectedTickets[0] ?? null;
   const selectedSeasonPass = selectedTickets.find((ticket) => ticket.isSeasonPass) ?? null;
   const isMultiDayEvent = dates.length > 1;
+  const selectedSlot = dates.find((date) => date.eventDateTime_id === selectedDateId) ?? null;
+
+  // Date strip shows one chip per calendar day; a day with several show times gets time chips below
+  const dateGroups = React.useMemo(() => {
+    const groups: { key: string; day: string; weekday: string; month: string; slots: EventDateTime[] }[] = [];
+    dates.forEach((date) => {
+      const parts = getDateChipParts(date);
+      const key = `${parts.month}-${parts.day}`;
+      const existing = groups.find((group) => group.key === key);
+      if (existing) existing.slots.push(date);
+      else groups.push({ key, ...parts, slots: [date] });
+    });
+    return groups;
+  }, [dates]);
+  const selectedGroup = dateGroups.find((group) =>
+    group.slots.some((slot) => slot.eventDateTime_id === selectedDateId)
+  );
 
   // (Single-page booking flow) If user returns after login, keep selections and continue inline.
 
@@ -501,7 +543,6 @@ export default function BookEventPage() {
             setSelectedDateId(dateToSelect);
             // Pass the event-level fee directly to avoid stale state during initial load
             await loadTickets(dateToSelect, pendingEventFee);
-            setCurrentStep(eventDates.length === 1 ? 2 : 1);
           }
         }
         
@@ -515,10 +556,17 @@ export default function BookEventPage() {
     loadEventData();
   }, [eventId]);
 
+  // Tracks the latest date requested, so a slow response for a date the user already left is ignored
+  const latestTicketsRequest = React.useRef<string | null>(null);
+
   // Load tickets for selected date
   const loadTickets = async (eventDateTimeId: string, eventFeeOverride?: { unit: number; value: number }) => {
     // Determine the event-level fee to use as fallback for tickets without their own fee
     const eventFee = eventFeeOverride ?? eventConvenienceFee;
+    latestTicketsRequest.current = eventDateTimeId;
+    // Clear the previous date's tickets so they never show under this date
+    setTickets([]);
+    setTicketsLoading(true);
     try {
       const response = await axios.post<TicketResponse>(
         eventsConfig.GET_TICKETS_BY_ID,
@@ -527,14 +575,20 @@ export default function BookEventPage() {
           eventDateTime_id: eventDateTimeId
         }
       );
+      if (latestTicketsRequest.current !== eventDateTimeId) return;
 
-      if (response.data && !response.data.error) {
-        // Normalize convenience fee fields and ensure numeric types
-        const normalizedTickets = response.data.data.map((ticket: any) => normalizeTicket(ticket, eventFee));
+      if (response.data && !response.data.error && Array.isArray(response.data.data)) {
+        // Normalize convenience fee fields and ensure numeric types; keep only this date's tickets
+        const normalizedTickets = response.data.data
+          .filter((ticket: any) => !ticket.EventDateTime_id || ticket.EventDateTime_id === eventDateTimeId)
+          .map((ticket: any) => normalizeTicket(ticket, eventFee));
         setTickets(normalizedTickets);
       }
-    } catch (error) {
-      console.error('Failed to fetch tickets:', error);
+    } catch (error: any) {
+      // Backend answers 404 "Event Tickets Not Found" for a date with no tickets — that's an empty list, not an error
+      if (error?.response?.status !== 404) console.error('Failed to fetch tickets:', error);
+    } finally {
+      if (latestTicketsRequest.current === eventDateTimeId) setTicketsLoading(false);
     }
   };
 
@@ -561,84 +615,68 @@ export default function BookEventPage() {
   // ────────────────────────────────────────────────────────────────────────────
   // Handlers – date click, qty controls, navigation
   // ────────────────────────────────────────────────────────────────────────────
-  const handleDateClick = async (eventDateTimeId: string) => {
-    // A date booking and a season pass are different tabs — switching drops the other side
-    setSelectionMode("date");
-    setSelectedDateId(eventDateTimeId);
+  // Switching between a date and the season pass chip starts the selection over,
+  // so the ticket list on screen always matches what's in the cart
+  const resetSelection = () => {
     setCounts({});
-    setShowCount({});
     setAppliedPromocode(null);
     setPromocodeInput("");
     setPromocodeError("");
-    setCurrentStep(2);
-    await loadTickets(eventDateTimeId);
   };
 
-  // Season pass tab — shows the passes instead of a single day's tickets
-  const handleSeasonPassTabClick = () => {
+  const handleDateClick = async (eventDateTimeId: string) => {
+    if (selectionMode === "date" && eventDateTimeId === selectedDateId) return;
+    setSelectionMode("date");
+    resetSelection();
+    if (eventDateTimeId !== selectedDateId) {
+      setSelectedDateId(eventDateTimeId);
+      await loadTickets(eventDateTimeId);
+    }
+  };
+
+  const handleSeasonPassClick = () => {
+    if (selectionMode === "season") return;
     setSelectionMode("season");
-    // Day tickets don't apply to a season pass booking
-    const keepSeasonPassOnly = (prev: Record<string, any>) =>
-      Object.fromEntries(
-        Object.entries(prev).filter(([ticketId]) => seasonPasses.some((pass) => pass.Ticket_Id === ticketId))
-      );
-    setCounts(keepSeasonPassOnly);
-    setShowCount(keepSeasonPassOnly);
-    setAppliedPromocode(null);
-    setPromocodeInput("");
-    setPromocodeError("");
-    setCurrentStep(2);
+    resetSelection();
   };
 
   const handleIncrease = (ticketId: string) => {
-    setCounts(prev => {
-      // Check if there are any other tickets selected
-      const hasOtherTickets = Object.keys(prev).some(id => id !== ticketId && prev[id] > 0);
+    const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
+    const otherSelectedId = Object.keys(counts).find(id => id !== ticketId && counts[id] > 0);
 
-      if (hasOtherTickets) {
-        const seasonPassSelected = Object.keys(prev).some(
-          id => id !== ticketId && prev[id] > 0 && seasonPasses.some(pass => pass.Ticket_Id === id)
-        );
-        toast.error(
-          seasonPassSelected
-            ? "Your season pass already covers every day. Remove it to book a single-day ticket."
+    if (otherSelectedId) {
+      const otherIsSeasonPass = seasonPasses.some(pass => pass.Ticket_Id === otherSelectedId);
+      toast.error(
+        otherIsSeasonPass
+          ? "Your season pass already covers every day. Remove it to book a single-day ticket."
+          : ticket?.isSeasonPass
+            ? "Remove the single-day ticket to book a season pass."
             : "Please select only one ticket type per booking. Remove other tickets first."
-        );
-        return prev;
-      }
+      );
+      return;
+    }
 
-      // Get the booking max limit for this ticket
-      const ticket = allTickets.find(t => t.Ticket_Id === ticketId);
-      const maxAllowed = ticket?.BookingMaxLimit || 1;
-      const currentCount = prev[ticketId] || 0;
-      
-      if (currentCount >= maxAllowed) {
-        toast.error(`Maximum ${maxAllowed} ticket${maxAllowed > 1 ? 's' : ''} allowed per booking.`);
-        return prev;
-      }
+    const maxAllowed = ticket?.BookingMaxLimit || 1;
+    const currentCount = counts[ticketId] || 0;
 
-      // Warn if total exceeds 10
-      const newTotal = Object.values(prev).reduce((s, n) => s + n, 0) + 1;
-      if (newTotal > 10) {
-        toast.error("You can book a maximum of 10 tickets per order.");
-        return prev;
-      }
-      
-      return { ...prev, [ticketId]: (prev[ticketId] || 0) + 1 };
-    });
-    setShowCount(prev => ({ ...prev, [ticketId]: true }));
+    if (currentCount >= maxAllowed) {
+      toast.error(`Maximum ${maxAllowed} ticket${maxAllowed > 1 ? 's' : ''} allowed per booking.`);
+      return;
+    }
+
+    if (totalTickets + 1 > 10) {
+      toast.error("You can book a maximum of 10 tickets per order.");
+      return;
+    }
+
+    setCounts({ ...counts, [ticketId]: currentCount + 1 });
   };
-  
+
   const handleDecrease = (ticketId: string) => {
     setCounts((prev) => {
-      const newCount = Math.max((prev[ticketId] || 0) - 1, 0);
-      if (newCount === 0) {
-        // Remove this ticket from counts and showCount, but keep others
+      const newCount = (prev[ticketId] || 0) - 1;
+      if (newCount <= 0) {
         const { [ticketId]: _, ...rest } = prev;
-        setShowCount(scPrev => {
-          const { [ticketId]: __, ...scRest } = scPrev;
-          return scRest;
-        });
         return rest;
       }
       return { ...prev, [ticketId]: newCount };
@@ -733,8 +771,6 @@ export default function BookEventPage() {
 
     setCurrentStep(4);
   };
-
-  const handleShowCount = (ticketId: string) => setShowCount(prev => ({ ...prev, [ticketId]: true }));
 
   // ────────────────────────────────────────────────────────────────────────────
   // Customer form & validation
@@ -1022,150 +1058,108 @@ export default function BookEventPage() {
   };
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Ticket row (shared by day tickets and season passes)
+  // Ticket card (shared by day tickets and season passes)
   // ────────────────────────────────────────────────────────────────────────────
   const renderTicketRow = (ticket: TicketData) => {
     const count = counts[ticket.Ticket_Id] || 0;
-    const selected = showCount[ticket.Ticket_Id];
+    const selected = count > 0;
     const soldOut = ticket.TicketAvailibilty === 0;
-    const ticketDescription = normalizeTicketDescription(ticket.TicketDescprition);
+    const ticketDescription =
+      normalizeTicketDescription(ticket.TicketDescprition) ||
+      (ticket.isSeasonPass ? `Valid for all ${dates.length} days of the event.` : "");
+    const expanded = expandedDescriptions[ticket.Ticket_Id];
 
-    // Season passes highlight in amber (matching their section) so the selected
-    // item is the pass itself, not a date
-    const selectedClasses = ticket.isSeasonPass
-      ? "border-amber-400 bg-amber-400/10 ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/10"
-      : "border-[#00E1FC] bg-slate-900/70 ring-2 ring-[#00E1FC]/30 shadow-lg shadow-[#00E1FC]/10";
-    const idleClasses = ticket.isSeasonPass
-      ? "border-amber-400/30 bg-slate-800/30 hover:border-amber-400/60"
-      : "border-slate-700/50 bg-slate-800/30 hover:border-[#00E1FC]/40";
+    // Season passes get an amber tint so they stand out above the day tickets
+    const cardClasses = ticket.isSeasonPass
+      ? selected
+        ? "border-amber-400 bg-amber-400/10 ring-1 ring-amber-400/40"
+        : "border-amber-400/40 bg-amber-400/[0.06] hover:border-amber-400/70"
+      : selected
+        ? "border-[#00E1FC] bg-slate-900/80 ring-1 ring-[#00E1FC]/30"
+        : "border-slate-700/60 bg-slate-900/60 hover:border-[#00E1FC]/40";
 
     return (
       <div
         key={ticket.Ticket_Id}
-        className={`rounded-xl border transition-all duration-200 ${
-          selected ? selectedClasses : idleClasses
-        } ${soldOut ? "opacity-50" : ""}`}
+        className={`rounded-2xl border p-4 transition-all duration-200 ${cardClasses} ${soldOut ? "opacity-50" : ""}`}
       >
-        <div className="p-2 sm:p-3">
-          <div className="flex items-center justify-between gap-3">
-            {/* Left: Ticket name, price, description */}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-semibold text-white text-sm sm:text-base leading-tight">{ticket.TicketName}</h3>
-                {selected && (
-                  <span
-                    className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
-                      ticket.isSeasonPass
-                        ? "border-amber-400/60 text-amber-200 bg-amber-400/10"
-                        : "border-[#00E1FC]/60 text-[#00E1FC] bg-[#00E1FC]/10"
-                    }`}
-                  >
-                    Selected
-                  </span>
-                )}
-              </div>
-              <p className={`font-bold text-base sm:text-lg mt-1 flex items-center ${ticket.isSeasonPass ? "text-amber-300" : "text-[#00E1FC]"}`}>
-                <IndianRupee className="h-4 w-4" />
-                {ticket.TicketPrice}
-              </p>
-              {ticketDescription && (
-                <p className={`text-xs text-slate-400 mt-1 ${expandedDescriptions[ticket.Ticket_Id] ? "" : "line-clamp-1"}`}>
-                  {ticketDescription}
-                  {ticketDescription.length > 60 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedDescriptions((prev) => ({
-                          ...prev,
-                          [ticket.Ticket_Id]: !prev[ticket.Ticket_Id],
-                        }));
-                      }}
-                      className="ml-1 text-[#00E1FC] hover:text-[#00E1FC]/80 font-medium"
-                    >
-                      {expandedDescriptions[ticket.Ticket_Id] ? "less" : "more"}
-                    </button>
-                  )}
-                </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-semibold text-white text-sm sm:text-base leading-snug">{ticket.TicketName}</h3>
+              {ticket.isSeasonPass && (
+                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border border-amber-400/60 text-amber-200 bg-amber-400/10">
+                  Season Pass
+                </span>
               )}
             </div>
+            <p className="mt-1.5 text-base font-semibold text-slate-100">₹{ticket.TicketPrice.toLocaleString("en-IN")}</p>
+          </div>
 
-            {/* Right: Qty selector or Select button */}
-            <div className="shrink-0">
-              {soldOut ? (
-                <span className="text-xs text-red-400 font-medium px-3 py-2">Sold Out</span>
-              ) : selected ? (
-                <div className="flex items-center gap-2 bg-slate-900/80 rounded-lg border border-slate-700/50 px-2 py-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDecrease(ticket.Ticket_Id)}
-                    className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white"
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </Button>
-                  <span className={`w-6 text-center font-bold text-base ${ticket.isSeasonPass ? "text-amber-300" : "text-[#00E1FC]"}`}>{count}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleIncrease(ticket.Ticket_Id)}
-                    disabled={count >= (ticket.BookingMaxLimit || 10)}
-                    className="h-8 w-8 p-0 border-slate-600/50 hover:bg-slate-700/50 text-white disabled:opacity-50"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => handleShowCount(ticket.Ticket_Id)}
-                  className={`px-4 py-2 text-white text-sm font-medium rounded-lg ${
-                    ticket.isSeasonPass
-                      ? "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-400/90 hover:to-amber-500/90 text-slate-900"
-                      : "bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90"
-                  }`}
+          <div className="shrink-0">
+            {soldOut ? (
+              <span className="inline-flex h-9 items-center text-xs text-red-400 font-semibold uppercase">Sold Out</span>
+            ) : selected ? (
+              <div className="flex h-9 w-[104px] items-center justify-between rounded-lg border border-slate-600/60 bg-slate-950/70 px-1">
+                <button
+                  onClick={() => handleDecrease(ticket.Ticket_Id)}
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60"
+                  aria-label={`Remove one ${ticket.TicketName}`}
                 >
-                  Add
-                </Button>
-              )}
-            </div>
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className={`text-sm font-bold ${ticket.isSeasonPass ? "text-amber-300" : "text-[#00E1FC]"}`}>{count}</span>
+                <button
+                  onClick={() => handleIncrease(ticket.Ticket_Id)}
+                  disabled={count >= (ticket.BookingMaxLimit || 10)}
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60 disabled:opacity-40"
+                  aria-label={`Add one ${ticket.TicketName}`}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => handleIncrease(ticket.Ticket_Id)}
+                className={`h-9 w-[104px] rounded-lg text-sm font-semibold uppercase tracking-wide ${
+                  ticket.isSeasonPass
+                    ? "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-400/90 hover:to-amber-500/90 text-slate-900"
+                    : "bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                }`}
+              >
+                Add
+              </Button>
+            )}
           </div>
         </div>
+
+        {ticketDescription && (
+          <div className="mt-3 border-t border-slate-700/60 pt-3">
+            <p className={`text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>
+              {ticketDescription}
+            </p>
+            {ticketDescription.length > 120 && (
+              <button
+                onClick={() =>
+                  setExpandedDescriptions((prev) => ({ ...prev, [ticket.Ticket_Id]: !prev[ticket.Ticket_Id] }))
+                }
+                className="mt-1 text-xs font-medium text-[#00E1FC] hover:text-[#00E1FC]/80"
+              >
+                {expanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   };
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // Season pass section — only shown for multi-day events that have passes
-  // ────────────────────────────────────────────────────────────────────────────
-  const renderSeasonPassSection = () => {
-    if (!isMultiDayEvent || seasonPasses.length === 0) return null;
-
-    return (
-      <Card
-        className={`bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border shadow-2xl mb-4 sm:mb-6 transition-all duration-200 ${
-          selectedSeasonPass ? "border-amber-400 ring-2 ring-amber-400/30" : "border-amber-400/30"
-        }`}
-      >
-        <CardHeader className="bg-gradient-to-r from-amber-400/15 to-[#00E1FC]/10 border-b border-slate-700/50 px-4 py-3 sm:p-6">
-          <CardTitle className="flex flex-wrap items-center gap-2 text-lg sm:text-xl text-white font-semibold">
-            <Ticket className="h-5 w-5 text-amber-300" />
-            Season Pass
-            <Badge variant="outline" className="border-amber-400/50 text-amber-200 text-[11px]">
-              All {dates.length} days
-            </Badge>
-          </CardTitle>
-
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {seasonPasses.map((pass) => renderTicketRow(pass))}
-          </div>
-          <p className="mt-3 text-xs text-slate-400">
-            Valid for {dates.map((date) => `${date.Date} ${date.Month}`).join(", ")}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  };
+  const renderSectionHeading = (label: string) => (
+    <div className="mb-3 flex items-center gap-3">
+      <h2 className="whitespace-nowrap text-sm font-extrabold uppercase tracking-wider text-white">{label}</h2>
+      <div className="h-px flex-1 bg-slate-700/70" />
+    </div>
+  );
 
   // ────────────────────────────────────────────────────────────────────────────
   // Loading state
@@ -1209,183 +1203,129 @@ export default function BookEventPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // MAIN PAGE (step 1 – select date & tickets)
+  // MAIN PAGE
   // ---------------------------------------------------------------------------
   return (
     <>
       <LoginModal />
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black">
       <div className="container mx-auto px-4 sm:px-8 pt-2 pb-24 sm:pb-28 max-w-3xl">
-        <div className="flex flex-col gap-3 mb-5 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <Link href={`/events/${eventId}`}>
-                <Button variant="ghost" className="h-10 px-4 text-white hover:bg-white/10 border border-slate-700/50 w-fit">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Event
-                </Button>
-              </Link>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">Book Event Tickets</h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                <ShieldCheck className="h-4 w-4 text-green-400" />
-                <span className="text-xs sm:text-sm text-slate-300">Secure & Encrypted</span>
-              </div>
-              {isAuthenticated ? (
-                <div className="flex items-center gap-2 bg-green-900/20 px-3 py-1.5 rounded-lg border border-green-500/50">
-                  <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm text-green-400">Logged In</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 bg-orange-900/20 px-3 py-1.5 rounded-lg border border-orange-500/50">
-                  <div className="h-2 w-2 bg-orange-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm text-orange-400">Login required before details</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-2 rounded-2xl border border-slate-800 bg-slate-900/50 p-2">
-            {[
-              { id: 1, label: "Date" },
-              { id: 2, label: "Ticket" },
-              { id: 3, label: "Details" },
-              { id: 4, label: "Pay" },
-            ].map((step) => {
-              const isActive = currentStep === step.id;
-              const isComplete = currentStep > step.id;
-
-              return (
-                <div
-                  key={step.id}
-                  className={`rounded-xl px-3 py-2 text-center text-xs sm:text-sm font-semibold transition-all ${
-                    isActive
-                      ? "bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white"
-                      : isComplete
-                        ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
-                        : "bg-slate-800/60 text-slate-400"
-                  }`}
-                >
-                  {step.label}
-                </div>
-              );
-            })}
+        {/* Header — event name and venue, same for single and multi-day events */}
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+          <Link href={`/events/${eventId}`} aria-label="Back to event">
+            <Button variant="ghost" className="h-10 w-10 p-0 text-white hover:bg-white/10 border border-slate-700/50 shrink-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight line-clamp-1">{eventDetails.EventName}</h1>
+            {(eventDetails.VenueName || eventDetails.VenueCity) && (
+              <p className="text-xs sm:text-sm text-slate-400 line-clamp-1">
+                {[eventDetails.VenueName, eventDetails.VenueCity].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {!isMultiDayEvent && selectedSlot && (
+              <p className="text-xs sm:text-sm text-[#00E1FC] mt-0.5">{formatShowDate(selectedSlot)}</p>
+            )}
           </div>
         </div>
 
-        <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-1">{eventDetails.EventName}</h2>
-                {selectedSeasonPass || (selectionMode === "season" && seasonPasses.length > 0) ? (
-                  <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
-                    <CalendarDays className="h-4 w-4 text-amber-300" />
-                    <span className="truncate">Season pass · all {dates.length} days</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
-                    <CalendarDays className="h-4 w-4 text-[#00E1FC]" />
-                    <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Date || eventDetails.EventStartDate : eventDetails.EventStartDate}</span>
-                    <Clock className="h-4 w-4 text-[#00E1FC] ml-2" />
-                    <span className="truncate">{selectedDateId ? dates.find((date) => date.eventDateTime_id === selectedDateId)?.Time || eventDetails.EventStartTime : eventDetails.EventStartTime}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {currentStep === 2 && (
+          <>
+            {/* Select date & time — single-day events skip straight to tickets */}
+            {isMultiDayEvent && (
+              <section className="mb-7">
+                {renderSectionHeading("Select Date & Time")}
 
-        {(currentStep === 1 || currentStep === 2) && dates.length > 1 && (
-          <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
-            <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-white font-semibold">
-                <CalendarDays className="h-5 w-5 text-[#00E1FC]" />
-                {seasonPasses.length > 0 ? "Choose Date or Season Pass" : "Choose Your Date"}
-              </CardTitle>
-              <CardDescription className="text-slate-300">
-                {seasonPasses.length > 0
-                  ? "Pick a single show date, or switch to the Season Pass tab to cover every day."
-                  : "Start by selecting the show date you want to attend."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              {/* Tab strip — every date plus the season pass, only one active at a time */}
-              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-1 px-1">
-                {dates.map((date) => {
-                  const active = selectionMode === "date" && selectedDateId === date.eventDateTime_id;
-                  return (
+                <div className="flex items-stretch gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {dateGroups.map((group, index) => {
+                    const active = selectionMode === "date" && selectedGroup?.key === group.key;
+                    const showMonth = index === 0 || group.month !== dateGroups[index - 1].month;
+                    return (
+                      <React.Fragment key={group.key}>
+                        {showMonth && group.month && (
+                          <div className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700/50 bg-slate-800/60">
+                            <span className="rotate-180 text-xs font-bold uppercase tracking-widest text-slate-300 [writing-mode:vertical-rl]">
+                              {group.month}
+                            </span>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => handleDateClick(group.slots[0].eventDateTime_id)}
+                          className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-all duration-200 ${
+                            active
+                              ? "border-transparent bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] text-white shadow-lg shadow-[#00E1FC]/20"
+                              : "border-slate-700/60 bg-slate-800/40 text-slate-100 hover:border-[#00E1FC]/50"
+                          }`}
+                        >
+                          <span className="text-lg font-bold leading-none">{group.day}</span>
+                          {group.weekday && (
+                            <span className={`mt-1 text-xs ${active ? "text-white/90" : "text-slate-400"}`}>{group.weekday}</span>
+                          )}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+
+                  {isMultiDayEvent && seasonPasses.length > 0 && (
                     <button
-                      key={date.eventDateTime_id}
-                      onClick={() => handleDateClick(date.eventDateTime_id)}
-                      className={`shrink-0 min-w-[120px] rounded-2xl border-2 px-4 py-3 text-left transition-all duration-300 ${
-                        active
-                          ? "border-[#00E1FC] bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 shadow-lg shadow-[#00E1FC]/20"
-                          : "border-slate-700 bg-slate-800/40 hover:border-[#00E1FC]/40"
+                      onClick={handleSeasonPassClick}
+                      className={`flex h-16 shrink-0 flex-col items-center justify-center rounded-xl border px-3 transition-all duration-200 ${
+                        selectionMode === "season"
+                          ? "border-transparent bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 shadow-lg shadow-amber-400/20"
+                          : "border-amber-400/40 bg-amber-400/[0.06] text-amber-200 hover:border-amber-400/70"
                       }`}
                     >
-                      <p className="text-sm font-semibold text-white">{date.Day}</p>
-                      <p className="text-xs text-slate-400 mt-1">{date.Month} {date.Date}</p>
-                      <p className={`text-xs mt-2 font-medium ${active ? "text-[#00E1FC]" : "text-slate-400"}`}>{date.Time}</p>
+                      <span className="text-sm font-bold leading-none">Season Pass</span>
+                      <span className={`mt-1 text-xs ${selectionMode === "season" ? "text-slate-900/80" : "text-slate-400"}`}>
+                        All {dates.length} days
+                      </span>
                     </button>
-                  );
-                })}
+                  )}
+                </div>
 
-                {seasonPasses.length > 0 && (
-                  <button
-                    onClick={handleSeasonPassTabClick}
-                    className={`shrink-0 min-w-[140px] rounded-2xl border-2 px-4 py-3 text-left transition-all duration-300 ${
-                      selectionMode === "season"
-                        ? "border-amber-400 bg-amber-400/15 shadow-lg shadow-amber-400/20"
-                        : "border-amber-400/30 bg-slate-800/40 hover:border-amber-400/60"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-white flex items-center gap-1.5">
-                      <Ticket className="h-4 w-4 text-amber-300" />
-                      Season Pass
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">All {dates.length} days</p>
-                    <p className={`text-xs mt-2 font-medium ${selectionMode === "season" ? "text-amber-300" : "text-slate-400"}`}>
-                      One pass, every show
-                    </p>
-                  </button>
+                {selectionMode === "date" && selectedGroup && selectedGroup.slots.some((slot) => slot.Time) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedGroup.slots.map((slot) => {
+                      const active = slot.eventDateTime_id === selectedDateId;
+                      return (
+                        <button
+                          key={slot.eventDateTime_id}
+                          onClick={() => handleDateClick(slot.eventDateTime_id)}
+                          className={`h-11 min-w-[104px] rounded-xl border px-5 text-sm font-semibold transition-all duration-200 ${
+                            active
+                              ? "border-[#00E1FC] bg-[#00E1FC]/15 text-white"
+                              : "border-slate-700/60 bg-slate-800/40 text-slate-300 hover:border-[#00E1FC]/50"
+                          }`}
+                        >
+                          {slot.Time || "Show"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Choose tickets — season passes or the selected date's tickets, per the chip above */}
+            <section className="mb-6">
+              <div className="grid grid-cols-1 gap-3">
+                {selectionMode === "season" ? (
+                  seasonPasses.map((pass) => renderTicketRow(pass))
+                ) : ticketsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#00E1FC]" />
+                  </div>
+                ) : tickets.length > 0 ? (
+                  tickets.map((ticket) => renderTicketRow(ticket))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-700/60 py-8 text-center">
+                    <p className="text-slate-300">No tickets available</p>
+                  </div>
                 )}
               </div>
-
-              {currentStep === 1 && (
-                <div className="mt-5 flex justify-end">
-                  <Button
-                    onClick={() => setCurrentStep(2)}
-                    disabled={selectionMode === "date" && !selectedDateId}
-                    className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
-                  >
-                    Continue to Tickets
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {currentStep === 2 && selectionMode === "season" && renderSeasonPassSection()}
-
-        {((currentStep === 1 && dates.length === 1) || (currentStep === 2 && selectionMode === "date")) && selectedDateId && (
-          <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
-            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-              {tickets.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-slate-300 text-lg">No tickets available for this date</p>
-                  <p className="text-slate-500 text-sm mt-2">Please try another date.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3">
-                {tickets.map((ticket) => renderTicketRow(ticket))}
-                </div>
-              )}
-
-            </CardContent>
-          </Card>
+            </section>
+          </>
         )}
 
         {currentStep === 3 && selectedTicket && (
@@ -1398,9 +1338,11 @@ export default function BookEventPage() {
               <div className="rounded-xl border border-slate-700/40 bg-slate-800/40 p-3 text-sm text-slate-300">
                 <span className="font-semibold text-white">{selectedTicket.TicketName}</span>
                 <span className="text-slate-400"> · Qty {counts[selectedTicket.Ticket_Id]} · ₹{totalPrice}</span>
-                {selectedTicket.isSeasonPass && (
+                {selectedTicket.isSeasonPass ? (
                   <span className="text-amber-300"> · Valid for all {dates.length} days</span>
-                )}
+                ) : selectedSlot ? (
+                  <span className="text-slate-400"> · {formatShowDate(selectedSlot)}</span>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1528,7 +1470,11 @@ export default function BookEventPage() {
                     <p className="text-white font-medium text-sm">{selectedTicket.TicketName}</p>
                     <p className="text-slate-400 text-xs">
                       Qty: {counts[selectedTicket.Ticket_Id]}
-                      {selectedTicket.isSeasonPass ? ` · Season pass for all ${dates.length} days` : ""}
+                      {selectedTicket.isSeasonPass
+                        ? ` · Season pass for all ${dates.length} days`
+                        : selectedSlot
+                          ? ` · ${formatShowDate(selectedSlot)}`
+                          : ""}
                     </p>
                   </div>
                   <span className="font-semibold text-[#00E1FC]">₹{counts[selectedTicket.Ticket_Id] * selectedTicket.TicketPrice}</span>
@@ -1663,9 +1609,8 @@ export default function BookEventPage() {
           </Card>
         )}
 
-        {/* Sticky footer for ticket selection (step 1 & 2) */}
-        {((currentStep === 1 && dates.length === 1) || currentStep === 2) &&
-          (selectionMode === "season" ? seasonPasses.length > 0 : Boolean(selectedDateId)) ? (
+        {/* Sticky footer for ticket selection */}
+        {currentStep === 2 && selectedDateId ? (
           <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 sm:p-4">
             <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
               <div>
@@ -1677,7 +1622,7 @@ export default function BookEventPage() {
                     : 'No tickets selected'}
                 </p>
                 <p className="text-lg font-bold text-white">
-                  {totalTickets > 0 ? `₹${totalPrice}` : '—'}
+                  {totalTickets > 0 ? `₹${totalPrice.toLocaleString("en-IN")}` : '—'}
                 </p>
               </div>
               <Button
