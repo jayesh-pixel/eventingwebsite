@@ -20,7 +20,10 @@ function BookingSuccessContent() {
     bookingId: searchParams.get('bookingId') || 'N/A',
     email: searchParams.get('email') || '',
     eventName: searchParams.get('eventName') || 'Event',
+    paymentmode: searchParams.get('paymentmode') || '',
   });
+
+  const isFreeBooking = paymentDetails.paymentmode === 'FREE';
 
   useEffect(() => {
     // Log payment success
@@ -51,10 +54,10 @@ function BookingSuccessContent() {
             <CheckCircle2 className="relative h-24 w-24 text-green-400 mx-auto animate-scaleIn" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mt-6 mb-3">
-            Booking Confirmed! 🎉
+            {isFreeBooking ? "Booking Confirmed! 🎉" : "Booking Confirmed! 🎉"}
           </h1>
           <p className="text-xl text-slate-300">
-            Your tickets have been successfully booked
+            {isFreeBooking ? "Your free booking has been successfully confirmed" : "Your tickets have been successfully booked"}
           </p>
         </div>
 
@@ -77,14 +80,14 @@ function BookingSuccessContent() {
                 <p className="text-white font-semibold text-lg">{paymentDetails.bookingId}</p>
               </div>
               <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30">
-                <p className="text-slate-400 text-sm mb-1">Amount Paid</p>
-                <p className="text-green-400 font-bold text-2xl">₹{paymentDetails.amount}</p>
+                <p className="text-slate-400 text-sm mb-1">{isFreeBooking ? "Amount" : "Amount Paid"}</p>
+                <p className="text-green-400 font-bold text-2xl">{isFreeBooking ? "FREE" : `₹${paymentDetails.amount}`}</p>
               </div>
               <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30">
                 <p className="text-slate-400 text-sm mb-1">Payment Status</p>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <p className="text-green-400 font-semibold text-lg capitalize">{paymentDetails.status}</p>
+                  <p className="text-green-400 font-semibold text-lg capitalize">{isFreeBooking ? 'confirmed' : paymentDetails.status}</p>
                 </div>
               </div>
             </div>

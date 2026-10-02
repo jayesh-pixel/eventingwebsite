@@ -8,6 +8,14 @@ function PaymentResponseHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Map of backend-verified error codes to user-friendly messages
+  const ERROR_MESSAGES: Record<string, string> = {
+    HASH_MISMATCH: "We couldn't verify your payment. If money was deducted, please contact support.",
+    PAYMENT_NOT_SUCCESSFUL: "Your payment was not successful. Please try again.",
+    AMOUNT_MISMATCH: "Payment amount mismatch. Please contact support.",
+    BOOKING_NOT_IN_PROCESS: "This booking is no longer awaiting payment. Please contact support.",
+  };
+
   useEffect(() => {
     // Get payment response parameters from URL
     const status = searchParams.get('status');
@@ -39,6 +47,11 @@ function PaymentResponseHandler() {
       error_Message
     });
 
+    // Determine user-friendly error message
+    const errorMessage = (error && ERROR_MESSAGES[error])
+      ? ERROR_MESSAGES[error]
+      : (error_Message || error || 'Payment was not completed');
+
     // Handle payment status
     if (status === 'success') {
       // Redirect to success page with details
@@ -48,7 +61,8 @@ function PaymentResponseHandler() {
         status: status,
         bookingId: mihpayid || txnid || '',
         email: email || '',
-        eventName: productinfo || 'Event'
+        eventName: productinfo || 'Event',
+        firstname: firstname || '',
       });
       
       router.replace(`/events/${eventId}/booking-success?${successParams.toString()}`);
@@ -58,8 +72,8 @@ function PaymentResponseHandler() {
         txnid: txnid || '',
         amount: amount || '',
         status: status,
-        error: error_Message || error || 'Payment was not completed',
-        eventName: productinfo || 'Event'
+        error: errorMessage,
+        eventName: productinfo || 'Event',
       });
       
       router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);
@@ -70,7 +84,7 @@ function PaymentResponseHandler() {
         amount: amount || '0',
         status: 'unknown',
         error: 'Payment status could not be determined',
-        eventName: productinfo || 'Event'
+        eventName: productinfo || 'Event',
       });
       
       router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);

@@ -853,14 +853,18 @@ export default function BookEventPage() {
       return;
     }
 
-    if (finalAmount <= 0) {
+    // Free (₹0) bookings are valid — the backend confirms them immediately.
+    // Only reject negative amounts.
+    if (finalAmount < 0) {
       toast.error("Invalid booking amount");
       return;
     }
 
+    const isFreeBooking = finalAmount === 0;
+
     try {
       setPaymentProcessing(true);
-      toast.loading("Preparing payment gateway...");
+      toast.loading(isFreeBooking ? "Confirming your free booking..." : "Preparing payment gateway...");
       
       // Get encryption key
       const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY;
@@ -928,7 +932,30 @@ export default function BookEventPage() {
           
           // Store event ID in sessionStorage for success/failure page redirect
           sessionStorage.setItem('lastEventId', eventId);
-          
+
+          // ── Free booking (₹0) ──────────────────────────────────────────────
+          // The backend has already confirmed the booking and sent the ticket
+          // email + WhatsApp. We just redirect to the success page — no PayU.
+          if ((paymentData as any).isFreeBooking) {
+            const redirectUrl = (paymentData as any).redirectUrl;
+            toast.success("Your free booking is confirmed! 🎉");
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+            } else {
+              // Fallback: build the success URL ourselves
+              const bookingId = (paymentData as any).Booking_id || '';
+              const params = new URLSearchParams({
+                Booking_id: bookingId,
+                txnid: '',
+                amount: '0',
+                paymentmode: 'FREE',
+              });
+              window.location.href = `${window.location.origin}/success?${params.toString()}`;
+            }
+            return;
+          }
+
+          // ── Paid booking → existing PayU flow ──────────────────────────────
           // Show success message before redirect
           toast.success("Redirecting to secure payment gateway...");
           
@@ -1450,7 +1477,7 @@ export default function BookEventPage() {
                   onClick={handleContinueToCheckout}
                   className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
                 >
-                  Continue to Payment
+                  {finalAmount === 0 ? "Continue to Booking" : "Continue to Payment"}
                 </Button>
               </div>
             </CardContent>
@@ -1460,8 +1487,14 @@ export default function BookEventPage() {
         {currentStep === 4 && selectedTicket && (
           <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-2xl mb-4 sm:mb-6">
             <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 px-4 py-3 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl text-white font-semibold">Review & Pay</CardTitle>
-              <CardDescription className="text-slate-300">Check your booking summary, apply a coupon if needed, and complete payment.</CardDescription>
+              <CardTitle className="text-lg sm:text-xl text-white font-semibold">
+                {finalAmount === 0 ? "Review & Confirm" : "Review & Pay"}
+              </CardTitle>
+              <CardDescription className="text-slate-300">
+                {finalAmount === 0
+                  ? "Check your booking summary, apply a coupon if needed, and confirm your free booking."
+                  : "Check your booking summary, apply a coupon if needed, and complete payment."}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 space-y-4">
               <div className="space-y-3">
@@ -1595,7 +1628,12 @@ export default function BookEventPage() {
                   {paymentProcessing ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      Processing Payment...
+                      {finalAmount === 0 ? "Confirming..." : "Processing Payment..."}
+                    </>
+                  ) : finalAmount === 0 ? (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Book for Free
                     </>
                   ) : (
                     <>

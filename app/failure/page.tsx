@@ -8,6 +8,14 @@ function FailureHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Map of backend-verified error codes to user-friendly messages
+  const ERROR_MESSAGES: Record<string, string> = {
+    HASH_MISMATCH: "We couldn't verify your payment. If money was deducted, please contact support.",
+    PAYMENT_NOT_SUCCESSFUL: "Your payment was not successful. Please try again.",
+    AMOUNT_MISMATCH: "Payment amount mismatch. Please contact support.",
+    BOOKING_NOT_IN_PROCESS: "This booking is no longer awaiting payment. Please contact support.",
+  };
+
   useEffect(() => {
     // Get payment response parameters from URL
     const bookingId = searchParams.get('Booking_id');
@@ -42,15 +50,26 @@ function FailureHandler() {
       finalEventId = sessionStorage.getItem('lastEventId') || 'unknown';
     }
 
+    // Determine the user-friendly error message.
+    // For backend-verified error codes (HASH_MISMATCH, etc.) use the mapped message.
+    // Otherwise fall back to the PayU-provided message.
+    const errorMessage = (error && ERROR_MESSAGES[error])
+      ? ERROR_MESSAGES[error]
+      : (error_Message || error || 'Payment was not completed');
+
     // Redirect to booking failed page with all parameters
     const failParams = new URLSearchParams({
       txnid: txnid || '',
       amount: amount || '',
       status: 'failed',
-      error: error_Message || error || 'Payment was not completed',
+      error: errorMessage,
       eventName: productinfo || 'Event',
-      paymentmode: paymentmode || ''
+      paymentmode: paymentmode || '',
     });
+    // Only include bookingId if it actually exists (new error codes don't send Booking_id)
+    if (bookingId) {
+      failParams.set('bookingId', bookingId);
+    }
 
     router.replace(`/events/${finalEventId}/booking-failed?${failParams.toString()}`);
   }, [router, searchParams]);

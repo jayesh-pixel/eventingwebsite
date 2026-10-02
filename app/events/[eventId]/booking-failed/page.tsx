@@ -20,6 +20,8 @@ function BookingFailedContent() {
     status: searchParams.get('status') || 'failed',
     error: searchParams.get('error') || 'Payment was not completed',
     eventName: searchParams.get('eventName') || 'Event',
+    bookingId: searchParams.get('bookingId') || '',
+    paymentmode: searchParams.get('paymentmode') || '',
   });
 
   useEffect(() => {
@@ -75,11 +77,19 @@ function BookingFailedContent() {
                 <p className="text-slate-400 text-sm mb-1">Transaction ID</p>
                 <p className="text-white font-semibold text-lg">{paymentDetails.transactionId}</p>
               </div>
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30">
-                <p className="text-slate-400 text-sm mb-1">Attempted Amount</p>
-                <p className="text-slate-300 font-bold text-2xl">₹{paymentDetails.amount}</p>
-              </div>
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30 md:col-span-2">
+              {paymentDetails.bookingId && (
+                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30">
+                  <p className="text-slate-400 text-sm mb-1">Booking ID</p>
+                  <p className="text-white font-semibold text-lg">{paymentDetails.bookingId}</p>
+                </div>
+              )}
+              {paymentDetails.amount !== 'N/A' && (
+                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/30">
+                  <p className="text-slate-400 text-sm mb-1">Attempted Amount</p>
+                  <p className="text-slate-300 font-bold text-2xl">₹{paymentDetails.amount}</p>
+                </div>
+              )}
+              <div className={`bg-slate-800/50 p-4 rounded-xl border border-slate-700/30 ${paymentDetails.bookingId || paymentDetails.amount !== 'N/A' ? '' : 'md:col-span-2'}`}>
                 <p className="text-slate-400 text-sm mb-1">Payment Status</p>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 bg-red-400 rounded-full"></div>
@@ -156,12 +166,14 @@ function BookingFailedContent() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href={`/events/${eventId}/book`}>
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
-              <RefreshCcw className="mr-2 h-5 w-5" />
-              Try Again
-            </Button>
-          </Link>
+          {paymentDetails.paymentmode !== 'FREE' && (
+            <Link href={`/events/${eventId}/book`}>
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
+                <RefreshCcw className="mr-2 h-5 w-5" />
+                Try Again
+              </Button>
+            </Link>
+          )}
           <Link href={`/events/${eventId}`}>
             <Button variant="outline" className="w-full sm:w-auto border-slate-600/50 text-slate-300 hover:bg-slate-800/50 hover:text-white px-8 py-6 text-lg transition-colors">
               <ArrowLeft className="mr-2 h-5 w-5" />
