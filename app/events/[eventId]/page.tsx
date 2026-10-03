@@ -169,12 +169,14 @@ export default function EventDetailsPage() {
       : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${imagePath}`;
   };
 
+  // 0 is a valid price (free tickets) — only a missing/invalid value means no tickets
+  const rawTicketPrice = eventDetails.TicketPriceStartsFrom;
+  const parsedTicketPrice =
+    rawTicketPrice === null || rawTicketPrice === undefined || (rawTicketPrice as unknown) === ""
+      ? NaN
+      : Number(rawTicketPrice);
   const startingTicketPrice =
-    typeof eventDetails.TicketPriceStartsFrom === "number" &&
-    Number.isFinite(eventDetails.TicketPriceStartsFrom) &&
-    eventDetails.TicketPriceStartsFrom > 0
-      ? eventDetails.TicketPriceStartsFrom
-      : null;
+    Number.isFinite(parsedTicketPrice) && parsedTicketPrice >= 0 ? parsedTicketPrice : null;
 
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
@@ -427,9 +429,11 @@ export default function EventDetailsPage() {
             </div>
 
             <div className="mt-5 sm:mt-6 text-2xl sm:text-3xl font-bold text-white">
-              {startingTicketPrice !== null
-                ? `₹ ${startingTicketPrice.toLocaleString()} Onwards`
-                : "Tickets unavailable"}
+              {startingTicketPrice === null
+                ? "Tickets unavailable"
+                : startingTicketPrice === 0
+                  ? "Free"
+                  : `₹ ${startingTicketPrice.toLocaleString()} Onwards`}
             </div>
 
             <div className="mt-5 sm:mt-6">{bookNowButton}</div>
