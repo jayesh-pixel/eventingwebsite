@@ -102,11 +102,7 @@ export default function Footer() {
             © {new Date().getFullYear()} {appName}. All rights reserved.
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-400">
-            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Privacy Policy</Link>
-            <span>•</span>
-            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Terms of Service</Link>
-            <span>•</span>
-            <Link href="/signup" className="hover:text-primary transition-colors duration-300">Cookies</Link>
+            <Link href="/terms-and-conditions" className="hover:text-primary transition-colors duration-300">Terms &amp; Conditions</Link>
           </div>
         </div>
       </div>

@@ -19,6 +19,9 @@ import { RiCustomerService2Fill } from "react-icons/ri";
 
 export const URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}`;
 
+// Registered entity name — used in legal pages (T&C, Privacy Policy)
+export const COMPANY_LEGAL_NAME = "Eventing Club Entertainment LLP";
+
 export const formatDateForInput = (isoDateString: string) => {
   const date = new Date(isoDateString);
   const year = date.getFullYear();

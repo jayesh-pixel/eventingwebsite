@@ -16,6 +16,7 @@ import {
   customer,
 } from "@/utils/config";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
@@ -448,7 +449,10 @@ const AuthContent = () => {
                 </button>
 
                 <p className="text-xs text-slate-500 text-center mt-4">
-                  By continuing, you agree to our Terms of Service & Privacy Policy
+                  By continuing, you agree to our{" "}
+                  <Link href="/terms-and-conditions" className="underline hover:text-slate-300">
+                    Terms &amp; Conditions
+                  </Link>
                 </p>
               </div>
             )}
