@@ -107,12 +107,12 @@ export default function EventCategories() {
   }
 
   return (
-    <section className="relative bg-black py-10">
+    <section className="relative bg-black py-6 sm:py-10">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
         <div className="relative">
           <div 
             id="categories-scroll-container"
-            className="flex overflow-x-auto gap-6 sm:gap-8 md:gap-10 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex overflow-x-auto gap-4 sm:gap-8 md:gap-10 pb-4 sm:pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             onScroll={handleScroll}
           >
             {categories && categories.length > 0 ? (
@@ -130,14 +130,14 @@ export default function EventCategories() {
                 <Link
                   key={category._id}
                   href={`/categories/${category._id}`}
-                  className="flex-shrink-0 flex flex-col items-center gap-4 w-[130px] sm:w-[150px] md:w-[170px] snap-center group"
+                  className="flex-shrink-0 flex flex-col items-center gap-2 sm:gap-4 w-[100px] sm:w-[150px] md:w-[170px] snap-center group"
                   prefetch={false}
                 >
                   <div
                     className="cursor-pointer transition-all duration-500 hover:scale-110 animate-slideInLeft"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="relative w-[110px] h-[110px] sm:w-[130px] sm:h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-[3px] border-blue-600/50 group-hover:border-blue-400 transition-all duration-300 shadow-xl shadow-blue-600/30 group-hover:shadow-blue-400/60">
+                    <div className="relative w-[88px] h-[88px] sm:w-[130px] sm:h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-[3px] border-blue-600/50 group-hover:border-blue-400 transition-all duration-300 shadow-xl shadow-blue-600/30 group-hover:shadow-blue-400/60">
                       <img
                         src={imageUrl}
                         alt={category.Name}
@@ -151,7 +151,7 @@ export default function EventCategories() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                     </div>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-white text-center group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 px-2">
+                  <h3 className="text-sm sm:text-lg font-bold text-white text-center group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 px-1 sm:px-2 break-words">
                     {category.Name}
                   </h3>
                 </Link>

@@ -146,6 +146,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
   }, []);
 
   return (
+    <>
     <nav className="fixed top-0 w-full z-50 font-poppins bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
       <Toaster />
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -207,10 +208,13 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             </button>
           </div>
         </div>
+      </div>
+    </nav>
 
-        {/* Mobile menu */}
+        {/* Mobile menu — rendered outside <nav>: its backdrop-blur would otherwise trap this
+            fixed overlay inside the 64px navbar instead of covering the viewport */}
         {open && (
-          <div className="lg:hidden fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-[60]">
+          <div className="lg:hidden fixed inset-0 bg-slate-950 z-[60] font-poppins">
             {/* Close button inside overlay */}
             <div className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-4 sm:px-6 h-16 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
               <Link href="/" className="flex-shrink-0" onClick={handleClose}>
@@ -274,17 +278,37 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
                   List With Us
                 </Link>
 
-                <div className="px-1 py-3">
+                <div className="pt-2">
                   <div className="relative">
-                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
+                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={handleChange}
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                      className="w-full bg-transparent border border-slate-800 rounded-xl pl-12 pr-4 py-3 text-base text-white placeholder-slate-500 outline-none focus:border-[#00E1FC] transition-colors duration-300"
                       placeholder="Search events, venues..."
                     />
                   </div>
+
+                  {searchData.length > 0 && (
+                    <div className="mt-2 rounded-xl border border-slate-800 divide-y divide-slate-800 overflow-hidden">
+                      {searchData.map((item) => (
+                        <Link
+                          key={item._id}
+                          href={item.EventName ? `/events/${item._id}` : `/venues/${item._id}`}
+                          onClick={handleClose}
+                          className="flex items-center gap-3 px-4 py-3 text-slate-200 hover:text-[#00E1FC] hover:bg-slate-800/50 transition-colors"
+                        >
+                          {item.EventName ? (
+                            <MdEventAvailable className="w-4 h-4 shrink-0 text-slate-500" />
+                          ) : (
+                            <LuMapPin className="w-4 h-4 shrink-0 text-slate-500" />
+                          )}
+                          <span className="truncate">{item.EventName || item.Name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -307,8 +331,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             </div>
           </div>
         )}
-      </div>
-    </nav>
+    </>
   );
 };
 

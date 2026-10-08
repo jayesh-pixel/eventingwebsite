@@ -86,7 +86,7 @@ export default function FeaturedEvents() {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 w-[74vw] max-w-[270px] min-w-[230px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
+                className="flex-shrink-0 w-[68vw] max-w-[250px] sm:max-w-[270px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
               >
                 <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden animate-pulse">
                   <div className="h-40 sm:h-52 bg-slate-800"></div>
@@ -143,7 +143,7 @@ export default function FeaturedEvents() {
               <Link
                 key={event.event_id}
                 href={`/events/${event.event_id}`}
-                className="block flex-shrink-0 w-[74vw] max-w-[270px] min-w-[230px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
+                className="block flex-shrink-0 w-[68vw] max-w-[250px] sm:max-w-[270px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
               >
                 <div
                   className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#FF6B6B]/10 hover:border-[#FF6B6B]/30 hover:-translate-y-1 flex flex-col h-full"
@@ -171,21 +171,21 @@ export default function FeaturedEvents() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="p-3.5 sm:p-5 flex flex-col flex-1">
-                    <h4 className="text-[18px] sm:text-lg font-bold text-white mb-2.5 line-clamp-2 group-hover:text-[#FF6B6B] transition-colors duration-300">{event.EventName}</h4>
+                  <div className="p-3.5 sm:p-5 flex flex-col flex-1 min-w-0">
+                    <h4 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-2.5 line-clamp-2 break-words group-hover:text-[#FF6B6B] transition-colors duration-300">{event.EventName}</h4>
 
                     <div className="space-y-1.5 mb-3">
-                      <div className="flex items-center text-slate-400 text-[15px] sm:text-sm">
+                      <div className="flex items-center min-w-0 text-slate-400 text-sm">
                         <Clock className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
                         <span className="truncate">{event.EventStartTime}</span>
                       </div>
-                      <div className="flex items-center text-slate-400 text-[15px] sm:text-sm">
+                      <div className="flex items-center min-w-0 text-slate-400 text-sm">
                         <MapPin className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
                         <span className="truncate">{event.VenueName}{event.VenueCity ? `, ${event.VenueCity}` : ''}</span>
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-start gap-2 pt-3 border-t border-slate-800 sm:flex-row sm:items-center sm:justify-between mt-auto">
+                    <div className="flex flex-row items-center justify-between gap-2 pt-3 border-t border-slate-800 mt-auto">
                       <div>
                         {event.LowestticketPrice === null ? (
                           <>
@@ -205,7 +205,7 @@ export default function FeaturedEvents() {
                         )}
                       </div>
                       {event.LowestticketPrice !== null && (
-                        <button className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF6B6B]/90 hover:to-[#FF8E53]/90 text-white text-sm px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg font-medium shadow-md hover:shadow-lg hover:shadow-[#FF6B6B]/20 transition-all duration-300 whitespace-nowrap">Book Now</button>
+                        <button className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF6B6B]/90 hover:to-[#FF8E53]/90 text-white text-sm px-4 py-2.5 sm:px-5 sm:py-2 rounded-lg font-medium shadow-md hover:shadow-lg hover:shadow-[#FF6B6B]/20 transition-all duration-300 whitespace-nowrap">Book Now</button>
                       )}
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export default function FeaturedEvents() {
                 <button
                   key={index}
                   onClick={() => scrollToIndex(index)}
-                  className={`transition-all duration-300 rounded-full ${
+                  className={`relative transition-all duration-300 rounded-full before:absolute before:-inset-3 ${
                     activeIndex === index 
                       ? 'w-8 h-2 bg-[#FF6B6B]' 
                       : 'w-2 h-2 bg-slate-600 hover:bg-slate-500'

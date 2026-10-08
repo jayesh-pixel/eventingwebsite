@@ -39,7 +39,7 @@ const AboutUs = () => {
         <section className="mb-12">
           <h2 className="md:text-4xl text-2xl font-bold text-white text-center font-poppins mb-2">Our Services</h2>
           <div className="w-20 h-1 mx-auto bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] mb-4"></div>
-          <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 md:gap-10 mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8 md:gap-10 mt-6 sm:mt-8">
             {services.map((service, index) => (
               <div
                 onClick={() => {
@@ -49,9 +49,9 @@ const AboutUs = () => {
                 key={index}
                 className="bg-gradient-to-br from-blue-900 to-indigo-700 text-white rounded-lg shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2"
               >
-                <div className="hover:border-none border rounded-md border-gray-500 h-52 flex flex-col items-center justify-center gap-6">
-                  <div>{service.icon}</div>
-                  <p className="text-center md:text-lg font-semibold">{service.heading}</p>
+                <div className="hover:border-none border rounded-md border-gray-500 h-40 sm:h-52 px-2 flex flex-col items-center justify-center gap-3 sm:gap-6">
+                  <div className="[&>svg]:h-9 [&>svg]:w-9 sm:[&>svg]:h-[50px] sm:[&>svg]:w-[50px]">{service.icon}</div>
+                  <p className="text-center text-sm sm:text-base md:text-lg font-semibold leading-snug">{service.heading}</p>
                   <div>
                     <BsQuestionCircleFill
                       size={25}
@@ -70,14 +70,14 @@ const AboutUs = () => {
         <section className="mb-12">
           <h2 className="md:text-4xl text-2xl font-bold text-white text-center font-poppins mb-2">Benefits</h2>
           <div className="w-20 h-1 mx-auto bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] mb-4"></div>
-          <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 md:gap-10 text-center mt-8">
+          <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6 sm:gap-8 md:gap-10 text-center mt-6 sm:mt-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="p-2">
                 <div className="flex flex-col text-center gap-6 justify-center items-center">
                   <div className="bg-gradient-to-br from-blue-900 to-indigo-700 shadow-lg p-5 rounded-full hover:scale-110 transition-all delay-75">
                     <div className="text-white">{benefit.icon}</div>
                   </div>
-                  <p className="font-bold text-xl text-white">{benefit.heading}</p>
+                  <p className="font-bold text-lg sm:text-xl text-white">{benefit.heading}</p>
                   <p className="text-sm text-slate-300">{benefit.text}</p>
                 </div>
               </div>

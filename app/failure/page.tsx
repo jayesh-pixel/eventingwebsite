@@ -76,12 +76,12 @@ function FailureHandler() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black flex items-center justify-center">
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 px-4">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-500 rounded-full blur-lg opacity-30 animate-pulse"></div>
           <Loader2 className="relative h-16 w-16 animate-spin text-red-400 mx-auto" />
         </div>
-        <p className="text-slate-300 text-xl font-medium">Processing payment status...</p>
+        <p className="text-slate-300 text-lg sm:text-xl font-medium">Processing payment status...</p>
         <p className="text-slate-400 text-sm">Please wait</p>
         <div className="flex space-x-1 justify-center mt-4">
           <div className="h-2 w-2 bg-red-400 rounded-full animate-bounce"></div>

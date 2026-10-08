@@ -81,13 +81,13 @@ export default function CategoryEventsPage({ params }: CategoryEventsPageProps) 
   }, [params.id]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="mb-8 flex items-center gap-3">
-        <Link href="/" className="text-slate-400 hover:text-primary flex items-center gap-2">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-12">
+      <div className="mb-6 sm:mb-8 flex flex-wrap items-center gap-3">
+        <Link href="/" className="text-slate-400 hover:text-primary flex items-center gap-2 min-h-[40px] text-sm sm:text-base">
           <ArrowLeft className="h-5 w-5" />
           Back to Home
         </Link>
-        <h1 className="text-2xl font-bold ml-4">Category Events</h1>
+        <h1 className="text-xl sm:text-2xl font-bold sm:ml-4">Category Events</h1>
       </div>
       {loading ? (
         <div className="text-center text-slate-400 py-20">Loading events...</div>
@@ -98,11 +98,11 @@ export default function CategoryEventsPage({ params }: CategoryEventsPageProps) 
           No events are currently available for this category.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
           {events.map((event) => (
             <Link key={event.event_id} href={`/events/${event.event_id}`} className="block">
-              <Card className="bg-slate-900/50 border-slate-800 overflow-hidden group cursor-pointer transition-all duration-300 hover:border-slate-700 hover:-translate-y-1">
-                <div className="relative overflow-hidden h-52">
+              <Card className="h-full bg-slate-900/50 border-slate-800 overflow-hidden group cursor-pointer transition-all duration-300 hover:border-slate-700 hover:-translate-y-1">
+                <div className="relative overflow-hidden h-36 sm:h-52">
                   <img
                     src={
                       event.EventCardImages && event.EventCardImages.length > 0
@@ -115,18 +115,18 @@ export default function CategoryEventsPage({ params }: CategoryEventsPageProps) 
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent"></div>
                 </div>
 
-                <div className="p-5">
-                  <h2 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
+                <div className="p-2.5 sm:p-5">
+                  <h2 className="text-sm sm:text-lg font-bold text-white mb-1.5 sm:mb-3 line-clamp-2 break-words group-hover:text-primary transition-colors duration-300">
                     {event.EventName}
                   </h2>
 
-                  <div className="space-y-1.5 mb-4">
-                    <div className="text-sm text-slate-400">{event.EventStartDate} • {event.EventStartTime}</div>
-                    <div className="text-sm text-slate-400">{event.VenueName}, {event.VenueCity}</div>
+                  <div className="space-y-1 sm:space-y-1.5 mb-2 sm:mb-4">
+                    <div className="text-xs sm:text-sm text-slate-400 truncate">{event.EventStartDate} • {event.EventStartTime}</div>
+                    <div className="text-xs sm:text-sm text-slate-400 truncate">{event.VenueName}, {event.VenueCity}</div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800">
-                    <div className="text-base font-semibold text-white">₹{event.LowestticketPrice}</div>
+                  <div className="pt-2 sm:pt-3 border-t border-slate-800">
+                    <div className="text-sm sm:text-base font-semibold text-white">₹{event.LowestticketPrice}</div>
                     <div className="text-xs text-slate-500">onwards</div>
                   </div>
                 </div>

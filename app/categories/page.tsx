@@ -50,9 +50,9 @@ export default function AllCategoriesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black pt-20 pb-12">
+    <div className="min-h-screen bg-black pt-6 sm:pt-20 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
             All <span className="text-blue-500">Categories</span>
           </h1>
@@ -60,7 +60,7 @@ export default function AllCategoriesPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
             {[...Array(10)].map((_, i) => (
               <div key={i} className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden animate-pulse">
                 <div className="h-40 sm:h-48 bg-slate-800"></div>
@@ -72,7 +72,7 @@ export default function AllCategoriesPage() {
             <p className="text-gray-400 text-lg">No categories available</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
             {categories.map((category) => (
               <Link
                 key={category._id}
@@ -99,7 +99,7 @@ export default function AllCategoriesPage() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-                    <h3 className="text-white font-bold text-sm sm:text-base group-hover:text-blue-400 transition-colors drop-shadow-md">
+                    <h3 className="text-white font-bold text-sm sm:text-base group-hover:text-blue-400 transition-colors drop-shadow-md line-clamp-2 break-words">
                       {category.Name}
                     </h3>
                     {category.Description && (

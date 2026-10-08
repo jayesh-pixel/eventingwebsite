@@ -118,21 +118,21 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
     : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop&sig=${artist._id}`;
 
   return (
-    <section className="py-12 sm:py-14 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <section className="py-8 sm:py-14 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="max-w-3xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
+          <div className="flex flex-col md:flex-row items-center gap-5 sm:gap-8 mb-6 sm:mb-8">
             <img
               src={imageUrl}
               alt={artist.Name}
-              className="w-40 h-40 object-cover rounded-full border-4 border-primary shadow-lg"
+              className="w-32 h-32 sm:w-40 sm:h-40 shrink-0 object-cover rounded-full border-4 border-primary shadow-lg"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop&sig=${artist._id}`;
               }}
             />
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2 text-white">{artist.Name}</h1>
-              <div className="flex items-center gap-4 mb-2">
+            <div className="flex-1 w-full md:w-auto min-w-0 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-white break-words">{artist.Name}</h1>
+              <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
                 <Users className="h-5 w-5 text-primary" />
                 <span className="text-slate-400">Music Artist</span>
               </div>
@@ -144,13 +144,13 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
               </Button>
             </div>
           </div>
-          <div className="bg-slate-900/80 rounded-xl p-6 shadow-lg">
+          <div className="bg-slate-900/80 rounded-xl p-4 sm:p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-4 text-white">About Artist</h2>
             <div className="space-y-4">
               <div className="bg-slate-800/60 rounded-lg p-4">
                 <h3 className="font-semibold text-primary mb-2">Contact Information</h3>
                 {artist.Email && (
-                  <p className="text-slate-300 mb-1">
+                  <p className="text-slate-300 mb-1 break-words">
                     <span className="text-slate-400">Email:</span> {artist.Email}
                   </p>
                 )}
@@ -178,7 +178,7 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
                   <div className="space-y-3">
                     {events.map((event, index) => (
                       <div key={index} className="bg-slate-700/50 rounded-lg p-3 border border-slate-600">
-                        <h4 className="font-medium text-white mb-1">{event.name || 'Event Name'}</h4>
+                        <h4 className="font-medium text-white mb-1 break-words">{event.name || 'Event Name'}</h4>
                         <p className="text-slate-400 text-sm mb-1">
                           <span className="text-slate-300">Date:</span> {event.date || 'Date TBA'}
                         </p>

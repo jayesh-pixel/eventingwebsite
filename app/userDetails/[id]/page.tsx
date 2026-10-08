@@ -144,8 +144,8 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
     // Clear Redux state
     dispatch(resetState());
     
-    // Clear localStorage if any
-    localStorage.clear();
+    // Drop only the persisted login state, not unrelated site data
+    localStorage.removeItem("persist:root");
     
     // Redirect to home
     router.push("/");
@@ -167,14 +167,14 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       <Toaster />
-      <div className="pt-12 pb-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <div className="pt-6 pb-10 sm:pt-12 sm:pb-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4">
+          <div className="min-w-0 max-w-full">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 break-words">
               {userDetails?.CustomerName || "User"}
             </h1>
-            <p className="text-slate-300 text-lg">
+            <p className="text-slate-300 text-base sm:text-lg break-all">
               {userDetails?.Email || "No email provided"}
             </p>
           </div>
@@ -189,10 +189,10 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-slate-800">
+        <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 border-b border-slate-800 overflow-x-auto">
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`px-6 py-3 font-semibold transition-colors ${
+            className={`px-4 sm:px-6 py-3 font-semibold whitespace-nowrap transition-colors ${
               activeTab === 'profile' 
                 ? 'text-white border-b-2 border-[#00E1FC]' 
                 : 'text-slate-400 hover:text-white'
@@ -202,7 +202,7 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
           </button>
           <button 
             onClick={() => setActiveTab('tickets')}
-            className={`px-6 py-3 font-semibold transition-colors ${
+            className={`px-4 sm:px-6 py-3 font-semibold whitespace-nowrap transition-colors ${
               activeTab === 'tickets' 
                 ? 'text-white border-b-2 border-[#00E1FC]' 
                 : 'text-slate-400 hover:text-white'
@@ -214,16 +214,16 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
 
         {/* Main Content */}
         {activeTab === 'profile' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Account Details */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-white mb-6">Account Details</h2>
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Account Details</h2>
               
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-slate-400 block mb-2">Email Address:</label>
-                  <div className="text-white font-medium">{userDetails?.Email || "Not provided"}</div>
+                  <div className="text-white font-medium break-all">{userDetails?.Email || "Not provided"}</div>
                 </div>
                 
                 <div>
@@ -236,23 +236,23 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
 
           {/* Right Column - Edit Profile Form */}
           <div className="lg:col-span-2">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-white mb-6">Personal Details</h2>
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Personal Details</h2>
               <EditProfile id={cust_id} data={userDetails} />
             </div>
           </div>
         </div>
         ) : (
           /* Tickets Tab */
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4 sm:p-6">
             {!ticketsData ? (
-              <div className="text-center p-12">
+              <div className="text-center px-2 py-8 sm:p-12">
                 <div className="mb-6">
-                  <svg className="w-24 h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-20 h-20 sm:w-24 sm:h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
                 <p className="text-slate-400 mb-8">Start exploring events and book your tickets to see them here.</p>
                 <Link href="/">
                   <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-8 py-3 rounded-lg text-white font-semibold">
@@ -270,13 +270,13 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
 
                 if (combined.length === 0) {
                   return (
-                    <div className="text-center p-12">
+                    <div className="text-center px-2 py-8 sm:p-12">
                       <div className="mb-6">
-                        <svg className="w-24 h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-20 h-20 sm:w-24 sm:h-24 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                         </svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">You don't have any tickets</h3>
                       <p className="text-slate-400 mb-8">Start exploring events and book your tickets to see them here.</p>
                       <Link href="/">
                         <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105 px-8 py-3 rounded-lg text-white font-semibold">
@@ -288,11 +288,11 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
                 }
 
                 return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {combined.map((t: any) => (
-                      <div key={t.Booking_id} className="bg-slate-800/40 p-4 rounded-lg flex items-start justify-between">
-                        <div className="text-left">
-                          <div className="text-white font-semibold">{t.EventName}</div>
+                      <div key={t.Booking_id} className="bg-slate-800/40 p-4 rounded-lg flex flex-col sm:flex-row items-start justify-between gap-3">
+                        <div className="text-left min-w-0">
+                          <div className="text-white font-semibold break-words">{t.EventName}</div>
                           <div className="text-slate-300 text-sm">{t.EventDate} • {t.EventTime}</div>
                           {/* Show venue details as requested */}
                           {(t.EventVenue || t.VenueCity) && (
@@ -300,11 +300,11 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
                           )}
                           <div className="text-slate-400 text-sm mt-2">Status: <span className="font-medium text-white">{t.Status}</span></div>
                         </div>
-                        <div className="flex flex-col items-end gap-3">
+                        <div className="flex flex-col items-start sm:items-end gap-3 max-w-full">
                           <Link href={`/rndtckt/${t.Booking_id}`}>
                             <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-4 py-2 rounded-md text-white font-semibold">View Ticket</button>
                           </Link>
-                          <div className="text-slate-400 text-sm">Booking: {t.Booking_id}</div>
+                          <div className="text-slate-400 text-sm break-all">Booking: {t.Booking_id}</div>
                         </div>
                       </div>
                     ))}

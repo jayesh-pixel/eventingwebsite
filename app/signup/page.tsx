@@ -320,7 +320,7 @@ const AuthContent = () => {
         {/* Card */}
         <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden">
           {/* Header gradient */}
-          <div className="bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 px-8 pt-8 pb-6">
+          <div className="bg-gradient-to-r from-[#00E1FC]/10 to-[#0F33D1]/10 px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-6">
             {/* Back button */}
             <button
               onClick={() => {
@@ -331,7 +331,7 @@ const AuthContent = () => {
                   router.back();
                 }
               }}
-              className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors text-sm font-medium mb-4"
+              className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors text-sm font-medium py-1 mb-3 sm:mb-4"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -341,14 +341,14 @@ const AuthContent = () => {
 
             {/* Logo / Icon */}
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#00E1FC] to-[#0F33D1] rounded-full flex items-center justify-center shadow-lg shadow-[#00E1FC]/20">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#00E1FC] to-[#0F33D1] rounded-full flex items-center justify-center shadow-lg shadow-[#00E1FC]/20">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
             </div>
 
-            <h1 className="text-2xl font-bold text-white text-center tracking-wide">
+            <h1 className="text-xl sm:text-2xl font-bold text-white text-center tracking-wide">
               {step === STEP_PHONE && "Welcome to Eventing Club"}
               {step === STEP_OTP && "Verify Your Number"}
               {step === STEP_DETAILS && "Complete Your Profile"}
@@ -361,7 +361,7 @@ const AuthContent = () => {
           </div>
 
           {/* Step indicator */}
-          <div className="px-8 py-4 border-b border-slate-800/50">
+          <div className="px-5 sm:px-8 py-4 border-b border-slate-800/50">
             <div className="flex items-center justify-between">
               {steps.map((s, idx) => (
                 <React.Fragment key={s.number}>
@@ -398,7 +398,7 @@ const AuthContent = () => {
           </div>
 
           {/* Step content */}
-          <div className="px-8 py-6">
+          <div className="px-5 sm:px-8 py-6">
             {/* ─── Step 1: Phone Number ─────────────────────────────────────── */}
             {step === STEP_PHONE && (
               <div className="space-y-4">
@@ -407,7 +407,7 @@ const AuthContent = () => {
                     Mobile Number
                   </label>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-400 text-sm font-medium">
+                    <div className="flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-400 text-sm font-medium shrink-0">
                       +91
                     </div>
                     <input
@@ -424,7 +424,7 @@ const AuthContent = () => {
                           handleGenerateOtp();
                         }
                       }}
-                      className="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                      className="flex-1 min-w-0 bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-base text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
                       autoFocus
                     />
                   </div>
@@ -464,14 +464,14 @@ const AuthContent = () => {
                   <label className="block text-sm font-medium text-slate-300 mb-3">
                     Enter 6-digit OTP
                   </label>
-                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                  <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handleOtpPaste}>
                     {otp.map((_, index) => (
                       <input
                         key={index}
                         value={otp[index]}
                         type="text"
                         inputMode="numeric"
-                        className="w-11 h-12 sm:w-12 sm:h-14 rounded-lg border border-slate-700 bg-slate-800/50 text-white text-center text-lg font-bold outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-200"
+                        className="w-10 h-12 sm:w-12 sm:h-14 rounded-lg border border-slate-700 bg-slate-800/50 text-white text-center text-lg font-bold outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-200"
                         placeholder="·"
                         ref={(el) => {
                           inputs.current[index] = el;
@@ -506,7 +506,7 @@ const AuthContent = () => {
                   <button
                     onClick={handleResendOtp}
                     disabled={otpTimer > 0 || isSubmitting}
-                    className="text-sm text-[#00E1FC] hover:text-[#00E1FC]/80 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+                    className="text-sm py-2 text-[#00E1FC] hover:text-[#00E1FC]/80 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
                   >
                     {otpTimer > 0 ? `Resend in ${otpTimer}s` : "Resend OTP"}
                   </button>
@@ -517,7 +517,7 @@ const AuthContent = () => {
                       dispatch(resetState());
                       setMobileNumberLocal("");
                     }}
-                    className="text-sm text-slate-400 hover:text-white transition-colors underline"
+                    className="text-sm py-2 text-slate-400 hover:text-white transition-colors underline"
                   >
                     Change Number
                   </button>
@@ -543,7 +543,7 @@ const AuthContent = () => {
                       }
                     }}
                     placeholder="Enter your full name"
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-base text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
                     autoFocus
                   />
                 </div>
@@ -563,7 +563,7 @@ const AuthContent = () => {
                       }
                     }}
                     placeholder="you@example.com"
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 px-4 text-base text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300"
                   />
                 </div>
 

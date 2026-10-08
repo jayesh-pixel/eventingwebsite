@@ -104,7 +104,7 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
     <div className="text-white">
       <Toaster />
       
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {/* Full Name */}
         <div>
           <label className="text-sm text-slate-400 block mb-2">Full Name:</label>
@@ -119,7 +119,7 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
         </div>
 
         {/* Address Section */}
-        <div className="border-t border-slate-700 pt-6">
+        <div className="border-t border-slate-700 pt-5 sm:pt-6">
           <h3 className="text-lg font-bold text-white mb-4">Address</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,11 +165,11 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-2 sm:pt-4">
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-8 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105"
+            className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105"
           >
             Save Changes
           </button>

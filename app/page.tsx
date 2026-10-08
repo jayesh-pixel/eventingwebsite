@@ -38,7 +38,7 @@ export default function Home() {
           {/* Featured Events Section - Distinct Separate Section */}
           <section className="relative py-8 sm:py-10 border-y border-[#FF6B6B]/20 bg-gradient-to-b from-[#FF6B6B]/[0.07] via-black to-black">
             {/* Decorative gradient orb */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#FF6B6B]/10 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] h-[300px] bg-[#FF6B6B]/10 blur-[120px] rounded-full pointer-events-none" />
             <div className="relative z-10 px-4 sm:px-6 lg:px-8">
               {/* Section Header */}
               <div className="flex items-center justify-between gap-3 mb-6">

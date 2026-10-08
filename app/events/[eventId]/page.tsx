@@ -109,7 +109,7 @@ export default function EventDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20">
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-4 lg:pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <Link href="/">
@@ -120,7 +120,7 @@ export default function EventDetailsPage() {
             </Link>
           </div>
           <div className="animate-pulse">
-            <div className="h-96 bg-slate-800 rounded-3xl mb-8"></div>
+            <div className="h-64 sm:h-96 bg-slate-800 rounded-3xl mb-6 sm:mb-8"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <div className="h-8 bg-slate-800 rounded"></div>
@@ -139,7 +139,7 @@ export default function EventDetailsPage() {
 
   if (!eventDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-20">
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 pt-4 lg:pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <Link href="/">
@@ -150,7 +150,7 @@ export default function EventDetailsPage() {
             </Link>
           </div>
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">Event Not Found</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-4">Event Not Found</h1>
             <p className="text-slate-400 mb-8">The event you're looking for doesn't exist.</p>
             <Link href="/">
               <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1]">
@@ -372,7 +372,7 @@ export default function EventDetailsPage() {
                     key={index}
                     onClick={() => setActiveImageIndex(index)}
                     aria-label={`Show image ${index + 1}`}
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`relative h-2 rounded-full transition-all duration-300 before:absolute before:-inset-3 ${
                       index === activeImageIndex
                         ? "bg-white w-8"
                         : "bg-white/40 w-2 hover:bg-white/60"
@@ -385,7 +385,7 @@ export default function EventDetailsPage() {
 
           {/* Summary */}
           <div className="lg:pt-2">
-            <h1 className="text-2xl sm:text-4xl font-bold leading-tight bg-gradient-to-r from-[#00E1FC] via-[#5BB8FF] to-[#8FA8FF] bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-4xl font-bold leading-tight break-words bg-gradient-to-r from-[#00E1FC] via-[#5BB8FF] to-[#8FA8FF] bg-clip-text text-transparent">
               {eventDetails.EventName}
             </h1>
 
@@ -418,12 +418,12 @@ export default function EventDetailsPage() {
                     href={venueSearchUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-base sm:text-lg underline decoration-[#00E1FC]/40 underline-offset-4 hover:text-[#00E1FC] transition-colors"
+                    className="min-w-0 break-words text-base sm:text-lg underline decoration-[#00E1FC]/40 underline-offset-4 hover:text-[#00E1FC] transition-colors"
                   >
                     {eventDetails.VenueName || eventDetails.VenueCity}
                   </a>
                 ) : (
-                  <span className="text-base sm:text-lg">{eventDetails.VenueName || eventDetails.VenueCity}</span>
+                  <span className="min-w-0 break-words text-base sm:text-lg">{eventDetails.VenueName || eventDetails.VenueCity}</span>
                 )}
               </div>
             </div>
@@ -481,13 +481,13 @@ export default function EventDetailsPage() {
             {/* Venue & Map */}
             {(eventDetails.VenueName || eventDetails.VenueCity) && (
               <div className={cardClass}>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center gap-2 break-words">
+                  <div className="w-1 h-6 shrink-0 bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] rounded-full"></div>
                   {eventDetails.VenueCity || "Venue"}
                 </h2>
 
                 {/* VenueName already reads like "Venue: City", so it is shown as stored */}
-                <p className="text-slate-300 text-sm sm:text-base">{eventDetails.VenueName}</p>
+                <p className="text-slate-300 text-sm sm:text-base break-words">{eventDetails.VenueName}</p>
 
                 {venueEmbedSrc && (
                   <div className="relative mt-3 sm:mt-4 rounded-2xl overflow-hidden border border-slate-700/50">
@@ -508,7 +508,7 @@ export default function EventDetailsPage() {
                         aria-label={`Open ${eventDetails.VenueName || eventDetails.VenueCity} in Google Maps`}
                         className="absolute inset-0 flex items-end justify-end p-3 bg-slate-950/0 hover:bg-slate-950/20 transition-colors"
                       >
-                        <span className="flex items-center gap-2 rounded-lg bg-slate-950/85 border border-slate-700/60 px-3 py-2 text-xs sm:text-sm font-medium text-white">
+                        <span className="flex items-center gap-2 rounded-lg bg-slate-950/[.85] border border-slate-700/60 px-3 py-2 text-xs sm:text-sm font-medium text-white">
                           <Navigation className="h-4 w-4 text-[#00E1FC]" />
                           Get Directions
                         </span>
@@ -542,7 +542,7 @@ export default function EventDetailsPage() {
               </h2>
               <div className="relative overflow-hidden">
                 <div
-                  className={`text-slate-300 text-base leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
+                  className={`text-slate-300 text-base leading-relaxed break-words [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
                     !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                   }`}
                   dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.AboutEvent) }}
@@ -554,7 +554,7 @@ export default function EventDetailsPage() {
               {showAboutToggle && (
                 <button
                   onClick={() => setAboutExpanded(!aboutExpanded)}
-                  className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
+                  className="mt-1 sm:mt-3 min-h-[40px] sm:min-h-0 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
                 >
                   {aboutExpanded ? "Show Less" : "Read More"}
                   <svg
@@ -575,7 +575,7 @@ export default function EventDetailsPage() {
               </h2>
               <div className="relative overflow-hidden">
                 <div
-                  className={`text-slate-300 text-sm leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
+                  className={`text-slate-300 text-sm leading-relaxed break-words [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
                     !termsExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                   }`}
                   dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.EventTermsConditions) }}
@@ -587,7 +587,7 @@ export default function EventDetailsPage() {
               {showTermsToggle && (
                 <button
                   onClick={() => setTermsExpanded(!termsExpanded)}
-                  className="mt-3 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
+                  className="mt-1 sm:mt-3 min-h-[40px] sm:min-h-0 text-[#00E1FC] hover:text-[#00E1FC]/80 text-sm font-semibold transition-colors duration-200 flex items-center gap-1"
                 >
                   {termsExpanded ? "Show Less" : "Read More"}
                   <svg
@@ -613,7 +613,7 @@ export default function EventDetailsPage() {
                       key={index}
                       className="flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 rounded-xl border border-slate-700/40 hover:bg-slate-800/70 hover:border-[#00E1FC]/30 transition-all duration-300 group"
                     >
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         <img
                           src={getImageUrl(artist.ArtistImage)}
                           alt={artist.ArtistName}
@@ -637,7 +637,7 @@ export default function EventDetailsPage() {
       </div>
 
       {startingTicketPrice !== null && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           <Link href={`/events/${eventId}/book`} className="block">
             <Button className="w-full h-12 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white font-semibold text-base shadow-lg">
               <Ticket className="mr-2 h-5 w-5" />

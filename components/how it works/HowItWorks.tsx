@@ -4,11 +4,11 @@ import Image from "next/image";
 
 const HowItWorks = () => {
   return (
-    <div className="md:py-12 py-6 md:px-20 px-6 font-Atkinson">
+    <div className="md:py-12 py-6 md:px-20 px-4 sm:px-6 font-Atkinson">
       <div>
         <div className="md:grid grid-cols-2 md:gap-y-6 h-full w-full md:px-6 flex flex-col gap-10 ">
           {/* text  */}
-          <div className="">
+          <div className="order-1 md:order-none ">
             <div className="flex flex-col gap-4 justify-center w-full h-full">
               <p className="text-slate-200 text-sm ">01</p>
               <h2 className="font-bold md:text-4xl text-xl capitalize font-poppins text-white">
@@ -23,17 +23,17 @@ const HowItWorks = () => {
           </div>
 
           {/* image */}
-          <div className="w-full h-full flex justify-center">
+          <div className="order-2 md:order-none w-full h-full flex justify-center">
             <Image src={"/Signup.jpg"} height={260} width={260} alt="Signup" />
           </div>
 
           {/* image */}
-          <div className="w-full h-full flex justify-center">
+          <div className="order-4 md:order-none w-full h-full flex justify-center">
             <Image src={"/create-event.jpg"} height={260} width={260} alt="Create Event" />
           </div>
 
           {/* text  */}
-          <div className="">
+          <div className="order-3 md:order-none ">
             <div className="flex flex-col gap-4 justify-center w-full h-full">
               <p className="text-slate-200 text-sm">02</p>
               <h2 className="font-bold md:text-4xl text-xl font-poppins capitalize text-white">
@@ -48,7 +48,7 @@ const HowItWorks = () => {
           </div>
 
           {/* text  */}
-          <div className="">
+          <div className="order-5 md:order-none ">
             <div className="flex flex-col gap-4 justify-center w-full h-full">
               <p className="text-slate-200 text-sm">03</p>
               <h2 className="font-bold md:text-4xl text-xl capitalize font-poppins text-white">
@@ -63,17 +63,17 @@ const HowItWorks = () => {
           </div>
 
           {/* image */}
-          <div className="w-full h-full flex justify-center">
+          <div className="order-6 md:order-none w-full h-full flex justify-center">
             <Image src={"/promote.jpg"} height={260} width={260} alt="Promote" />
           </div>
 
           {/* image */}
-          <div className="w-full h-full flex justify-center">
+          <div className="order-8 md:order-none w-full h-full flex justify-center">
             <Image src={"/analytics.jpg"} height={260} width={260} alt="Analytics" />
           </div>
 
           {/* text  */}
-          <div className="">
+          <div className="order-7 md:order-none ">
             <div className="flex flex-col gap-4 justify-center w-full h-full">
               <p className="text-slate-200 text-sm">04</p>
               <h2 className="font-bold md:text-4xl text-xl capitalize font-poppins text-white">

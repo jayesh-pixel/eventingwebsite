@@ -18,8 +18,8 @@ export default function RndTcktPage({ params }: { params: { bookingId: string } 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
       <Toaster />
-      <div className="text-center">
-        <p className="text-lg">Preparing your ticket… Redirecting now.</p>
+      <div className="text-center px-4">
+        <p className="text-base sm:text-lg">Preparing your ticket… Redirecting now.</p>
       </div>
     </div>
   );

@@ -1045,15 +1045,15 @@ export default function BookEventPage() {
       <>
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" aria-hidden="true" onClick={() => setShowLoginModal(false)}></div>
         <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
-          <Card className="w-full max-w-md bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md border border-slate-700/50 shadow-2xl">
+          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md border border-slate-700/50 shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/15 border-b border-slate-700/50 pb-4">
               <CardTitle className="text-xl text-white font-semibold text-center">Login Required</CardTitle>
               <CardDescription className="text-slate-300 text-center">Please login to continue with your booking</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-5 sm:p-6 space-y-4">
               <div className="text-center space-y-4">
                 <div className="text-4xl mb-4">🔐</div>
-                <p className="text-slate-300 mb-6">
+                <p className="text-sm sm:text-base text-slate-300 mb-6">
                   You need to be logged in to book tickets. This helps us secure your booking and send you confirmation details.
                 </p>
                 <div className="space-y-3">
@@ -1071,7 +1071,7 @@ export default function BookEventPage() {
                   <Button 
                     variant="outline"
                     onClick={() => setShowLoginModal(false)}
-                    className="w-full h-10 border-slate-600/50 text-slate-300 hover:bg-slate-800/50 hover:text-white transition-colors"
+                    className="w-full h-11 sm:h-10 border-slate-600/50 text-slate-300 hover:bg-slate-800/50 hover:text-white transition-colors"
                   >
                     Continue Browsing
                   </Button>
@@ -1125,12 +1125,12 @@ export default function BookEventPage() {
 
           <div className="shrink-0">
             {soldOut ? (
-              <span className="inline-flex h-9 items-center text-xs text-red-400 font-semibold uppercase">Sold Out</span>
+              <span className="inline-flex h-10 sm:h-9 items-center text-xs text-red-400 font-semibold uppercase">Sold Out</span>
             ) : selected ? (
-              <div className="flex h-9 w-[104px] items-center justify-between rounded-lg border border-slate-600/60 bg-slate-950/70 px-1">
+              <div className="flex h-10 w-[112px] sm:h-9 sm:w-[104px] items-center justify-between rounded-lg border border-slate-600/60 bg-slate-950/70 px-1">
                 <button
                   onClick={() => handleDecrease(ticket.Ticket_Id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60"
+                  className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60"
                   aria-label={`Remove one ${ticket.TicketName}`}
                 >
                   <Minus className="h-3.5 w-3.5" />
@@ -1139,7 +1139,7 @@ export default function BookEventPage() {
                 <button
                   onClick={() => handleIncrease(ticket.Ticket_Id)}
                   disabled={count >= (ticket.BookingMaxLimit || 10)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60 disabled:opacity-40"
+                  className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md text-white hover:bg-slate-700/60 disabled:opacity-40"
                   aria-label={`Add one ${ticket.TicketName}`}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -1148,7 +1148,7 @@ export default function BookEventPage() {
             ) : (
               <Button
                 onClick={() => handleIncrease(ticket.Ticket_Id)}
-                className={`h-9 w-[104px] rounded-lg text-sm font-semibold uppercase tracking-wide ${
+                className={`h-10 w-[112px] sm:h-9 sm:w-[104px] rounded-lg text-sm font-semibold uppercase tracking-wide ${
                   ticket.isSeasonPass
                     ? "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-400/90 hover:to-amber-500/90 text-slate-900"
                     : "bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
@@ -1170,7 +1170,7 @@ export default function BookEventPage() {
                 onClick={() =>
                   setExpandedDescriptions((prev) => ({ ...prev, [ticket.Ticket_Id]: !prev[ticket.Ticket_Id] }))
                 }
-                className="mt-1 text-xs font-medium text-[#00E1FC] hover:text-[#00E1FC]/80"
+                className="mt-1 py-1.5 sm:py-0 text-xs font-medium text-[#00E1FC] hover:text-[#00E1FC]/80"
               >
                 {expanded ? "Show less" : "Read more"}
               </button>
@@ -1212,14 +1212,14 @@ export default function BookEventPage() {
 
   if (!eventDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-20">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black pt-6 sm:pt-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-3xl p-12 shadow-2xl">
-            <div className="text-6xl mb-6">🎫</div>
-            <h1 className="text-4xl font-bold text-white mb-4">Event Not Found</h1>
-            <p className="text-slate-300 mb-8 text-lg">The event you're trying to book doesn't exist or has been removed.</p>
+          <div className="bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 sm:p-12 shadow-2xl">
+            <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">🎫</div>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-4">Event Not Found</h1>
+            <p className="text-slate-300 mb-6 sm:mb-8 text-base sm:text-lg">The event you're trying to book doesn't exist or has been removed.</p>
             <Link href="/events">
-              <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/80 hover:to-[#0F33D1]/80 text-white px-8 py-3 text-lg font-medium shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
+              <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/80 hover:to-[#0F33D1]/80 text-white px-6 sm:px-8 py-3 text-base sm:text-lg font-medium shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300">
                 Browse All Events
               </Button>
             </Link>
@@ -1434,7 +1434,7 @@ export default function BookEventPage() {
               <div className="space-y-3">
                 <Label className="text-slate-200 font-medium">Is this your WhatsApp number?</Label>
                 <div className="flex flex-col sm:flex-row gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
-                  <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
+                  <label className="flex items-center gap-2 min-h-[40px] sm:min-h-0 cursor-pointer text-slate-200 hover:text-white transition-colors">
                     <input
                       type="radio"
                       checked={customer.isWhatsApp === 1}
@@ -1443,7 +1443,7 @@ export default function BookEventPage() {
                     />
                     Yes, use same number
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-slate-200 hover:text-white transition-colors">
+                  <label className="flex items-center gap-2 min-h-[40px] sm:min-h-0 cursor-pointer text-slate-200 hover:text-white transition-colors">
                     <input
                       type="radio"
                       checked={customer.isWhatsApp === 0}
@@ -1475,7 +1475,7 @@ export default function BookEventPage() {
                 </Button>
                 <Button
                   onClick={handleContinueToCheckout}
-                  className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                  className="flex-1 sm:flex-none bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
                 >
                   {finalAmount === 0 ? "Continue to Booking" : "Continue to Payment"}
                 </Button>
@@ -1498,8 +1498,8 @@ export default function BookEventPage() {
             </CardHeader>
             <CardContent className="p-4 sm:p-6 space-y-4">
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                  <div className="flex-1">
+                <div className="flex justify-between items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/30">
+                  <div className="flex-1 min-w-0">
                     <p className="text-white font-medium text-sm">{selectedTicket.TicketName}</p>
                     <p className="text-slate-400 text-xs">
                       Qty: {counts[selectedTicket.Ticket_Id]}
@@ -1510,12 +1510,12 @@ export default function BookEventPage() {
                           : ""}
                     </p>
                   </div>
-                  <span className="font-semibold text-[#00E1FC]">₹{counts[selectedTicket.Ticket_Id] * selectedTicket.TicketPrice}</span>
+                  <span className="shrink-0 font-semibold text-[#00E1FC]">₹{counts[selectedTicket.Ticket_Id] * selectedTicket.TicketPrice}</span>
                 </div>
-                <div className="p-3 bg-slate-800/40 rounded-lg border border-slate-700/30 text-sm text-slate-300">
+                <div className="p-3 bg-slate-800/40 rounded-lg border border-slate-700/30 text-sm text-slate-300 break-words">
                   <p className="font-medium text-white">{customer.firstName} {customer.lastName}</p>
                   <p>{customer.phone}</p>
-                  <p>{customer.email}</p>
+                  <p className="break-all">{customer.email}</p>
                 </div>
               </div>
 
@@ -1535,7 +1535,7 @@ export default function BookEventPage() {
                       <Button
                         onClick={handleApplyPromocode}
                         disabled={promocodeLoading || !promocodeInput.trim()}
-                        className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
+                        className="shrink-0 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white"
                       >
                         {promocodeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                       </Button>
@@ -1551,11 +1551,11 @@ export default function BookEventPage() {
                               setPromocodeInput(promo.PromoCodeName);
                               setShowPromocodeSuggestions(false);
                             }}
-                            className="w-full text-left p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
+                            className="w-full text-left p-3 sm:p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded border border-slate-700/30 transition-colors"
                           >
-                            <div className="flex justify-between items-center">
-                              <span className="text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
-                              <Badge variant="outline" className="text-xs border-green-400/50 text-green-300">
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="min-w-0 truncate text-[#00E1FC] font-semibold text-sm">{promo.PromoCodeName}</span>
+                              <Badge variant="outline" className="shrink-0 text-xs border-green-400/50 text-green-300">
                                 {promo.PromType === 1 ? `₹${promo.Value} OFF` : `${promo.Value}% OFF`}
                               </Badge>
                             </div>
@@ -1566,9 +1566,9 @@ export default function BookEventPage() {
                   </>
                 ) : (
                   <div className="p-3 bg-green-900/20 border border-green-400/30 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <p className="text-green-300 font-semibold text-sm">{appliedPromocode.PromoCodeName}</p>
+                    <div className="flex justify-between items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-green-300 font-semibold text-sm break-all">{appliedPromocode.PromoCodeName}</p>
                         <p className="text-xs text-slate-400 mt-1">
                           {appliedPromocode.PromType === 1
                             ? `₹${appliedPromocode.Value} discount applied`
@@ -1579,7 +1579,7 @@ export default function BookEventPage() {
                         variant="ghost"
                         size="sm"
                         onClick={handleRemovePromocode}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8"
+                        className="shrink-0 text-red-400 hover:text-red-300 hover:bg-red-900/20 h-10 sm:h-8"
                       >
                         Remove
                       </Button>
@@ -1602,9 +1602,9 @@ export default function BookEventPage() {
                   </div>
                 )}
                 {appliedPromocode && discountAmount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
-                    <span className="text-green-400">-₹{discountAmount.toFixed(2)}</span>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="min-w-0 break-all text-green-400">Discount ({appliedPromocode.PromoCodeName})</span>
+                    <span className="shrink-0 text-green-400">-₹{discountAmount.toFixed(2)}</span>
                   </div>
                 )}
               </div>
@@ -1617,7 +1617,7 @@ export default function BookEventPage() {
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-2">
-                <Button variant="outline" onClick={() => setCurrentStep(3)} className="border-slate-600/50 text-slate-200 hover:bg-slate-800/50">
+                <Button variant="outline" onClick={() => setCurrentStep(3)} className="h-12 sm:h-10 border-slate-600/50 text-slate-200 hover:bg-slate-800/50">
                   Back
                 </Button>
                 <Button
@@ -1649,9 +1649,9 @@ export default function BookEventPage() {
 
         {/* Sticky footer for ticket selection */}
         {currentStep === 2 && selectedDateId ? (
-          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 sm:p-4">
-            <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-              <div>
+          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-700/70 bg-slate-950/95 backdrop-blur-md p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4">
+            <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
+              <div className="shrink-0">
                 <p className="text-xs text-slate-400">
                   {totalTickets > 0
                     ? selectedSeasonPass

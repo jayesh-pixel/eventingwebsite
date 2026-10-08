@@ -176,7 +176,7 @@ export default function UpcomingEvents() {
                 <Link
                   key={event.event_id}
                   href={`/events/${event.event_id}`}
-                  className="block flex-shrink-0 w-[74vw] max-w-[270px] min-w-[230px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
+                  className="block flex-shrink-0 w-[68vw] max-w-[250px] sm:max-w-[270px] sm:w-[260px] md:w-[300px] lg:w-[320px] snap-start"
                 >
                   <div
                     className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00E1FC]/10 hover:border-slate-700 hover:-translate-y-1 flex flex-col h-full"
@@ -205,26 +205,26 @@ export default function UpcomingEvents() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-3.5 sm:p-5 flex flex-col flex-1">
-                      <h4 className="text-[18px] sm:text-lg font-bold text-white mb-2.5 line-clamp-2 group-hover:text-[#00E1FC] transition-colors duration-300">{event.EventName}</h4>
+                    <div className="p-3.5 sm:p-5 flex flex-col flex-1 min-w-0">
+                      <h4 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-2.5 line-clamp-2 break-words group-hover:text-[#00E1FC] transition-colors duration-300">{event.EventName}</h4>
 
                       <div className="space-y-1.5 mb-3">
-                        <div className="flex items-center text-slate-400 text-[15px] sm:text-sm">
+                        <div className="flex items-center min-w-0 text-slate-400 text-sm">
                           <Clock className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
                           <span className="truncate">{event.EventStartTime}</span>
                         </div>
-                        <div className="flex items-center text-slate-400 text-[15px] sm:text-sm">
+                        <div className="flex items-center min-w-0 text-slate-400 text-sm">
                           <MapPin className="h-4 w-4 mr-2 text-[#00E1FC] flex-shrink-0" />
                           <span className="truncate">{event.VenueName}{event.VenueCity ? `, ${event.VenueCity}` : ''}</span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-start gap-2 pt-3 border-t border-slate-800 sm:flex-row sm:items-center sm:justify-between mt-auto">
+                      <div className="flex flex-row items-center justify-between gap-2 pt-3 border-t border-slate-800 mt-auto">
                         <div>
                           <div className="text-xl font-bold text-[#00E1FC]">{typeof event.LowestticketPrice === 'number' ? `₹${event.LowestticketPrice}` : ''}</div>
                           <div className="text-xs text-slate-500">onwards</div>
                         </div>
-                        <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg font-medium shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300 whitespace-nowrap">Book Now</button>
+                        <button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:from-[#00E1FC]/90 hover:to-[#0F33D1]/90 text-white text-sm px-4 py-2.5 sm:px-5 sm:py-2 rounded-lg font-medium shadow-md hover:shadow-lg hover:shadow-[#00E1FC]/20 transition-all duration-300 whitespace-nowrap">Book Now</button>
                       </div>
                     </div>
                   </div>
@@ -245,7 +245,7 @@ export default function UpcomingEvents() {
                 <button
                   key={index}
                   onClick={() => scrollToIndex(index)}
-                  className={`transition-all duration-300 rounded-full ${
+                  className={`relative transition-all duration-300 rounded-full before:absolute before:-inset-3 ${
                     activeIndex === index 
                       ? 'w-8 h-2 bg-primary' 
                       : 'w-2 h-2 bg-slate-600 hover:bg-slate-500'

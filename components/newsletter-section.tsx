@@ -44,7 +44,7 @@ export default function NewsletterSection() {
             Never Miss a
             <span className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] bg-clip-text text-transparent"> Beat</span>
           </h2>
-          <p className="text-lg md:text-xl text-white font-medium mb-6 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-white font-medium mb-6 max-w-3xl mx-auto leading-relaxed">
             Get exclusive access to pre-sale tickets, artist announcements, and special events before anyone else.
           </p>
           
@@ -65,7 +65,7 @@ export default function NewsletterSection() {
             </Button>
           </div>
           
-          <div className="flex items-center justify-center gap-6 md:gap-10 text-white flex-wrap">
+          <div className="flex items-center justify-center gap-x-6 gap-y-3 md:gap-10 text-white flex-wrap">
             <div className="flex items-center gap-2">
               <Ticket className="text-[#00E1FC] h-6 w-6" />
               <span className="text-base font-semibold">Early Access</span>

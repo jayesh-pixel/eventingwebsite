@@ -5,7 +5,7 @@ const HeroForListWithUs = () => {
   return (
     <div className="w-full relative font-Atkinson">
       {/* image */}
-      <div className="w-full md:h-[600px] h-[400px] relative brightness-50">
+      <div className="w-full md:h-[600px] sm:h-[400px] h-[360px] relative brightness-50">
         <Image
           src={"/pexels-polina-kovaleva-5827860.jpg"}
           alt="Hero for List with Us"
@@ -15,7 +15,7 @@ const HeroForListWithUs = () => {
         />
       </div>
       {/* text */}
-      <div className="md:w-[600px] w-full  h-full absolute top-0 left-0 px-6  ">
+      <div className="md:w-[600px] w-full  h-full absolute top-0 left-0 px-5 sm:px-6  ">
         <div className="flex h-full flex-col md:gap-8 gap-6 justify-center  md:ml-10  ">
           {/* headline */}
           <div className="text-center md:text-left">

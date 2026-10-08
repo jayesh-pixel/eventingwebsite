@@ -5,9 +5,9 @@ import { IoIosCloseCircleOutline } from "react-icons/io";
 import { CiCircleCheck } from "react-icons/ci";
 
 type ModalProps = {
-  serviceId: string | number | null;
+  serviceId: number | null;
   setIsServiceModalOpen: (open: boolean) => void;
-  setServiceId: (id: string | number | null) => void;
+  setServiceId: (id: number | null) => void;
 };
 
 const Modal: React.FC<ModalProps> = ({ serviceId, setIsServiceModalOpen, setServiceId }) => {
@@ -25,13 +25,14 @@ const Modal: React.FC<ModalProps> = ({ serviceId, setIsServiceModalOpen, setServ
         data-modal-backdrop="static"
         tabIndex={-1}
         aria-hidden="true"
-        className="fixed inset-0 z-50 flex justify-center items-center"
+        className="fixed inset-0 z-50 flex justify-center items-center p-4 sm:p-0"
       >
-        <div className="relative p-4 w-full max-w-2xl">
-          <div className="relative bg-white rounded-lg shadow dark:bg-gray-700 text-center p-4">
+        <div className="relative sm:p-4 w-full max-w-2xl max-h-full">
+          <div className="relative bg-white rounded-lg shadow dark:bg-gray-700 text-center p-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-end items-end cursor-pointer ">
               <IoIosCloseCircleOutline
                 size={25}
+                className="h-8 w-8 sm:h-[25px] sm:w-[25px]"
                 onClick={() => {
                   setIsServiceModalOpen(false);
                   setServiceId(null);
@@ -42,13 +43,13 @@ const Modal: React.FC<ModalProps> = ({ serviceId, setIsServiceModalOpen, setServ
               {selectedService ? (
                 <>
                   <div>{selectedService.icon}</div>
-                  <p className="text-xl">{selectedService.heading}</p>
+                  <p className="text-lg sm:text-xl">{selectedService.heading}</p>
                   <ul className="mb-6 ">
                     {selectedService.text
                       ?.split(".")
                       ?.filter(Boolean)
                       ?.map((text, index) => (
-                        <div className="flex gap-4 mb-4 items-center" key={index}>
+                        <div className="flex gap-3 sm:gap-4 mb-4 items-center" key={index}>
                           <CiCircleCheck size={20} className="flex-shrink-0" />
                           <li className="text-left">{text}</li>
                         </div>

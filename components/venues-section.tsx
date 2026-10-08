@@ -67,7 +67,7 @@ export default function VenuesSection() {
   }
 
   return (
-    <section className="py-10 bg-black">
+    <section className="py-6 sm:py-10 bg-black">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
         {/* <div className="text-center mb-16 animate-fadeInUp">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">

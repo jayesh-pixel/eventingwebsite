@@ -28,28 +28,28 @@ const Faq = () => {
           <div className="w-20 h-1 bg-blue-400 mt-2"></div>
 
           {/* faqs */}
-          <div className="h-full md:w-4/5 w-4/5 flex items-center justify-center  mx-auto mt-6  ">
-            <div className="h-full w-full flex  flex-col gap-6 mx-auto md:py-4 py-4 space-y-4 transition-all ease-linear ">
+          <div className="h-full md:w-4/5 w-full px-4 md:px-0 flex items-center justify-center  mx-auto mt-6  ">
+            <div className="h-full w-full flex  flex-col gap-2 sm:gap-6 mx-auto md:py-4 py-4 space-y-4 transition-all ease-linear ">
               {faqs.map((faq, index) => (
-                <Accordion
+                <Accordion placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                   key={index}
                   open={open === index}
-                  className="bg-slate-900 px-8 rounded-lg transition duration-200 ease-in-out shadow-md py-2"
+                  className="bg-slate-900 px-4 sm:px-8 rounded-lg transition duration-200 ease-in-out shadow-md py-2"
                   onClick={() => handleOpen(index)}
                 >
-                  <AccordionHeader
+                  <AccordionHeader placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                     className={`text-white border-none font-poppins`}
                     onClick={() => handleOpen(index)}
                   >
                     <div className="flex w-full justify-between">
-                      <p className="md:text-xl text-lg font-semibold text-blue-400">
+                      <p className="md:text-xl sm:text-lg text-base font-semibold text-blue-400">
                         {faq.question} {" "}
                       </p>
                     </div>
                   </AccordionHeader>
                   <AccordionBody className="p-0 font-Atkinsons">
                     <div className="pb-4">
-                      <p className="text-base text-slate-300 mt-2">
+                      <p className="text-sm sm:text-base text-slate-300 mt-2">
                         {faq.answer}
                       </p>
                     </div>

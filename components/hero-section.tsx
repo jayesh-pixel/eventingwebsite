@@ -158,14 +158,14 @@ export default function HeroSection() {
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-2 transition-all duration-300 hover:scale-110 shadow-lg"
+                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-3 sm:p-2 transition-all duration-300 hover:scale-110 shadow-lg"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-2 transition-all duration-300 hover:scale-110 shadow-lg"
+                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-blue-600 hover:bg-blue-500 text-white rounded-full p-3 sm:p-2 transition-all duration-300 hover:scale-110 shadow-lg"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -175,7 +175,7 @@ export default function HeroSection() {
 
             {/* Slide indicators */}
             {banners.length > 1 && (
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex space-x-3">
+              <div className="absolute bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 z-40 flex space-x-3">
                 {banners.map((_, index) => (
                   <button
                     key={index}
