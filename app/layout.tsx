@@ -25,7 +25,7 @@ export default function RootLayout({
         <ReduxProvider>
           <div className="flex min-h-screen flex-col">
             <Navigation />
-            <main className="flex-1 pt-20 lg:pt-24">
+            <main className="flex-1 pt-16 lg:pt-24">
               {children}
             </main>
             <MaybeFooter />

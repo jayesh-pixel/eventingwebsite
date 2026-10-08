@@ -92,7 +92,7 @@ export default function Footer() {
             <ul className="space-y-1 sm:space-y-2 text-slate-400">
               <li><Link href="/listwithus" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">List With Us</Link></li>
               <li><Link href="/signup" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">Account</Link></li>
-              <li><Link href="/failure" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">Need Help</Link></li>
+              <li><a href="mailto:hello@eventingclub.in" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">Need Help</a></li>
             </ul>
           </div>
         </div>

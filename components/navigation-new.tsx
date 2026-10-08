@@ -1,42 +1,32 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Bars3Icon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/solid";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import { LuMapPin } from "react-icons/lu";
-import toast, { Toaster } from "react-hot-toast";
-import axios from "axios";
-import { MdEventAvailable } from "react-icons/md";
+import { Toaster } from "react-hot-toast";
 import { FaUserCircle } from "react-icons/fa";
+import { ChevronRight, ClipboardList, Home, Info, MapPin, Mic2 } from "lucide-react";
 import { decryptData } from "@/utils/constants";
-import { homepageSearch } from "@/utils/config";
 
 interface NavbarProps {
   bgColor?: string;
 }
 
-interface SearchItem {
-  _id: string;
-  Name?: string;
-  EventName?: string;
-}
+const navLinks = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/venues", label: "Venues", icon: MapPin },
+  { href: "/artists", label: "Artists", icon: Mic2 },
+  { href: "/about", label: "About Us", icon: Info },
+  { href: "/listwithus", label: "List With Us", icon: ClipboardList },
+];
 
 const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
   const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
   const [open, setOpen] = useState(false);
 
-  const [searchTerm, setsearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [searchData, setSearchData] = useState<SearchItem[]>([]);
-
-  const pathname = usePathname();
-  const homePageUrl = pathname === "/";
+  const pathname = usePathname() || "/";
 
   // Use Redux to check if the user is logged in
   interface RootState {
@@ -49,7 +39,11 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
   const isLoggedInState = auth?.jL3 ? decryptData(auth.jL3, passphrase) : null;
 
   const cust_id = auth?.xA1 ? decryptData(auth.xA1, passphrase) : null;
+  const mobileNumber = auth?.vY4 ? decryptData(auth.vY4, passphrase) : null;
   const isLoggedIn = !!(getToken && isLoggedInState === "true");
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   // Add/Remove class to block scrolling when mobile menu is open
   useEffect(() => {
@@ -72,79 +66,6 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
     setOpen(false);
   };
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 700);
-
-    return () => clearTimeout(delay);
-  }, [searchTerm]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setsearchTerm(e.target.value);
-  };
-
-  useEffect(() => {
-    toast.dismiss();
-    const fetchData = async () => {
-      try {
-        if (debouncedSearch) {
-          if (debouncedSearch.length < 3) {
-            toast.error("Search term must be greater than 3 characters");
-            return;
-          }
-        }
-
-        const payload = {
-          search_keyword: debouncedSearch,
-        };
-
-        const response = await axios.post(
-          `${homepageSearch.SEARCH_EVENTS_VENUES}`,
-          payload
-        );
-
-        if ((response.data as any)?.data?.length > 0) {
-          setSearchData((response.data as any).data);
-        } else {
-          toast.error("Events or venues not found");
-          setSearchData([]);
-        }
-      } catch (error: any) {
-        if (error?.response) {
-          const { status, data } = error.response;
-
-          if (
-            status === 404 ||
-            status === 403 ||
-            status === 500 ||
-            status === 302 ||
-            status === 409 ||
-            status === 401 ||
-            status === 400
-          ) {
-            setSearchData([]);
-          }
-        }
-      }
-    };
-    if (debouncedSearch !== "") {
-      fetchData();
-    } else {
-      setSearchData([]);
-    }
-  }, [debouncedSearch]);
-
-  // Track scroll for navbar bg
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <>
     <nav className="fixed top-0 w-full z-50 font-poppins bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
@@ -166,21 +87,15 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
           </div>
 
           <div className="hidden lg:flex items-center flex-1 justify-center space-x-12 xl:space-x-16 mx-8">
-            <Link href="/" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
-              Home
-            </Link>
-            <Link href="/venues" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
-              Venues
-            </Link>
-            <Link href="/artists" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
-              Artists
-            </Link>
-            <Link href="/about" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
-              About Us
-            </Link>
-            <Link href="/listwithus" className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide">
-              List With Us
-            </Link>
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-white hover:text-[#00E1FC] transition-colors duration-300 font-semibold text-base tracking-wide"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
 
           <div className="flex items-center space-x-3 sm:space-x-6">
@@ -202,135 +117,96 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
             {/* Mobile menu button */}
             <button
               onClick={handleToggle}
+              aria-label="Open menu"
               className="lg:hidden text-white p-2"
             >
-              {open ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+              <Bars3Icon className="h-6 w-6" />
             </button>
           </div>
         </div>
       </div>
     </nav>
 
-        {/* Mobile menu — rendered outside <nav>: its backdrop-blur would otherwise trap this
-            fixed overlay inside the 64px navbar instead of covering the viewport */}
-        {open && (
-          <div className="lg:hidden fixed inset-0 bg-slate-950 z-[60] font-poppins">
-            {/* Close button inside overlay */}
-            <div className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-4 sm:px-6 h-16 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50">
-              <Link href="/" className="flex-shrink-0" onClick={handleClose}>
-                <div className="cursor-pointer relative h-12 w-24 md:h-14 md:w-32">
-                  <Image
-                    src="/EC%20Logo.png"
-                    alt="Eventing Club Logo"
-                    fill
-                    className="object-contain object-left"
-                    priority
-                  />
-                </div>
-              </Link>
-              <button
-                onClick={handleClose}
-                className="text-white p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="flex h-full flex-col pt-20">
-              <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-2">
-                <Link
-                  href="/"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                  Home
-                </Link>
-                <Link
-                  href="/venues"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
-                >
-                  <LuMapPin className="w-5 h-5" />
-                  Venues
-                </Link>
-                <Link
-                  href="/artists"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
-                >
-                  <MdEventAvailable className="w-5 h-5" />
-                  Artists
-                </Link>
-                <Link
-                  href="/about"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  About Us
-                </Link>
-                <Link
-                  href="/listwithus"
-                  onClick={handleClose}
-                  className="flex items-center gap-3 px-4 py-3 text-white hover:text-[#00E1FC] hover:bg-slate-800/50 rounded-xl transition-colors duration-300 text-lg font-medium border border-slate-800"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                  List With Us
-                </Link>
-
-                <div className="pt-2">
-                  <div className="relative">
-                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={handleChange}
-                      className="w-full bg-transparent border border-slate-800 rounded-xl pl-12 pr-4 py-3 text-base text-white placeholder-slate-500 outline-none focus:border-[#00E1FC] transition-colors duration-300"
-                      placeholder="Search events, venues..."
-                    />
-                  </div>
-
-                  {searchData.length > 0 && (
-                    <div className="mt-2 rounded-xl border border-slate-800 divide-y divide-slate-800 overflow-hidden">
-                      {searchData.map((item) => (
-                        <Link
-                          key={item._id}
-                          href={item.EventName ? `/events/${item._id}` : `/venues/${item._id}`}
-                          onClick={handleClose}
-                          className="flex items-center gap-3 px-4 py-3 text-slate-200 hover:text-[#00E1FC] hover:bg-slate-800/50 transition-colors"
-                        >
-                          {item.EventName ? (
-                            <MdEventAvailable className="w-4 h-4 shrink-0 text-slate-500" />
-                          ) : (
-                            <LuMapPin className="w-4 h-4 shrink-0 text-slate-500" />
-                          )}
-                          <span className="truncate">{item.EventName || item.Name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
+      {/* Mobile menu — rendered outside <nav>: its backdrop-blur would otherwise trap this
+          fixed overlay inside the 64px navbar instead of covering the viewport */}
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-[60] flex flex-col bg-slate-950 font-poppins">
+          {/* Header — same logo size as the navbar so opening the menu doesn't jump */}
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-slate-800/50">
+            <Link href="/" className="flex-shrink-0" onClick={handleClose}>
+              <div className="cursor-pointer relative h-28 w-40 md:h-36 md:w-56">
+                <Image
+                  src="/EC%20Logo.png"
+                  alt="Eventing Club Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
               </div>
-
-              <div className="border-t border-slate-800 px-6 py-4 bg-slate-900/95">
-                {isLoggedIn ? (
-                  <Link href={`/userDetails/${cust_id}`} onClick={handleClose}>
-                    <button className="w-full bg-slate-800/50 border border-slate-700 hover:border-[#00E1FC] transition-all duration-300 px-4 py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-base">
-                      <FaUserCircle className="text-[#00E1FC]" size={20} />
-                      My Profile
-                    </button>
-                  </Link>
-                ) : (
-                  <Link href="/signup" onClick={handleClose}>
-                    <button className="w-full bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 px-4 py-3 rounded-xl text-white font-bold text-base">
-                      Login / Sign Up
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </div>
+            </Link>
+            <button
+              onClick={handleClose}
+              aria-label="Close menu"
+              className="text-white p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
           </div>
-        )}
+
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+            {/* Profile */}
+            {isLoggedIn ? (
+              <Link
+                href={`/userDetails/${cust_id}`}
+                onClick={handleClose}
+                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/25 border border-[#00E1FC]/20 p-4"
+              >
+                <FaUserCircle className="h-12 w-12 shrink-0 text-[#00E1FC]" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold text-white">My Profile</p>
+                  <p className="truncate text-sm text-slate-400">
+                    {mobileNumber ? `+91 ${mobileNumber}` : "View your account & tickets"}
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
+              </Link>
+            ) : (
+              <div className="rounded-2xl bg-gradient-to-r from-[#00E1FC]/15 to-[#0F33D1]/25 border border-[#00E1FC]/20 p-4">
+                <p className="text-base font-semibold text-white">Welcome to Eventing Club</p>
+                <p className="mt-1 text-sm text-slate-400">Login to book tickets and view your bookings.</p>
+                <Link href="/signup" onClick={handleClose} className="mt-4 block">
+                  <span className="block w-full rounded-xl bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-4 py-3 text-center text-base font-semibold text-white">
+                    Login / Sign Up
+                  </span>
+                </Link>
+              </div>
+            )}
+
+            {/* Links */}
+            <nav className="mt-6 space-y-1">
+              {navLinks.map(({ href, label, icon: Icon }) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={handleClose}
+                    className={`flex items-center gap-4 rounded-xl px-4 py-3.5 text-base font-medium transition-colors ${
+                      active
+                        ? "bg-slate-800/70 text-[#00E1FC]"
+                        : "text-slate-200 hover:bg-slate-800/50 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{label}</span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-600" />
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
     </>
   );
 };

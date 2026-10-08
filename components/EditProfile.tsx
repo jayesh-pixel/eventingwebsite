@@ -107,58 +107,58 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
       <div className="space-y-5 sm:space-y-6">
         {/* Full Name */}
         <div>
-          <label className="text-sm text-slate-400 block mb-2">Full Name:</label>
+          <label className="text-sm text-slate-400 block mb-1.5">Full Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="Enter your full name"
-            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
+            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-base text-white placeholder-slate-500 focus:border-[#00E1FC] transition-colors outline-none"
           />
         </div>
 
         {/* Address Section */}
         <div className="border-t border-slate-700 pt-5 sm:pt-6">
-          <h3 className="text-lg font-bold text-white mb-4">Address</h3>
+          <h3 className="text-base font-semibold text-white mb-4">Address</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Pincode */}
             <div>
-              <label className="text-sm text-slate-400 block mb-2">Pincode:</label>
+              <label className="text-sm text-slate-400 block mb-1.5">Pincode</label>
               <input
                 type="text"
                 name="pincode"
                 value={formData.pincode}
                 onChange={handleChange}
                 placeholder="Enter pincode"
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-base text-white placeholder-slate-500 focus:border-[#00E1FC] transition-colors outline-none"
               />
             </div>
             
             {/* City */}
             <div>
-              <label className="text-sm text-slate-400 block mb-2">City:</label>
+              <label className="text-sm text-slate-400 block mb-1.5">City</label>
               <input
                 type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
                 placeholder="Enter city"
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-base text-white placeholder-slate-500 focus:border-[#00E1FC] transition-colors outline-none"
               />
             </div>
             
             {/* State */}
-            <div className="md:col-span-2">
-              <label className="text-sm text-slate-400 block mb-2">State:</label>
+            <div className="col-span-2">
+              <label className="text-sm text-slate-400 block mb-1.5">State</label>
               <input
                 type="text"
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
                 placeholder="Enter state"
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00E1FC] focus:border-transparent transition-all duration-300 outline-none"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-base text-white placeholder-slate-500 focus:border-[#00E1FC] transition-colors outline-none"
               />
             </div>
           </div>
@@ -169,7 +169,7 @@ const EditProfile = ({ id, data }: EditProfileProps) => {
           <button
             type="submit"
             onClick={handleSubmit}
-            className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105"
+            className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-shadow duration-300"
           >
             Save Changes
           </button>
