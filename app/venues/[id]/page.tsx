@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Users, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { venues as venuesConfig } from "@/utils/config";
@@ -29,6 +29,7 @@ interface VenueEvent {
   EventStartDate?: string;
   EventStartTime?: string;
   LowestticketPrice?: number;
+  EventCardImages?: Array<{ image_path: string; _id: string }>;
 }
 
 interface VenueEventsResponse {
@@ -183,10 +184,10 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
   const location = venue.venueAddress || 'Location TBA';
 
   return (
-      <section className="py-8 sm:py-14 bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+      <section className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 py-5 sm:py-8">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header Section */}
-          <div className="text-center mb-8 sm:mb-10">
+          <div className="mb-5 text-center sm:mb-7">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-white break-words">
               <span className="text-[#00E1FC]">
                 {venue.venueName}
@@ -196,17 +197,17 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
               <MapPin className="text-[#00E1FC] h-5 w-5 sm:h-6 sm:w-6 shrink-0 mt-0.5 sm:mt-0" />
               <span className="min-w-0 break-words">{location}</span>
             </div>
-            <p className="text-base sm:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+            <p className="mx-auto max-w-3xl text-sm leading-relaxed text-slate-400 sm:text-base">
               {venue.venueDescription || `${venue.venueName} is a venue perfect for hosting amazing events.`}
             </p>
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-start mb-12 sm:mb-20">
+          <div className="mb-8 grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-7">
             {/* Left side: Image Gallery */}
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-3">
               {/* Main Image */}
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden h-64 sm:h-[500px] group">
+              <div className="group relative h-52 overflow-hidden rounded-2xl sm:h-80">
                 <img
                   src={imageUrl}
                   alt={venue.venueName}
@@ -223,7 +224,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
 
               {/* Image thumbnails */}
               {venue.venueImages && venue.venueImages.length > 1 && (
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                <div className="grid grid-cols-3 gap-2">
                   {venue.venueImages.slice(0, 3).map((image, index) => (
                     <div key={index} className="rounded-xl overflow-hidden h-20 sm:h-24 bg-slate-800">
                       <img
@@ -242,10 +243,10 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
             </div>
 
             {/* Right side: Details and Map */}
-            <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-5">
               {/* Venue Details Card */}
-              <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Venue Details</h2>
+              <div className="glass-card rounded-2xl p-5 sm:p-6">
+                <h2 className="mb-4 text-xl font-bold text-white">Venue Details</h2>
 
                 <div className="space-y-5 sm:space-y-6">
                   {/* Location */}
@@ -259,42 +260,19 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                     </div>
                   </div>
 
-                  {/* Capacity */}
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="bg-[#00E1FC]/20 p-3 rounded-xl shrink-0">
-                      <Users className="text-[#00E1FC] h-6 w-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-white font-semibold mb-1">Capacity</h3>
-                      <p className="text-slate-400">Perfect for events of all sizes</p>
-                    </div>
-                  </div>
-
-                  {/* Features */}
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="bg-[#00E1FC]/20 p-3 rounded-xl shrink-0">
-                      <svg className="text-[#00E1FC] h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-white font-semibold mb-1">Features</h3>
-                      <p className="text-slate-400">Modern amenities and professional setup</p>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Action buttons removed per request */}
               </div>
 
               {/* Map Section */}
-              <div className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden">
+              <div className="glass-card overflow-hidden rounded-2xl">
                 <div className="p-4 sm:p-6 border-b border-slate-700">
                   <h3 className="text-xl font-bold text-white">Location & Directions</h3>
                 </div>
-                <div className="h-64 sm:h-80">
+                <div className="h-56 sm:h-64">
                   {venue.venueMapLocation ? (
-                    <div className="[&_iframe]:max-w-full max-lg:[&_iframe]:w-full max-sm:[&_iframe]:h-64" dangerouslySetInnerHTML={{ __html: venue.venueMapLocation }} />
+                    <div className="h-full [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:max-w-full" dangerouslySetInnerHTML={{ __html: venue.venueMapLocation }} />
                   ) : (
                     <iframe
                       title="Venue Location"
@@ -310,20 +288,28 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
           </div>
           
           {/* Events Section */}
-          <div className="mb-10 sm:mb-16">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Upcoming Events</h2>
+          <div className="mb-10">
+            <div className="mb-5 text-left sm:mb-7">
+              <h2 className="mb-1 text-2xl font-bold text-white sm:text-3xl">Upcoming Events</h2>
               <p className="text-slate-400">Discover what's happening at this venue</p>
             </div>
             
             {venue.venueEvents && venue.venueEvents.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {venue.venueEvents.map((event, index) => (
                   <Link
                     key={event.event_id || index}
                     href={`/events/${event.event_id}`}
-                    className="glass-card rounded-2xl p-3 sm:p-6 group hover:shadow-xl hover:shadow-[#00E1FC]/10 transition-all duration-500"
+                    className="glass-card group overflow-hidden rounded-2xl transition-all duration-300 hover:border-[#00E1FC]/30 hover:shadow-xl hover:shadow-[#00E1FC]/10"
                   >
+                    {event.EventCardImages?.[0]?.image_path && (
+                      <img
+                        src={event.EventCardImages[0].image_path.startsWith("http") ? event.EventCardImages[0].image_path : `${BACKEND_URL}/${event.EventCardImages[0].image_path}`}
+                        alt={event.EventName}
+                        className="h-36 w-full object-cover sm:h-40"
+                      />
+                    )}
+                    <div className="p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
                       <div className="bg-gradient-to-r from-[#00E1FC]/20 to-[#0F33D1]/20 p-2 sm:p-3 rounded-xl">
                         <svg className="text-[#00E1FC] h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,6 +340,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                       <span className="text-[#00E1FC] text-xs sm:text-sm font-medium group-hover:text-white transition-colors duration-300">
                         Learn More →
                       </span>
+                    </div>
                     </div>
                   </Link>
                 ))}

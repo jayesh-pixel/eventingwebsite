@@ -515,6 +515,7 @@ export default function BookEventPage() {
             ConvinienceFeeUnit: eventFeeUnit,
             ConvinienceFeeValue: eventFeeValue,
           });
+          sessionStorage.setItem("lastEventName", asString(ed.EventName));
           setEventConvenienceFee({ unit: eventFeeUnit, value: eventFeeValue });
           // Store locally so we can pass to loadTickets in the same render cycle
           pendingEventFee = { unit: eventFeeUnit, value: eventFeeValue };
@@ -777,8 +778,9 @@ export default function BookEventPage() {
   // ────────────────────────────────────────────────────────────────────────────
   const handleCustChange = (field: keyof BookingForm, value: string | number) => {
     setCustomer((prev) => {
-      const normalizedValue = typeof value === "number" ? String(value) : value;
-      return { ...prev, [field]: normalizedValue } as BookingForm;
+      // isWhatsApp is intentionally numeric (0/1). Stringifying it makes both
+      // strict comparisons fail and prevents the alternate number input opening.
+      return { ...prev, [field]: value } as BookingForm;
     });
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: "" }));
   };
@@ -932,6 +934,7 @@ export default function BookEventPage() {
           
           // Store event ID in sessionStorage for success/failure page redirect
           sessionStorage.setItem('lastEventId', eventId);
+          sessionStorage.setItem('lastEventName', eventDetails?.EventName || '');
 
           // ── Free booking (₹0) ──────────────────────────────────────────────
           // The backend has already confirmed the booking and sent the ticket
@@ -1165,14 +1168,14 @@ export default function BookEventPage() {
             <p className={`text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>
               {ticketDescription}
             </p>
-            {ticketDescription.length > 120 && (
+            {ticketDescription.length > 60 && (
               <button
                 onClick={() =>
                   setExpandedDescriptions((prev) => ({ ...prev, [ticket.Ticket_Id]: !prev[ticket.Ticket_Id] }))
                 }
                 className="mt-1 py-1.5 sm:py-0 text-xs font-medium text-[#00E1FC] hover:text-[#00E1FC]/80"
               >
-                {expanded ? "Show less" : "Read more"}
+                {expanded ? "Show less" : "Read more..."}
               </button>
             )}
           </div>
@@ -1265,39 +1268,31 @@ export default function BookEventPage() {
                 {renderSectionHeading("Select Date & Time")}
 
                 <div className="flex items-stretch gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {dateGroups.map((group, index) => {
+                  {dateGroups.map((group) => {
                     const active = selectionMode === "date" && selectedGroup?.key === group.key;
-                    const showMonth = index === 0 || group.month !== dateGroups[index - 1].month;
                     return (
-                      <React.Fragment key={group.key}>
-                        {showMonth && group.month && (
-                          <div className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700/50 bg-slate-800/60">
-                            <span className="rotate-180 text-xs font-bold uppercase tracking-widest text-slate-300 [writing-mode:vertical-rl]">
-                              {group.month}
-                            </span>
-                          </div>
+                      <button
+                        key={group.key}
+                        onClick={() => handleDateClick(group.slots[0].eventDateTime_id)}
+                        className={`flex h-[74px] w-[68px] shrink-0 flex-col items-center justify-center rounded-xl border px-1 text-center transition-all duration-200 ${
+                          active
+                            ? "border-transparent bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] text-white shadow-lg shadow-[#00E1FC]/20"
+                            : "border-slate-700/60 bg-slate-800/40 text-slate-100 hover:border-[#00E1FC]/50"
+                        }`}
+                      >
+                        <span className={`text-[10px] font-bold uppercase tracking-wide ${active ? "text-white/90" : "text-slate-400"}`}>{group.month}</span>
+                        <span className="my-0.5 text-xl font-bold leading-none">{group.day}</span>
+                        {group.weekday && (
+                          <span className={`text-[11px] ${active ? "text-white/90" : "text-slate-400"}`}>{group.weekday}</span>
                         )}
-                        <button
-                          onClick={() => handleDateClick(group.slots[0].eventDateTime_id)}
-                          className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-all duration-200 ${
-                            active
-                              ? "border-transparent bg-gradient-to-b from-[#00E1FC] to-[#0F33D1] text-white shadow-lg shadow-[#00E1FC]/20"
-                              : "border-slate-700/60 bg-slate-800/40 text-slate-100 hover:border-[#00E1FC]/50"
-                          }`}
-                        >
-                          <span className="text-lg font-bold leading-none">{group.day}</span>
-                          {group.weekday && (
-                            <span className={`mt-1 text-xs ${active ? "text-white/90" : "text-slate-400"}`}>{group.weekday}</span>
-                          )}
-                        </button>
-                      </React.Fragment>
+                      </button>
                     );
                   })}
 
                   {isMultiDayEvent && seasonPasses.length > 0 && (
                     <button
                       onClick={handleSeasonPassClick}
-                      className={`flex h-16 shrink-0 flex-col items-center justify-center rounded-xl border px-3 transition-all duration-200 ${
+                      className={`flex h-[74px] shrink-0 flex-col items-center justify-center rounded-xl border px-3 transition-all duration-200 ${
                         selectionMode === "season"
                           ? "border-transparent bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 shadow-lg shadow-amber-400/20"
                           : "border-amber-400/40 bg-amber-400/[0.06] text-amber-200 hover:border-amber-400/70"

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Clock, MapPin, Sparkles, Calendar } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Sparkles } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { featuredEvents as featuredEventsConfig } from "@/utils/config";
@@ -80,8 +80,9 @@ export default function FeaturedEvents() {
 
   if (isLoading) {
     return (
-      <div className="bg-transparent">
-        <div className="max-w-full">
+      <section className="relative border-y border-[#FF6B6B]/20 bg-gradient-to-b from-[#FF6B6B]/[0.07] via-black to-black py-8 sm:py-10">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 h-12 w-56 animate-pulse rounded-xl bg-slate-800" />
           <div className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-hide">
             {[...Array(4)].map((_, i) => (
               <div
@@ -100,7 +101,7 @@ export default function FeaturedEvents() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -131,8 +132,29 @@ export default function FeaturedEvents() {
   };
 
   return (
-    <div className="bg-transparent">
-      <div className="max-w-full">
+    <section className="relative border-y border-[#FF6B6B]/20 bg-gradient-to-b from-[#FF6B6B]/[0.07] via-black to-black py-8 sm:py-10">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[300px] w-full max-w-[600px] -translate-x-1/2 rounded-full bg-[#FF6B6B]/10 blur-[120px]" />
+      <div className="relative z-10 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-1.5 rounded-full bg-gradient-to-b from-[#FF6B6B] to-[#FF8E53]" />
+            <div>
+              <h2 className="text-xl font-bold text-white sm:text-2xl md:text-3xl">
+                Featured <span className="text-[#FF6B6B]">Events</span>
+              </h2>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                Handpicked just for you
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/events/featured"
+            className="group inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF6B6B] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[#FF6B6B]/90 sm:px-4 sm:py-2 sm:text-xs"
+          >
+            View all
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
         <div className="relative">
           <div 
             id="featured-scroll-container"
@@ -233,6 +255,6 @@ export default function FeaturedEvents() {
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

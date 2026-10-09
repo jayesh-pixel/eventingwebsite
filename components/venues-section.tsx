@@ -1,161 +1,146 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users } from "lucide-react";
-import { mockVenues } from "@/data/mockData";
+import { MapPin } from "lucide-react";
+import axios from "axios";
+import { venues as venuesConfig } from "@/utils/config";
+
+interface Venue {
+  _id: string;
+  Name: string;
+  Address?: string | null;
+  City?: string | null;
+  State?: string | null;
+  Country?: string | null;
+  Description?: string | null;
+  Priority?: number;
+  Images?: Array<{ image_path: string; _id: string }>;
+}
+
+interface VenuesResponse {
+  error: boolean;
+  data: Venue[];
+}
+
+const fallbackImage = "/placeholder.jpg";
+
+const imageUrl = (path?: string) => {
+  if (!path) return fallbackImage;
+  return path.startsWith("http")
+    ? path
+    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${path}`;
+};
 
 export default function VenuesSection() {
-  const [venues, setVenues] = useState<typeof mockVenues>(mockVenues);
-  const [isLoading, setIsLoading] = useState(false);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Handle scroll to update active dot
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollPosition = container.scrollLeft;
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        const response = await axios.get<VenuesResponse>(venuesConfig.GET_ALL);
+        const liveVenues = Array.isArray(response.data?.data) ? response.data.data : [];
+        setVenues(
+          liveVenues
+            .filter((venue) => venue?._id && venue?.Name)
+            .sort((a, b) => Number(b.Priority || 0) - Number(a.Priority || 0))
+            .slice(0, 18)
+        );
+      } catch (error) {
+        console.error("Failed to fetch venues:", error);
+        setVenues([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVenues();
+  }, []);
+
+  const pageSize = 6;
+  const totalDots = Math.ceil(venues.length / pageSize);
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const container = event.currentTarget;
+    if (!venues.length) return;
     const cardWidth = container.scrollWidth / venues.length;
-    const newIndex = Math.round(scrollPosition / (cardWidth * 6)); // 6 cards visible at once
-    setActiveIndex(newIndex);
+    setActiveIndex(Math.min(totalDots - 1, Math.max(0, Math.round(container.scrollLeft / (cardWidth * pageSize)))));
   };
 
-  // Scroll to specific section
   const scrollToIndex = (index: number) => {
-    const container = document.getElementById('venues-scroll-container');
-    if (container) {
-      const cardWidth = container.scrollWidth / venues.length;
-      container.scrollTo({
-        left: cardWidth * index * 6, // 6 cards at a time
-        behavior: 'smooth'
-      });
-      setActiveIndex(index);
-    }
-  };
-
-  // Calculate total number of dots needed (groups of 6 cards)
-  const totalDots = Math.ceil(venues.length / 6);
-
-  const getVenueColor = (capacity: number) => {
-    if (capacity >= 30000) return "primary";
-    if (capacity >= 10000) return "accent";
-    if (capacity >= 2000) return "destructive";
-    return "secondary";
+    const container = document.getElementById("venues-scroll-container");
+    if (!container || !venues.length) return;
+    const cardWidth = container.scrollWidth / venues.length;
+    container.scrollTo({ left: cardWidth * index * pageSize, behavior: "smooth" });
+    setActiveIndex(index);
   };
 
   if (isLoading) {
     return (
-      <section className="py-6 bg-black">
-        <div className="max-w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center">
-                <div className="glass-card rounded-xl overflow-hidden animate-pulse">
-                  <div className="h-32 sm:h-36 md:h-40 bg-slate-800"></div>
-                  <div className="p-2.5 sm:p-3">
-                    <div className="h-3 bg-slate-800 rounded mb-1.5"></div>
-                    <div className="h-3 bg-slate-800 rounded mb-1.5"></div>
-                    <div className="h-3 bg-slate-800 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="flex gap-3 overflow-hidden px-4 pb-4 sm:gap-4 sm:px-6 lg:px-8">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="h-56 w-[150px] shrink-0 animate-pulse rounded-xl bg-slate-900 sm:w-[180px] lg:w-[220px]" />
+        ))}
+      </div>
     );
   }
 
+  if (venues.length === 0) return null;
+
   return (
-    <section className="py-6 sm:py-10 bg-black">
-      <div className="max-w-full px-4 sm:px-6 lg:px-8">
-        {/* <div className="text-center mb-16 animate-fadeInUp">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Premium 
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"> Venues</span>
-          </h2>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Experience music in the world's most iconic venues, from intimate clubs to grand arenas.
-          </p>
-        </div> */}
-
-        {/* Horizontal Scrollable Container - Shows 6 cards at a time */}
-        <div className="relative">
-          <div 
-            id="venues-scroll-container"
-            className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
-            onScroll={handleScroll}
-          >
-            {venues?.map((venue, index) => {
-              const colorClass = getVenueColor(venue.capacity);
-              const hoverColorClass = {
-                primary: "hover:shadow-primary/25",
-                secondary: "hover:shadow-secondary/25",
-                accent: "hover:shadow-accent/25",
-                destructive: "hover:shadow-destructive/25",
-              }[colorClass];
-
-              const badgeBgClassMap: Record<string, string> = {
-                primary: 'bg-slate-800/75',
-                accent: 'bg-indigo-900/75',
-                destructive: 'bg-rose-900/75',
-                secondary: 'bg-slate-800/75',
-              };
-              const badgeBgClass = badgeBgClassMap[colorClass] || 'bg-primary/90';
-
-              return (
-                <div 
-                  key={venue.id}
-                  className={`flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px] lg:w-[220px] snap-center glass-card rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl ${hoverColorClass} animate-slideInLeft`}
-                  style={{animationDelay: `${index * 0.1}s`}}
-                >
-                  <div className="relative h-32 sm:h-36 md:h-40 overflow-hidden">
-                    <img 
-                      src={venue.imageUrl}
-                      alt={venue.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
-                    <div className="absolute bottom-2 left-2">
-                      <div className={`${badgeBgClass} backdrop-blur-sm px-2 py-0.5 rounded-full text-xs font-medium flex items-center`}>
-                        <Users className="mr-1 h-2.5 w-2.5 text-white" />
-                        <span className="text-white">{venue.capacity.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2.5 sm:p-3">
-                    <h3 className="text-sm font-semibold mb-1 text-white transition-colors duration-300 line-clamp-1">
-                      {venue.name}
-                    </h3>
-                    <p className="text-slate-400 text-xs mb-2 line-clamp-1">{venue.location}</p>
-                    <p className="text-slate-500 text-xs line-clamp-2">
-                      {venue.description}
-                    </p>
-                  </div>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="relative">
+        <div
+          id="venues-scroll-container"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-4 scrollbar-hide sm:gap-4"
+          onScroll={handleScroll}
+        >
+          {venues.map((venue) => {
+            const location = [venue.City, venue.State, venue.Country].filter(Boolean).join(", ") || venue.Address || "Location to be announced";
+            return (
+              <Link
+                key={venue._id}
+                href={`/venues/${venue._id}`}
+                className="group w-[150px] shrink-0 snap-start overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 transition hover:-translate-y-1 hover:border-[#00E1FC]/40 sm:w-[180px] md:w-[200px] lg:w-[220px]"
+              >
+                <div className="relative h-32 overflow-hidden sm:h-36 md:h-40">
+                  <img
+                    src={imageUrl(venue.Images?.[0]?.image_path)}
+                    alt={venue.Name}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    onError={(event) => { event.currentTarget.src = fallbackImage; }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
                 </div>
-              );
-            })}
-          </div>
-          
-          {/* Navigation Dots */}
-          {venues.length > 6 && (
-            <div className="flex justify-center items-center gap-2 mt-4">
-              {[...Array(totalDots)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => scrollToIndex(index)}
-                  className={`transition-all duration-300 rounded-full ${
-                    activeIndex === index 
-                      ? 'w-8 h-2 bg-primary' 
-                      : 'w-2 h-2 bg-slate-600 hover:bg-slate-500'
-                  }`}
-                  aria-label={`Go to page ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
+                <div className="p-3">
+                  <h3 className="line-clamp-1 text-sm font-semibold text-white group-hover:text-[#00E1FC]">{venue.Name}</h3>
+                  <p className="mt-1 flex items-start gap-1 text-xs text-slate-400">
+                    <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#00E1FC]" />
+                    <span className="line-clamp-2">{location}</span>
+                  </p>
+                  {venue.Description && <p className="mt-2 line-clamp-2 text-xs text-slate-500">{venue.Description}</p>}
+                </div>
+              </Link>
+            );
+          })}
         </div>
+
+        {totalDots > 1 && (
+          <div className="mt-3 flex items-center justify-center gap-2">
+            {[...Array(totalDots)].map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => scrollToIndex(index)}
+                className={`rounded-full transition-all ${activeIndex === index ? "h-2 w-8 bg-blue-500" : "h-2 w-2 bg-slate-600 hover:bg-slate-500"}`}
+                aria-label={`Show venue group ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 }

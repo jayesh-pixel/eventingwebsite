@@ -26,6 +26,7 @@ function FailureHandler() {
     const error_Message = searchParams.get('error_Message');
     const productinfo = searchParams.get('productinfo');
     const eventId = searchParams.get('event_id');
+    const storedEventName = sessionStorage.getItem('lastEventName');
 
     console.log('Failure page params:', {
       bookingId,
@@ -63,7 +64,7 @@ function FailureHandler() {
       amount: amount || '',
       status: 'failed',
       error: errorMessage,
-      eventName: productinfo || 'Event',
+      eventName: storedEventName || productinfo || 'Event',
       paymentmode: paymentmode || '',
     });
     // Only include bookingId if it actually exists (new error codes don't send Booking_id)

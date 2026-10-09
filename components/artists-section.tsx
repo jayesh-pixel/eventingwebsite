@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { artists as artistsConfig } from "@/utils/config";
 import axios from "axios";
@@ -127,8 +126,10 @@ export default function ArtistsSection() {
             : `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop&sig=${index}`;
 
           return (
-            <div 
+            <Link
               key={artist._id}
+              href={`/artists/${artist._id}`}
+              aria-label={`View ${artist.Name}`}
               className="flex-shrink-0 snap-center group cursor-pointer flex flex-col items-center gap-1.5"
             >
               <div className="relative overflow-hidden rounded-full w-16 h-16 sm:w-20 sm:h-20 border-2 border-blue-500/30 hover:border-blue-400 transition-all duration-300">
@@ -145,7 +146,7 @@ export default function ArtistsSection() {
               <p className="text-white text-[10px] sm:text-xs font-medium text-center line-clamp-1 max-w-[80px] sm:max-w-[100px]">
                 {artist.Name}
               </p>
-            </div>
+            </Link>
           );
         })
       ) : (

@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
   Navigation,
+  HelpCircle,
   Ticket,
   Twitter,
 } from "lucide-react";
@@ -34,6 +35,14 @@ interface EventArtist {
   ArtistImage: string;
 }
 
+interface EventFaq {
+  Question?: string;
+  Answer?: string;
+  question?: string;
+  answer?: string;
+  _id?: string;
+}
+
 interface EventDetails {
   EventCarouselImages: EventCarouselImage[];
   EventName: string;
@@ -46,7 +55,7 @@ interface EventDetails {
   AboutEvent: string;
   EventGalleryImages: any[];
   EventArtists: EventArtist[];
-  EventFaqs: any[];
+  EventFaqs: EventFaq[];
   EventTermsConditions: string;
   categoryName: string;
   VenueEventFlag: number;
@@ -95,7 +104,13 @@ export default function EventDetailsPage() {
         );
 
         if (response.data && !response.data.error) {
-          setEventDetails(response.data.data.EventDetailsObj);
+          const details = response.data.data.EventDetailsObj;
+          setEventDetails({
+            ...details,
+            EventCarouselImages: Array.isArray(details.EventCarouselImages) ? details.EventCarouselImages : [],
+            EventArtists: Array.isArray(details.EventArtists) ? details.EventArtists : [],
+            EventFaqs: Array.isArray(details.EventFaqs) ? details.EventFaqs : [],
+          });
         }
       } catch (error) {
         console.error('Failed to fetch event details:', error);
@@ -599,6 +614,38 @@ export default function EventDetailsPage() {
                 </button>
               )}
             </div>
+
+            {/* Event-specific FAQs are returned with the event and may be added after publishing. */}
+            {eventDetails.EventFaqs.length > 0 && (
+              <div className={cardClass}>
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-white sm:text-2xl">
+                  <div className="h-6 w-1 rounded-full bg-gradient-to-b from-[#00E1FC] to-[#0F33D1]" />
+                  FAQs
+                </h2>
+                <div className="space-y-3">
+                  {eventDetails.EventFaqs.map((faq, index) => {
+                    const question = faq.Question || faq.question || "Question";
+                    const answer = faq.Answer || faq.answer || "";
+                    return (
+                      <details
+                        key={faq._id || `${question}-${index}`}
+                        className="group rounded-xl border border-slate-700/50 bg-slate-800/40 open:border-[#00E1FC]/30"
+                      >
+                        <summary className="flex cursor-pointer list-none items-start gap-3 p-4 text-sm font-semibold text-white sm:text-base [&::-webkit-details-marker]:hidden">
+                          <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#00E1FC]" />
+                          <span className="flex-1 break-words">{question}</span>
+                          <span className="text-[#00E1FC] transition-transform group-open:rotate-45">+</span>
+                        </summary>
+                        <div
+                          className="border-t border-slate-700/50 px-4 py-3 text-sm leading-relaxed text-slate-300 [&_a]:text-[#00E1FC] [&_a]:underline [&_p]:mb-2"
+                          dangerouslySetInnerHTML={{ __html: formatHtmlContent(answer) }}
+                        />
+                      </details>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Featured Artists */}
             {eventDetails.EventArtists.length > 0 && (

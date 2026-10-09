@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { XCircle, RefreshCcw, Home, AlertTriangle, HelpCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
+import { events as eventsConfig } from "@/utils/config";
 
 function BookingFailedContent() {
   const params = useParams();
@@ -28,6 +30,24 @@ function BookingFailedContent() {
     // Log payment failure
     console.log('Payment failed:', paymentDetails);
   }, [paymentDetails]);
+
+  // Older gateway callbacks only return the generic word "Event". Resolve the
+  // real name from the event id so failed payments still show useful context.
+  useEffect(() => {
+    if (!eventId || (paymentDetails.eventName && paymentDetails.eventName !== "Event")) return;
+
+    const loadEventName = async () => {
+      try {
+        const response = await axios.post<any>(eventsConfig.GET_ALL, { event_id: eventId });
+        const name = response.data?.data?.EventDetailsObj?.EventName;
+        if (name) setPaymentDetails((current) => ({ ...current, eventName: name }));
+      } catch (error) {
+        console.error("Failed to resolve event name:", error);
+      }
+    };
+
+    loadEventName();
+  }, [eventId, paymentDetails.eventName]);
 
   // Prevent user navigating back to payment gateway — redirect to event page instead
   useEffect(() => {

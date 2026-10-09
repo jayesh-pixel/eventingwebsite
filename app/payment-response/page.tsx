@@ -27,6 +27,8 @@ function PaymentResponseHandler() {
     const mihpayid = searchParams.get('mihpayid');
     const error = searchParams.get('error');
     const error_Message = searchParams.get('error_Message');
+    const storedEventName = sessionStorage.getItem('lastEventName');
+    const eventName = storedEventName || productinfo || 'Event';
     
     // Extract event ID from productinfo, URL, or sessionStorage
     const eventIdMatch = productinfo?.match(/event_(\w+)/) || window.location.pathname.match(/events\/([^\/]+)/);
@@ -61,7 +63,7 @@ function PaymentResponseHandler() {
         status: status,
         bookingId: mihpayid || txnid || '',
         email: email || '',
-        eventName: productinfo || 'Event',
+        eventName,
         firstname: firstname || '',
       });
       
@@ -73,7 +75,7 @@ function PaymentResponseHandler() {
         amount: amount || '',
         status: status,
         error: errorMessage,
-        eventName: productinfo || 'Event',
+        eventName,
       });
       
       router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);
@@ -84,7 +86,7 @@ function PaymentResponseHandler() {
         amount: amount || '0',
         status: 'unknown',
         error: 'Payment status could not be determined',
-        eventName: productinfo || 'Event',
+        eventName,
       });
       
       router.replace(`/events/${eventId}/booking-failed?${failParams.toString()}`);

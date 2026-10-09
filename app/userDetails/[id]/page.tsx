@@ -11,7 +11,7 @@ import { resetState } from "@/store/slices/authSlice";
 import { IoIosLogOut } from "react-icons/io";
 import EditProfile from "@/components/EditProfile";
 import Link from "next/link";
-import { Calendar, Mail, MapPin, Phone, Ticket } from "lucide-react";
+import { Calendar, Mail, MapPin, Phone, RefreshCcw, Ticket } from "lucide-react";
 
 const UserDetails = ({ params }: { params: { id: string } }) => {
   const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
@@ -27,6 +27,9 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'tickets'>('profile');
   const [ticketsData, setTicketsData] = useState<any | null>(null);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketsError, setTicketsError] = useState("");
+  const [ticketReload, setTicketReload] = useState(0);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -78,6 +81,8 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
     const fetchTickets = async () => {
       if (!cust_id) return;
       try {
+        setTicketsLoading(true);
+        setTicketsError("");
         const payload = { customer_id: cust_id };
         const response = await axios.post(`${customer.GET_TICKETS_BY_ID}`, payload);
         const data = (response.data as any)?.data;
@@ -129,16 +134,23 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
         }
 
         setTicketsData(null);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch tickets:", err);
         setTicketsData(null);
+        setTicketsError(
+          err?.response?.status === 502
+            ? "The ticket service is temporarily unavailable. Your bookings are safe—please try again."
+            : err?.response?.data?.message || "We could not load your tickets. Please try again."
+        );
+      } finally {
+        setTicketsLoading(false);
       }
     };
 
     if (activeTab === 'tickets') {
       fetchTickets();
     }
-  }, [activeTab, cust_id]);
+  }, [activeTab, cust_id, ticketReload]);
 
   // Handle logout
   const handleLogout = () => {
@@ -239,6 +251,30 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
             </div>
           ) : (
             (() => {
+              if (ticketsLoading) {
+                return (
+                  <div className="flex min-h-48 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/50">
+                    <div className="h-9 w-9 animate-spin rounded-full border-2 border-slate-700 border-t-[#00E1FC]" />
+                  </div>
+                );
+              }
+
+              if (ticketsError) {
+                return (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-5 py-10 text-center">
+                    <Ticket className="mx-auto mb-4 h-12 w-12 text-slate-600" />
+                    <p className="text-sm text-slate-300">{ticketsError}</p>
+                    <button
+                      type="button"
+                      onClick={() => setTicketReload((value) => value + 1)}
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-5 py-3 font-semibold text-white"
+                    >
+                      <RefreshCcw className="h-4 w-4" /> Retry
+                    </button>
+                  </div>
+                );
+              }
+
               const upcoming = ticketsData?.UpcomingEventTickets || [];
               const past = ticketsData?.PastEventTickets || [];
               const promoterBooked = ticketsData?.PromoterBookedTickets || [];

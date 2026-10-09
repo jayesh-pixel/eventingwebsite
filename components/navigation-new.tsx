@@ -100,7 +100,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
 
           <div className="flex items-center space-x-3 sm:space-x-6">
             {isLoggedIn ? (
-              <Link href={`/userDetails/${cust_id}`} className="flex items-center gap-2 group">
+              <Link href={`/userDetails/${cust_id}`} className="hidden items-center gap-2 group lg:flex">
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-800/50 transition-all duration-300">
                   <FaUserCircle className="size-5 lg:size-6 text-[#00E1FC] group-hover:scale-110 transition-transform duration-300" />
                   <span className="hidden lg:inline text-white font-medium text-sm">Profile</span>
@@ -130,7 +130,11 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
       {/* Mobile menu — rendered outside <nav>: its backdrop-blur would otherwise trap this
           fixed overlay inside the 64px navbar instead of covering the viewport */}
       {open && (
-        <div className="lg:hidden fixed inset-0 z-[60] flex flex-col bg-slate-950 font-poppins">
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/60 font-poppins" onClick={handleClose}>
+          <aside
+            className="ml-auto flex h-full w-[min(88vw,360px)] flex-col border-l border-slate-800/70 bg-slate-950 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
           {/* Header — same logo size as the navbar so opening the menu doesn't jump */}
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-slate-800/50">
             <Link href="/" className="flex-shrink-0" onClick={handleClose}>
@@ -205,6 +209,7 @@ const Navigation = ({ bgColor = "bg-transparent" }: NavbarProps) => {
               })}
             </nav>
           </div>
+          </aside>
         </div>
       )}
     </>
