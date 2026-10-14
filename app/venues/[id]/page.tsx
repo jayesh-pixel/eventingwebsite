@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { venues as venuesConfig } from "@/utils/config";
+import { sanitizeMapEmbed } from "@/lib/sanitize";
 
 interface Venue {
   _id: string;
@@ -197,7 +198,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
               <MapPin className="text-[#00E1FC] h-5 w-5 sm:h-6 sm:w-6 shrink-0 mt-0.5 sm:mt-0" />
               <span className="min-w-0 break-words">{location}</span>
             </div>
-            <p className="mx-auto max-w-3xl text-sm leading-relaxed text-slate-400 sm:text-base">
+            <p className="mx-auto max-w-3xl whitespace-pre-line text-sm leading-relaxed text-slate-400 sm:text-base">
               {venue.venueDescription || `${venue.venueName} is a venue perfect for hosting amazing events.`}
             </p>
           </div>
@@ -272,7 +273,7 @@ export default function VenueDetails({ params }: { params: VenueDetailsParams })
                 </div>
                 <div className="h-56 sm:h-64">
                   {venue.venueMapLocation ? (
-                    <div className="h-full [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:max-w-full" dangerouslySetInnerHTML={{ __html: venue.venueMapLocation }} />
+                    <div className="h-full [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:max-w-full" dangerouslySetInnerHTML={{ __html: sanitizeMapEmbed(venue.venueMapLocation) }} />
                   ) : (
                     <iframe
                       title="Venue Location"

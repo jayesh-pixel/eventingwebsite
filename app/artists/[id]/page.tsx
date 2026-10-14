@@ -136,7 +136,7 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
                 <Users className="h-5 w-5 text-primary" />
                 <span className="text-slate-400">Music Artist</span>
               </div>
-              <p className="text-slate-300 mb-4">
+              <p className="whitespace-pre-line text-slate-300 mb-4">
                 {artist.Description || `${artist.Name} is a talented music artist bringing amazing performances to life.`}
               </p>
               <Button className="bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] hover:shadow-lg hover:shadow-[#00E1FC]/25 transition-all duration-300 transform hover:scale-105">
@@ -166,7 +166,7 @@ export default function ArtistDetail({ params }: { params: { id: string } }) {
               
               <div className="bg-slate-800/60 rounded-lg p-4">
                 <h3 className="font-semibold text-primary mb-2">About</h3>
-                <p className="text-slate-300">
+                <p className="whitespace-pre-line text-slate-300">
                   {artist.Description || `${artist.Name} is a renowned music artist known for captivating performances and unique style. Book now for an unforgettable musical experience.`}
                 </p>
               </div>

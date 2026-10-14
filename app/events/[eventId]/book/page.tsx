@@ -183,17 +183,21 @@ const asString = (value: unknown) => {
   return String(value);
 };
 
+// Keeps the line breaks typed in the dashboard (rendered with whitespace-pre-line): this
+// used to collapse every \s - newlines included - so a 3-line description showed as one.
 const normalizeTicketDescription = (value: string | null) => {
-  const text = asString(value).replace(/\s+/g, " ").trim();
-  if (!text) return "";
+  const lines = asString(value)
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => {
+      const sentences = line.replace(/[^\S\n]+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+      return sentences
+        .filter((sentence, index) => index === 0 || sentence.toLowerCase() !== sentences[index - 1].toLowerCase())
+        .join(" ");
+    });
 
-  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const deduped = sentences.filter((sentence, index) => {
-    if (index === 0) return true;
-    return sentence.trim().toLowerCase() !== sentences[index - 1].trim().toLowerCase();
-  });
-
-  return deduped.join(" ");
+  // At most one blank line between paragraphs.
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 };
 
 // Normalize backend convenience fee fields (backend sends several possible spellings)
@@ -1165,10 +1169,11 @@ export default function BookEventPage() {
 
         {ticketDescription && (
           <div className="mt-3 border-t border-slate-700/60 pt-3">
-            <p className={`text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>
+            <p className={`whitespace-pre-line text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>
               {ticketDescription}
             </p>
-            {ticketDescription.length > 60 && (
+            {/* Clamped to 2 lines, so 3+ short lines need the toggle too. */}
+            {(ticketDescription.length > 60 || ticketDescription.split("\n").length > 2) && (
               <button
                 onClick={() =>
                   setExpandedDescriptions((prev) => ({ ...prev, [ticket.Ticket_Id]: !prev[ticket.Ticket_Id] }))

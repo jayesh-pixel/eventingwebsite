@@ -19,6 +19,7 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import { events as eventsConfig } from "@/utils/config";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface EventCarouselImage {
   image_path: string;
@@ -560,7 +561,7 @@ export default function EventDetailsPage() {
                   className={`text-slate-300 text-base leading-relaxed break-words [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 overflow-hidden transition-all duration-300 ${
                     !aboutExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                   }`}
-                  dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.AboutEvent) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatHtmlContent(eventDetails.AboutEvent)) }}
                 />
                 {!aboutExpanded && (
                   <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#111827] to-transparent pointer-events-none"></div>
@@ -593,7 +594,7 @@ export default function EventDetailsPage() {
                   className={`text-slate-300 text-sm leading-relaxed break-words [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2 overflow-hidden transition-all duration-300 ${
                     !termsExpanded ? "line-clamp-2 max-h-[3.5em]" : "max-h-[5000px]"
                   }`}
-                  dangerouslySetInnerHTML={{ __html: formatHtmlContent(eventDetails.EventTermsConditions) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatHtmlContent(eventDetails.EventTermsConditions)) }}
                 />
                 {!termsExpanded && (
                   <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#111827] to-transparent pointer-events-none"></div>
@@ -638,7 +639,7 @@ export default function EventDetailsPage() {
                         </summary>
                         <div
                           className="border-t border-slate-700/50 px-4 py-3 text-sm leading-relaxed text-slate-300 [&_a]:text-[#00E1FC] [&_a]:underline [&_p]:mb-2"
-                          dangerouslySetInnerHTML={{ __html: formatHtmlContent(answer) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatHtmlContent(answer)) }}
                         />
                       </details>
                     );
