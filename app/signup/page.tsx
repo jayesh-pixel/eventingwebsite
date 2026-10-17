@@ -452,6 +452,10 @@ const AuthContent = () => {
                   By continuing, you agree to our{" "}
                   <Link href="/terms-and-conditions" className="underline hover:text-slate-300">
                     Terms &amp; Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy-policy" className="underline hover:text-slate-300">
+                    Privacy Policy
                   </Link>
                 </p>
               </div>

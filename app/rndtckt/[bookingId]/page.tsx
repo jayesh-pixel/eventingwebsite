@@ -7,35 +7,7 @@ import axios from "axios";
 import { ArrowLeft, Calendar, Download, MapPin, RefreshCcw, Ticket as TicketIcon } from "lucide-react";
 import { customer } from "@/utils/config";
 import { decryptData } from "@/utils/constants";
-
-const bookingIdOf = (booking: any) => String(
-  booking?.Booking_id ?? booking?.booking_id ?? booking?.BookingId ?? booking?._id ?? ""
-);
-
-const flattenBookings = (data: any): any[] => {
-  if (Array.isArray(data)) return data;
-  if (!data || typeof data !== "object") return [];
-
-  const knownGroups = [
-    data.UpcomingEventTickets,
-    data.PastEventTickets,
-    data.PromoterBookedTickets,
-    data.upcoming,
-    data.past,
-    data.promoter_tickets,
-    data.bookings,
-    data.tickets,
-  ];
-  const grouped = knownGroups.flatMap((group) => Array.isArray(group) ? group : []);
-  return grouped.length ? grouped : [data];
-};
-
-const mediaUrl = (path?: string) => {
-  if (!path) return "";
-  return path.startsWith("http")
-    ? path
-    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/${path.replace(/^\//, "")}`;
-};
+import { bookingIdOf, flattenBookings, formatRupees, getBookingDetails } from "@/lib/bookings";
 
 export default function TicketPage({ params }: { params: { bookingId: string } }) {
   const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
@@ -74,18 +46,7 @@ export default function TicketPage({ params }: { params: { bookingId: string } }
 
   useEffect(() => { loadTicket(); }, [loadTicket]);
 
-  const details = useMemo(() => {
-    if (!ticket) return null;
-    const eventName = ticket.EventName || ticket.event_name || ticket.Event?.EventName || "Event ticket";
-    const eventDate = ticket.EventDate || ticket.EventStartDate || ticket.Date || ticket.event_date || "Date to be announced";
-    const eventTime = ticket.EventTime || ticket.EventStartTime || ticket.Time || "";
-    const venue = [ticket.EventVenue || ticket.VenueName || ticket.venue, ticket.VenueCity].filter(Boolean).join(", ");
-    const ticketName = ticket.TicketName || ticket.EventTicketName || ticket.ticket_name || "Admission";
-    const quantity = ticket.TicketQuantity || ticket.Quantity || ticket.quantity || 1;
-    const qrCode = mediaUrl(ticket.QRCode || ticket.QrCode || ticket.QRCodeImage || ticket.qr_code || ticket.QrImage);
-    const downloadable = mediaUrl(ticket.TicketUrl || ticket.TicketPDF || ticket.PdfUrl || ticket.ticket_url);
-    return { eventName, eventDate, eventTime, venue, ticketName, quantity, qrCode, downloadable };
-  }, [ticket]);
+  const details = useMemo(() => (ticket ? getBookingDetails(ticket) : null), [ticket]);
 
   if (loading) {
     return (
@@ -130,11 +91,14 @@ export default function TicketPage({ params }: { params: { bookingId: string } }
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-500">Ticket</p>
               <p className="mt-1 font-semibold text-white">{details.ticketName} × {details.quantity}</p>
+              {details.totalAmount !== null && (
+                <p className="mt-1 text-sm text-slate-400">Amount paid: {formatRupees(details.totalAmount)}</p>
+              )}
             </div>
             <div className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-4 sm:grid-cols-2">
               <p className="flex items-start gap-2 text-sm text-slate-300">
                 <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-[#00E1FC]" />
-                <span>{details.eventDate}{details.eventTime ? ` · ${details.eventTime}` : ""}</span>
+                <span>{details.eventDate || "Date to be announced"}{details.eventTime ? ` · ${details.eventTime}` : ""}</span>
               </p>
               {details.venue && (
                 <p className="flex items-start gap-2 text-sm text-slate-300">
@@ -143,6 +107,24 @@ export default function TicketPage({ params }: { params: { bookingId: string } }
                 </p>
               )}
             </div>
+            <dl className="space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-sm">
+              {[
+                ["Ticket price", formatRupees(details.ticketPrice)],
+                ["Convenience fee", details.convenienceFee ? formatRupees(details.convenienceFee) : ""],
+                ["Promo code", details.promocode],
+                ["Amount paid", formatRupees(details.totalAmount)],
+                ["Booked on", details.bookedOn],
+                ["Payment ref", details.paymentRef],
+                ["Status", details.status],
+              ]
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div key={label} className="flex items-start justify-between gap-3">
+                    <dt className="shrink-0 text-slate-500">{label}</dt>
+                    <dd className="min-w-0 break-words text-right text-slate-200">{value}</dd>
+                  </div>
+                ))}
+            </dl>
             {details.qrCode && (
               <div className="mx-auto w-fit rounded-2xl bg-white p-3">
                 <img src={details.qrCode} alt={`QR code for booking ${params.bookingId}`} className="h-44 w-44 object-contain" />

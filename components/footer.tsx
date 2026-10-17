@@ -103,6 +103,7 @@ export default function Footer() {
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-400">
             <Link href="/terms-and-conditions" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">Terms &amp; Conditions</Link>
+            <Link href="/privacy-policy" className="inline-block py-1 sm:py-0 hover:text-primary transition-colors duration-300">Privacy Policy</Link>
           </div>
         </div>
       </div>

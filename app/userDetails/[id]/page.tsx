@@ -12,6 +12,77 @@ import { IoIosLogOut } from "react-icons/io";
 import EditProfile from "@/components/EditProfile";
 import Link from "next/link";
 import { Calendar, Mail, MapPin, Phone, RefreshCcw, Ticket } from "lucide-react";
+import { bookingIdOf, formatRupees, getBookingDetails } from "@/lib/bookings";
+
+const DetailRow = ({ label, value }: { label: string; value: string }) =>
+  value ? (
+    <div className="flex items-start justify-between gap-3">
+      <dt className="shrink-0 text-slate-500">{label}</dt>
+      <dd className="min-w-0 break-words text-right text-slate-200">{value}</dd>
+    </div>
+  ) : null;
+
+const BookingCard = ({ booking }: { booking: any }) => {
+  const d = getBookingDetails(booking);
+  const status = d.status.toLowerCase();
+  const statusClass =
+    status.includes("cancel") || status.includes("fail")
+      ? "bg-red-500/10 text-red-400"
+      : status.includes("pending")
+        ? "bg-amber-400/10 text-amber-300"
+        : "bg-[#00E1FC]/10 text-[#00E1FC]";
+
+  return (
+    <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-base sm:text-lg font-semibold text-white break-words">{d.eventName}</h3>
+        {d.status && (
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>{d.status}</span>
+        )}
+      </div>
+
+      <div className="mt-3 space-y-1.5 text-sm text-slate-300">
+        {(d.eventDate || d.eventTime) && (
+          <p className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 shrink-0 text-slate-500" />
+            {[d.eventDate, d.eventTime].filter(Boolean).join(" • ")}
+          </p>
+        )}
+        {d.venue && (
+          <p className="flex items-start gap-2">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <span className="min-w-0 break-words">{d.venue}</span>
+          </p>
+        )}
+        <p className="flex items-start gap-2">
+          <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+          <span className="min-w-0 break-words">
+            {d.ticketName} × {d.quantity}
+          </span>
+        </p>
+      </div>
+
+      <dl className="mt-4 space-y-1.5 rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-xs sm:text-sm">
+        <DetailRow label="Ticket price" value={formatRupees(d.ticketPrice)} />
+        <DetailRow label="Convenience fee" value={d.convenienceFee ? formatRupees(d.convenienceFee) : ""} />
+        <DetailRow label="Promo code" value={d.promocode} />
+        <DetailRow label="Amount paid" value={formatRupees(d.totalAmount)} />
+        <DetailRow label="Booked on" value={d.bookedOn} />
+        <DetailRow label="Payment ref" value={d.paymentRef} />
+        <DetailRow label="Booking ID" value={d.bookingId} />
+      </dl>
+
+      {d.bookingId && (
+        <Link
+          href={`/rndtckt/${d.bookingId}`}
+          className="mt-4 rounded-lg bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-4 py-2.5 text-center text-sm font-semibold text-white"
+        >
+          View Ticket
+        </Link>
+      )}
+    </div>
+  );
+};
 
 const UserDetails = ({ params }: { params: { id: string } }) => {
   const passphrase = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "";
@@ -275,57 +346,33 @@ const UserDetails = ({ params }: { params: { id: string } }) => {
                 );
               }
 
-              const upcoming = ticketsData?.UpcomingEventTickets || [];
-              const past = ticketsData?.PastEventTickets || [];
-              const promoterBooked = ticketsData?.PromoterBookedTickets || [];
-              const combined = [...upcoming, ...past, ...promoterBooked];
+              const groups = [
+                { label: "Upcoming", items: ticketsData?.UpcomingEventTickets || [] },
+                { label: "Past", items: ticketsData?.PastEventTickets || [] },
+                { label: "Booked via promoter", items: ticketsData?.PromoterBookedTickets || [] },
+              ].filter((group) => group.items.length > 0);
 
-              if (combined.length === 0) {
+              if (groups.length === 0) {
                 return (
                   <div className="rounded-2xl border border-slate-800 bg-slate-900/50">{emptyTickets}</div>
                 );
               }
 
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {combined.map((t: any) => (
-                    <div
-                      key={t.Booking_id}
-                      className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-base sm:text-lg font-semibold text-white break-words">{t.EventName}</h3>
-                        {t.Status && (
-                          <span className="shrink-0 rounded-full bg-[#00E1FC]/10 px-2.5 py-1 text-xs font-medium text-[#00E1FC]">
-                            {t.Status}
-                          </span>
-                        )}
+                <div className="space-y-6">
+                  {groups.map((group) => (
+                    <section key={group.label}>
+                      {groups.length > 1 && (
+                        <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-slate-400">
+                          {group.label} ({group.items.length})
+                        </h2>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {group.items.map((booking: any, index: number) => (
+                          <BookingCard key={bookingIdOf(booking) || `${group.label}-${index}`} booking={booking} />
+                        ))}
                       </div>
-                      <div className="mt-3 space-y-1.5 text-sm text-slate-300">
-                        <p className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 shrink-0 text-slate-500" />
-                          {t.EventDate}
-                          {t.EventTime ? ` • ${t.EventTime}` : ""}
-                        </p>
-                        {(t.EventVenue || t.VenueCity) && (
-                          <p className="flex items-start gap-2">
-                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-                            <span className="min-w-0 break-words">
-                              {[t.EventVenue, t.VenueCity].filter(Boolean).join(" • ")}
-                            </span>
-                          </p>
-                        )}
-                      </div>
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-800 pt-4">
-                        <p className="min-w-0 truncate text-xs text-slate-500">Booking ID: {t.Booking_id}</p>
-                        <Link
-                          href={`/rndtckt/${t.Booking_id}`}
-                          className="shrink-0 rounded-lg bg-gradient-to-r from-[#00E1FC] to-[#0F33D1] px-4 py-2 text-sm font-semibold text-white"
-                        >
-                          View Ticket
-                        </Link>
-                      </div>
-                    </div>
+                    </section>
                   ))}
                 </div>
               );
